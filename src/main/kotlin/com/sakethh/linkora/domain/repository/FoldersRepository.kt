@@ -1,6 +1,6 @@
 package com.sakethh.linkora.domain.repository
 
-import com.sakethh.linkora.domain.models.FolderDTO
+import com.sakethh.linkora.domain.dto.FolderDTO
 import org.jetbrains.exposed.dao.id.EntityID
 
 interface FoldersRepository {

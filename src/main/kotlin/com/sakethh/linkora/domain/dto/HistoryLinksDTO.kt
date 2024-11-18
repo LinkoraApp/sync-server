@@ -1,4 +1,4 @@
-package com.sakethh.linkora.domain.models
+package com.sakethh.linkora.domain.dto
 
 import kotlinx.serialization.Serializable
 
