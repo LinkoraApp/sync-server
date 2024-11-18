@@ -1,17 +1,20 @@
 package com.sakethh.linkora.domain.repository
 
 import com.sakethh.linkora.domain.dto.FolderDTO
+import com.sakethh.linkora.utils.RequestResultState
+
+typealias Message = String
 
 interface FoldersRepository {
-    suspend fun createFolder(folderDTO: FolderDTO): Long
-    suspend fun deleteFolder(folderId: Long)
-    suspend fun getChildFolders(parentFolderId: Long): List<FolderDTO>
-    suspend fun getRootFolders(): List<FolderDTO>
-    suspend fun markAsArchive(folderId: Long)
-    suspend fun markAsRegularFolder(folderId: Long)
-    suspend fun changeParentFolder(folderId: Long, newParentFolderId: Long)
-    suspend fun updateFolderName(folderId: Long, newFolderName: String)
+    suspend fun createFolder(folderDTO: FolderDTO): RequestResultState<Message>
+    suspend fun deleteFolder(folderId: Long): RequestResultState<Message>
+    suspend fun getChildFolders(parentFolderId: Long): RequestResultState<List<FolderDTO>>
+    suspend fun getRootFolders(): RequestResultState<List<FolderDTO>>
+    suspend fun markAsArchive(folderId: Long): RequestResultState<Message>
+    suspend fun markAsRegularFolder(folderId: Long): RequestResultState<Message>
+    suspend fun changeParentFolder(folderId: Long, newParentFolderId: Long): RequestResultState<Message>
+    suspend fun updateFolderName(folderId: Long, newFolderName: String): RequestResultState<Message>
 
-    suspend fun updateFolderNote(folderId: Long, note: String)
-    suspend fun deleteFolderNote(folderId: Long)
+    suspend fun updateFolderNote(folderId: Long, newNote: String): RequestResultState<Message>
+    suspend fun deleteFolderNote(folderId: Long): RequestResultState<Message>
 }
