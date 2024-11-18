@@ -33,9 +33,21 @@ class FoldersImplementation : FoldersRepository {
                 FoldersTable.deleteWhere {
                     FoldersTable.id.eq(folderId)
                 }
-            }.let {
-                RequestResultState.Success("Count of deleted rows = $it")
             }
+            when (val childFolders = getChildFolders(folderId)) {
+                is RequestResultState.Failure -> {
+                    throw childFolders.exception
+                }
+
+                is RequestResultState.Success -> {
+                    childFolders.result.map { it.id }.forEach { childFolderId ->
+                        childFolderId?.let {
+                            deleteFolder(it)
+                        }
+                    }
+                }
+            }
+            RequestResultState.Success("Folder and its contents have been successfully deleted.")
         } catch (e: Exception) {
             RequestResultState.Failure(e)
         }
@@ -43,16 +55,18 @@ class FoldersImplementation : FoldersRepository {
 
     override suspend fun getChildFolders(parentFolderId: Long): RequestResultState<List<FolderDTO>> {
         return try {
-            FoldersTable.selectAll().where {
-                FoldersTable.parentFolderID.eq(parentFolderId)
-            }.toList().map {
-                FolderDTO(
-                    id = it[FoldersTable.id].value,
-                    folderName = it[FoldersTable.folderName],
-                    infoForSaving = it[FoldersTable.infoForSaving],
-                    parentFolderID = it[FoldersTable.parentFolderID],
-                    isFolderArchived = it[FoldersTable.isFolderArchived]
-                )
+            transaction {
+                FoldersTable.selectAll().where {
+                    FoldersTable.parentFolderID.eq(parentFolderId)
+                }.toList().map {
+                    FolderDTO(
+                        id = it[FoldersTable.id].value,
+                        folderName = it[FoldersTable.folderName],
+                        infoForSaving = it[FoldersTable.infoForSaving],
+                        parentFolderID = it[FoldersTable.parentFolderID],
+                        isFolderArchived = it[FoldersTable.isFolderArchived]
+                    )
+                }
             }.let {
                 RequestResultState.Success(it)
             }
