@@ -1,6 +1,6 @@
 package com.sakethh.linkora.routing
 
-import com.sakethh.linkora.domain.dto.*
+import com.sakethh.linkora.domain.dto.savedAndFolderLinks.*
 import com.sakethh.linkora.domain.repository.SavedAndFolderLinksRepository
 import com.sakethh.linkora.domain.routes.SavedAndFolderLinkRoute
 import com.sakethh.linkora.utils.respondWithResult

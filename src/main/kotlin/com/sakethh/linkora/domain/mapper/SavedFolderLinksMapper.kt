@@ -1,6 +1,6 @@
 package com.sakethh.linkora.domain.mapper
 
-import com.sakethh.linkora.domain.dto.SavedAndFolderLinksDTO
+import com.sakethh.linkora.domain.dto.savedAndFolderLinks.SavedAndFolderLinksDTO
 import com.sakethh.linkora.domain.tables.SavedAndFolderLinksTable
 import org.jetbrains.exposed.sql.Query
 

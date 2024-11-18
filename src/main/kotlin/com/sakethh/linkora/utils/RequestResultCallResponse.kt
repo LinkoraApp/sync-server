@@ -10,7 +10,7 @@ suspend inline fun <reified T> RoutingContext.respondWithResult(resultState: Req
     when (resultState) {
         is RequestResultState.Failure -> {
             call.respond(
-                status = HttpStatusCode.InternalServerError,
+                status = resultState.httpStatusCode,
                 message = resultState.exception.message + "\nStack Trace:\n" + resultState.exception.stackTrace.contentToString()
             )
         }

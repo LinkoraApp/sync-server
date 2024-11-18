@@ -1,6 +1,6 @@
 package com.sakethh.linkora.data.repository
 
-import com.sakethh.linkora.domain.dto.SavedAndFolderLinksDTO
+import com.sakethh.linkora.domain.dto.savedAndFolderLinks.SavedAndFolderLinksDTO
 import com.sakethh.linkora.domain.mapper.SavedFolderLinksMapper
 import com.sakethh.linkora.domain.repository.Message
 import com.sakethh.linkora.domain.repository.SavedAndFolderLinksRepository

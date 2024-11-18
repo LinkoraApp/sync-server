@@ -1,6 +1,6 @@
 package com.sakethh.linkora.data.repository
 
-import com.sakethh.linkora.domain.dto.FolderDTO
+import com.sakethh.linkora.domain.dto.folder.FolderDTO
 import com.sakethh.linkora.domain.repository.FoldersRepository
 import com.sakethh.linkora.domain.repository.Message
 import com.sakethh.linkora.domain.tables.FoldersTable

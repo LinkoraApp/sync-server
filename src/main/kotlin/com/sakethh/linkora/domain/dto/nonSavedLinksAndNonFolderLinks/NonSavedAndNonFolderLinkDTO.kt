@@ -1,9 +1,11 @@
-package com.sakethh.linkora.domain.dto
+package com.sakethh.linkora.domain.dto.nonSavedLinksAndNonFolderLinks
 
+import com.sakethh.linkora.domain.LinkType
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class ImportantLinksDTO(
+data class NonSavedAndNonFolderLinkDTO(
+    val linkType: LinkType,
     val id: Long,
     val linkTitle: String,
     val webURL: String,

@@ -1,9 +1,9 @@
 package com.sakethh.linkora.routing
 
-import com.sakethh.linkora.domain.dto.ChangeParentFolderDTO
-import com.sakethh.linkora.domain.dto.FolderDTO
-import com.sakethh.linkora.domain.dto.UpdateFolderNameDTO
-import com.sakethh.linkora.domain.dto.UpdateFolderNoteDTO
+import com.sakethh.linkora.domain.dto.folder.ChangeParentFolderDTO
+import com.sakethh.linkora.domain.dto.folder.FolderDTO
+import com.sakethh.linkora.domain.dto.folder.UpdateFolderNameDTO
+import com.sakethh.linkora.domain.dto.folder.UpdateFolderNoteDTO
 import com.sakethh.linkora.domain.repository.FoldersRepository
 import com.sakethh.linkora.domain.routes.FolderRoute
 import com.sakethh.linkora.utils.respondWithResult

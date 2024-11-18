@@ -1,6 +1,6 @@
 package com.sakethh.linkora.domain.repository
 
-import com.sakethh.linkora.domain.dto.FolderDTO
+import com.sakethh.linkora.domain.dto.folder.FolderDTO
 import com.sakethh.linkora.utils.RequestResultState
 
 typealias Message = String

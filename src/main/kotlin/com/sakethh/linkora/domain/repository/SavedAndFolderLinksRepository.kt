@@ -1,6 +1,6 @@
 package com.sakethh.linkora.domain.repository
 
-import com.sakethh.linkora.domain.dto.SavedAndFolderLinksDTO
+import com.sakethh.linkora.domain.dto.savedAndFolderLinks.SavedAndFolderLinksDTO
 import com.sakethh.linkora.utils.RequestResultState
 
 interface SavedAndFolderLinksRepository {
