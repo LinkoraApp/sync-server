@@ -3,16 +3,12 @@ package com.sakethh.linkora.data.repository
 import com.sakethh.linkora.domain.dto.FolderDTO
 import com.sakethh.linkora.domain.repository.FoldersRepository
 import com.sakethh.linkora.domain.tables.FoldersTable
-import org.jetbrains.exposed.dao.id.EntityID
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.insertAndGetId
-import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.update
 
 class FoldersImplementation : FoldersRepository {
-    override suspend fun createFolder(folderDTO: FolderDTO): EntityID<Long> {
+    override suspend fun createFolder(folderDTO: FolderDTO): Long {
         return transaction {
             return@transaction FoldersTable.insertAndGetId { folder ->
                 folder[folderName] = folderDTO.folderName
@@ -20,7 +16,7 @@ class FoldersImplementation : FoldersRepository {
                 folder[parentFolderID] = folderDTO.parentFolderID
                 folder[isFolderArchived] = folderDTO.isFolderArchived
             }
-        }
+        }.value
     }
 
     override suspend fun deleteFolder(folderId: Long) {
@@ -48,9 +44,7 @@ class FoldersImplementation : FoldersRepository {
     override suspend fun getRootFolders(): List<FolderDTO> {
         return transaction {
             FoldersTable.selectAll().where {
-                FoldersTable.parentFolderID.eq(null)
-            }.where {
-                FoldersTable.isFolderArchived.eq(false)
+                FoldersTable.parentFolderID.eq(null) and FoldersTable.isFolderArchived.eq(false)
             }.toList().map {
                 FolderDTO(
                     id = it[FoldersTable.id].value,
