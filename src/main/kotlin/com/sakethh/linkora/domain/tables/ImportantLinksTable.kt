@@ -2,11 +2,11 @@ package com.sakethh.linkora.domain.tables
 
 import org.jetbrains.exposed.dao.id.LongIdTable
 
-object ImportantLinksTable : LongIdTable("important_links") {
-    val linkTitle = text("linkTitle")
-    val webURL = text("webURL")
-    val baseURL = text("baseURL")
-    val imgURL = text("imgURL")
-    val infoForSaving = text("note")
-    val userAgent = text("userAgent").nullable()
+object ImportantLinksTable : LongIdTable(name = "ImportantLinksTable") {
+    val linkTitle = text(name = "linkTitle")
+    val webURL = text(name = "webURL")
+    val baseURL = text(name = "baseURL")
+    val imgURL = text(name = "imgURL")
+    val infoForSaving = text(name = "note")
+    val userAgent = text(name = "userAgent").nullable()
 }

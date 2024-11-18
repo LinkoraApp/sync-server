@@ -2,14 +2,14 @@ package com.sakethh.linkora.domain.tables
 
 import org.jetbrains.exposed.dao.id.LongIdTable
 
-object SavedAndFolderLinksTable : LongIdTable("saved_links_and_folder_links") {
-    val linkTitle = text("linkTitle")
-    val webURL = text("webURL")
-    val baseURL = text("baseURL")
-    val imgURL = text("imgURL")
-    val infoForSaving = text("note")
-    val isLinkedWithSavedLinks = bool("isLinkedWithSavedLinks")
-    val isLinkedWithFolders = bool("isLinkedWithFolders")
-    val idOfLinkedFolder = long("idOfLinkedFolder").nullable()
-    val userAgent = text("userAgent").nullable()
+object SavedAndFolderLinksTable : LongIdTable(name = "SavedAndFolderLinksTable") {
+    val linkTitle = text(name = "linkTitle")
+    val webURL = text(name = "webURL")
+    val baseURL = text(name = "baseURL")
+    val imgURL = text(name = "imgURL")
+    val infoForSaving = text(name = "note")
+    val isLinkedWithSavedLinks = bool(name = "isLinkedWithSavedLinks")
+    val isLinkedWithFolders = bool(name = "isLinkedWithFolders")
+    val idOfLinkedFolder = long(name = "idOfLinkedFolder").nullable()
+    val userAgent = text(name = "userAgent").nullable()
 }
