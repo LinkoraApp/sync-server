@@ -12,6 +12,6 @@ data class SavedAndFolderLinksDTO(
     val infoForSaving: String,
     val isLinkedWithSavedLinks: Boolean,
     val isLinkedWithFolders: Boolean,
-    val idOfLinkedFolder: Long,
-    val userAgent: String,
+    val idOfLinkedFolder: Long?,
+    val userAgent: String?,
 )

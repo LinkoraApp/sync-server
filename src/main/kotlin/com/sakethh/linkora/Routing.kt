@@ -1,8 +1,11 @@
 package com.sakethh.linkora
 
 import com.sakethh.linkora.data.repository.FoldersImplementation
+import com.sakethh.linkora.data.repository.SavedAndFolderLinksImplementation
 import com.sakethh.linkora.domain.repository.FoldersRepository
+import com.sakethh.linkora.domain.repository.SavedAndFolderLinksRepository
 import com.sakethh.linkora.routing.foldersRouting
+import com.sakethh.linkora.routing.savedAndFolderLinksRouting
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
@@ -15,5 +18,8 @@ fun Application.configureRouting() {
         }
     }
     val foldersRepository: FoldersRepository = FoldersImplementation()
+    val savedAndFolderLinksRepository: SavedAndFolderLinksRepository = SavedAndFolderLinksImplementation()
+
     foldersRouting(foldersRepository)
+    savedAndFolderLinksRouting(savedAndFolderLinksRepository)
 }

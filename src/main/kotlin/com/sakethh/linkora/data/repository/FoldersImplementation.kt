@@ -4,6 +4,7 @@ import com.sakethh.linkora.domain.dto.FolderDTO
 import com.sakethh.linkora.domain.repository.FoldersRepository
 import com.sakethh.linkora.domain.repository.Message
 import com.sakethh.linkora.domain.tables.FoldersTable
+import com.sakethh.linkora.domain.tables.SavedAndFolderLinksTable
 import com.sakethh.linkora.utils.RequestResultState
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -33,6 +34,9 @@ class FoldersImplementation : FoldersRepository {
                 FoldersTable.deleteWhere {
                     FoldersTable.id.eq(folderId)
                 }
+                SavedAndFolderLinksTable.deleteWhere {
+                    isLinkedWithFolders.eq(true) and idOfLinkedFolder.eq(folderId)
+                }
             }
             when (val childFolders = getChildFolders(folderId)) {
                 is RequestResultState.Failure -> {
@@ -42,6 +46,9 @@ class FoldersImplementation : FoldersRepository {
                 is RequestResultState.Success -> {
                     childFolders.result.map { it.id }.forEach { childFolderId ->
                         childFolderId?.let {
+                            SavedAndFolderLinksTable.deleteWhere {
+                                isLinkedWithFolders.eq(true) and idOfLinkedFolder.eq(childFolderId)
+                            }
                             deleteFolder(it)
                         }
                     }
