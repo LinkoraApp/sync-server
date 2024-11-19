@@ -57,14 +57,8 @@ fun Application.module() {
     configureAdministration()
     configureRouting()
     ServerConfiguration.readConfig().let { serverConfig ->
-        try {
-            configureDatabase(
-                url = serverConfig.databaseUrl,
-                user = serverConfig.databaseUser,
-                password = serverConfig.databasePassword
-            )
-        } catch (e: Exception) {
-            println(e.message)
-        }
+        configureDatabase(
+            url = serverConfig.databaseUrl, user = serverConfig.databaseUser, password = serverConfig.databasePassword
+        )
     }
 }

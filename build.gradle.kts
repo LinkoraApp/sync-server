@@ -33,5 +33,12 @@ dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
     implementation("org.jetbrains.exposed:exposed-core:0.56.0")
     implementation("org.jetbrains.exposed:exposed-jdbc:0.56.0")
-    implementation("org.xerial:sqlite-jdbc:3.41.2.2")
+
+    implementation("org.xerial:sqlite-jdbc:3.44.1.0")
+    implementation("com.h2database:h2:2.2.224")
+    implementation("org.mariadb.jdbc:mariadb-java-client:3.3.1")
+    implementation("mysql:mysql-connector-java:8.0.33")
+    implementation("com.oracle.database.jdbc:ojdbc8:12.2.0.1")
+    implementation("org.postgresql:postgresql:42.7.1")
+    implementation("com.microsoft.sqlserver:mssql-jdbc:9.4.1.jre8")
 }
