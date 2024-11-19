@@ -13,11 +13,14 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 fun Application.configureRouting() {
     routing {
         get("/") {
-            call.respond(status = HttpStatusCode.OK, message = HttpStatusCode.OK.description)
+            val json = Json { prettyPrint = true }
+            call.respond(message = json.encodeToString(ServerConfiguration.readConfig()), status = HttpStatusCode.OK)
         }
     }
     val foldersRepository: FoldersRepository = FoldersImplementation()
