@@ -12,6 +12,8 @@ import com.sakethh.linkora.domain.routes.FolderRoute
 import com.sakethh.linkora.domain.tables.FoldersTable
 import com.sakethh.linkora.domain.tables.LinksTable
 import com.sakethh.linkora.utils.RequestResultState
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.encodeToJsonElement
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -30,7 +32,7 @@ class FoldersImplementation : FoldersRepository {
                 LinkoraWebSocket.sendNotification(
                     ChangeNotification(
                         operation = FolderRoute.CREATE_FOLDER.name,
-                        payload = folderDTO
+                        payload = Json.encodeToJsonElement(folderDTO)
                     )
                 )
                 RequestResultState.Success("Folder created successfully with id = $it")
@@ -69,7 +71,7 @@ class FoldersImplementation : FoldersRepository {
             LinkoraWebSocket.sendNotification(
                 ChangeNotification(
                     operation = FolderRoute.DELETE_FOLDER.name,
-                    payload = folderId
+                    payload = Json.encodeToJsonElement(folderId)
                 )
             )
             RequestResultState.Success("Folder and its contents have been successfully deleted.")
@@ -132,7 +134,7 @@ class FoldersImplementation : FoldersRepository {
                 LinkoraWebSocket.sendNotification(
                     ChangeNotification(
                         operation = FolderRoute.MARK_AS_ARCHIVE.name,
-                        payload = folderId
+                        payload = Json.encodeToJsonElement(folderId)
                     )
                 )
                 RequestResultState.Success("Number of rows affected by the update = $it")
@@ -152,7 +154,7 @@ class FoldersImplementation : FoldersRepository {
                 LinkoraWebSocket.sendNotification(
                     ChangeNotification(
                         operation = FolderRoute.MARK_AS_REGULAR_FOLDER.name,
-                        payload = folderId
+                        payload = Json.encodeToJsonElement(folderId)
                     )
                 )
                 RequestResultState.Success("Number of rows affected by the update = $it")
@@ -172,7 +174,7 @@ class FoldersImplementation : FoldersRepository {
                 LinkoraWebSocket.sendNotification(
                     ChangeNotification(
                         operation = FolderRoute.CHANGE_PARENT_FOLDER.name,
-                        payload = ChangeParentFolderDTO(folderId, newParentFolderId)
+                        payload = Json.encodeToJsonElement(ChangeParentFolderDTO(folderId, newParentFolderId))
                     )
                 )
                 RequestResultState.Success("Number of rows affected by the update = $it")
@@ -192,7 +194,7 @@ class FoldersImplementation : FoldersRepository {
                 LinkoraWebSocket.sendNotification(
                     ChangeNotification(
                         operation = FolderRoute.UPDATE_FOLDER_NAME.name,
-                        payload = UpdateFolderNameDTO(folderId, newFolderName)
+                        payload = Json.encodeToJsonElement(UpdateFolderNameDTO(folderId, newFolderName))
                     )
                 )
                 RequestResultState.Success("Number of rows affected by the update = $it")
@@ -212,7 +214,7 @@ class FoldersImplementation : FoldersRepository {
                 LinkoraWebSocket.sendNotification(
                     ChangeNotification(
                         operation = FolderRoute.UPDATE_FOLDER_NOTE.name,
-                        payload = UpdateFolderNoteDTO(folderId, newNote)
+                        payload = Json.encodeToJsonElement(UpdateFolderNoteDTO(folderId, newNote))
                     )
                 )
                 RequestResultState.Success("Number of rows affected by the update = $it")
@@ -232,7 +234,7 @@ class FoldersImplementation : FoldersRepository {
                 LinkoraWebSocket.sendNotification(
                     ChangeNotification(
                         operation = FolderRoute.DELETE_FOLDER_NOTE.name,
-                        payload = folderId
+                        payload = Json.encodeToJsonElement(folderId)
                     )
                 )
                 RequestResultState.Success("Number of rows affected by the update = $it")

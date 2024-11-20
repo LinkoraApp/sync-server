@@ -12,6 +12,7 @@ suspend inline fun <reified T> RoutingContext.respondWithResult(resultState: Req
             call.respond(
                 status = resultState.httpStatusCode,
                 message = resultState.exception.message + "\nStack Trace:\n" + resultState.exception.stackTrace.contentToString()
+                    .replace(",", "\n")
             )
         }
 

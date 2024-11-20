@@ -10,6 +10,8 @@ import com.sakethh.linkora.domain.repository.Message
 import com.sakethh.linkora.domain.routes.LinkRoute
 import com.sakethh.linkora.domain.tables.LinksTable
 import com.sakethh.linkora.utils.RequestResultState
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.encodeToJsonElement
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -36,7 +38,7 @@ class LinksImplementation(
             }.let {
                 LinkoraWebSocket.sendNotification(
                     ChangeNotification(
-                        operation = LinkRoute.CREATE_A_NEW_LINK.name, payload = linkDTO
+                        operation = LinkRoute.CREATE_A_NEW_LINK.name, payload = Json.encodeToJsonElement(linkDTO)
                     )
                 )
                 RequestResultState.Success("Link created successfully for ${linkDTO.linkType.name} with id = ${linkDTO.id}.")
@@ -56,7 +58,7 @@ class LinksImplementation(
             }
             LinkoraWebSocket.sendNotification(
                 ChangeNotification(
-                    operation = LinkRoute.DELETE_A_LINK.name, payload = deleteALinkDTO
+                    operation = LinkRoute.DELETE_A_LINK.name, payload = Json.encodeToJsonElement(deleteALinkDTO)
                 )
             )
             RequestResultState.Success("Link deleted successfully.")
@@ -91,7 +93,8 @@ class LinksImplementation(
             }
             LinkoraWebSocket.sendNotification(
                 ChangeNotification(
-                    operation = LinkRoute.UPDATE_LINKED_FOLDER_ID.name, payload = updateLinkedFolderIDDto
+                    operation = LinkRoute.UPDATE_LINKED_FOLDER_ID.name,
+                    payload = Json.encodeToJsonElement(updateLinkedFolderIDDto)
                 )
             )
             RequestResultState.Success("idOfLinkedFolder Updated Successfully.")
@@ -114,7 +117,8 @@ class LinksImplementation(
             }
             LinkoraWebSocket.sendNotification(
                 ChangeNotification(
-                    operation = LinkRoute.UPDATE_LINK_TITLE.name, payload = updateTitleOfTheLinkDTO
+                    operation = LinkRoute.UPDATE_LINK_TITLE.name,
+                    payload = Json.encodeToJsonElement(updateTitleOfTheLinkDTO)
                 )
             )
             RequestResultState.Success("Title was updated successfully.")
@@ -136,7 +140,8 @@ class LinksImplementation(
             }
             LinkoraWebSocket.sendNotification(
                 ChangeNotification(
-                    operation = LinkRoute.UPDATE_LINK_NOTE.name, payload = updateNoteOfALinkDTO
+                    operation = LinkRoute.UPDATE_LINK_NOTE.name,
+                    payload = Json.encodeToJsonElement(updateNoteOfALinkDTO)
                 )
             )
             RequestResultState.Success("Note was updated successfully.")
@@ -158,7 +163,8 @@ class LinksImplementation(
             }
             LinkoraWebSocket.sendNotification(
                 ChangeNotification(
-                    operation = LinkRoute.UPDATE_USER_AGENT.name, payload = updateLinkUserAgentDTO
+                    operation = LinkRoute.UPDATE_USER_AGENT.name,
+                    payload = Json.encodeToJsonElement(updateLinkUserAgentDTO)
                 )
             )
             RequestResultState.Success("User agent was updated successfully.")

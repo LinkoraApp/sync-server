@@ -13,6 +13,7 @@ object LinkoraWebSocket {
     private val json = Json {
         prettyPrint = true
     }
+
     fun DefaultWebSocketServerSession.initializeWriteChannel() {
         writeChannel.set(this.outgoing)
     }
