@@ -1,6 +1,7 @@
 package com.sakethh.linkora
 
-import com.sakethh.linkora.domain.tables.*
+import com.sakethh.linkora.domain.tables.FoldersTable
+import com.sakethh.linkora.domain.tables.LinksTable
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -12,11 +13,8 @@ fun configureDatabase(url: String, user: String, password: String) {
             println("Connected to the database at ${this.db.url}")
             SchemaUtils.createDatabase("linkora")
             SchemaUtils.create(
-                ArchiveLinksTable,
                 FoldersTable,
-                HistoryLinksTable,
-                ImportantLinksTable,
-                SavedAndFolderLinksTable,
+                LinksTable,
             )
         }
         println("Linkora database is operational and accessible.")
@@ -33,11 +31,8 @@ fun configureDatabase(url: String, user: String, password: String) {
             transaction {
                 println("Connected to the database at ${this.db.url}")
                 SchemaUtils.create(
-                    ArchiveLinksTable,
                     FoldersTable,
-                    HistoryLinksTable,
-                    ImportantLinksTable,
-                    SavedAndFolderLinksTable,
+                    LinksTable,
                 )
             }
         } else {

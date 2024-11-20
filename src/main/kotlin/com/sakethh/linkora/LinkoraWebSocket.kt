@@ -1,19 +1,24 @@
 package com.sakethh.linkora
 
+import com.sakethh.linkora.domain.model.ChangeNotification
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.channels.SendChannel
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import java.util.concurrent.atomic.AtomicReference
 
 object LinkoraWebSocket {
     private val writeChannel = AtomicReference<SendChannel<Frame>>(null)
-
+    private val json = Json {
+        prettyPrint = true
+    }
     fun DefaultWebSocketServerSession.initializeWriteChannel() {
         writeChannel.set(this.outgoing)
     }
 
-    suspend fun sendData(frame: Frame) {
-        writeChannel.get().send(frame)
+    suspend fun sendNotification(notification: ChangeNotification) {
+        writeChannel.get().send(Frame.Text(json.encodeToString(notification)))
     }
 
     fun closeWriteChannel() {

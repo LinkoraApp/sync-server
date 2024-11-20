@@ -1,11 +1,11 @@
-package com.sakethh.linkora.domain.dto.nonSavedLinksAndNonFolderLinks
+package com.sakethh.linkora.domain.dto.link
 
 import com.sakethh.linkora.domain.LinkType
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class UpdateANonSavedAndNonFolderLinkTitleDTO(
+data class UpdateLinkUserAgentDTO(
     val linkType: LinkType,
     val linkId: Long,
-    val newTitle: String
+    val userAgent: String
 )
