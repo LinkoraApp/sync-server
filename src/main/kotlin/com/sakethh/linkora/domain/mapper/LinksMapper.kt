@@ -19,7 +19,8 @@ class LinksMapper {
                 isLinkedWithFolders = resultRow[LinksTable.isLinkedWithFolders],
                 idOfLinkedFolder = resultRow[LinksTable.idOfLinkedFolder],
                 userAgent = resultRow[LinksTable.userAgent],
-                linkType = LinkType.valueOf(resultRow[LinksTable.linkType])
+                linkType = LinkType.valueOf(resultRow[LinksTable.linkType]),
+                lastModified = resultRow[LinksTable.lastModified]
             )
         }
     }

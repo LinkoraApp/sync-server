@@ -9,3 +9,13 @@ sealed class RequestResultState<T> {
         val httpStatusCode: HttpStatusCode = HttpStatusCode.InternalServerError
     ) : RequestResultState<T>()
 }
+
+suspend fun <T> RequestResultState<T>.onSuccess(init: suspend (result: T) -> Unit) {
+    this as RequestResultState.Success<T>
+    init(this.result)
+}
+
+suspend fun <T> RequestResultState<T>.onFailure(init: suspend (exception: Exception, httpStatusCode: HttpStatusCode) -> Unit) {
+    this as RequestResultState.Failure<T>
+    init(this.exception, this.httpStatusCode)
+}

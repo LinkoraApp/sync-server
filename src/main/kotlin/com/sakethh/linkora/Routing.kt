@@ -17,8 +17,8 @@ fun Application.configureRouting() {
             call.respond(message = HttpStatusCode.OK.description, status = HttpStatusCode.OK)
         }
     }
-    val foldersRepository: FoldersRepository = FoldersImplementation()
     val linksRepository: LinksRepository = LinksImplementation()
+    val foldersRepository: FoldersRepository = FoldersImplementation(linksRepository = linksRepository)
 
     foldersRouting(foldersRepository)
     linksRouting(linksRepository)

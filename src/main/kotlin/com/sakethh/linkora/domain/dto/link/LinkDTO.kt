@@ -12,6 +12,7 @@ data class LinkDTO(
     val baseURL: String,
     val imgURL: String,
     val infoForSaving: String,
+    val lastModified: String,
     val isLinkedWithSavedLinks: Boolean,
     val isLinkedWithFolders: Boolean,
     val idOfLinkedFolder: Long?,

@@ -3,18 +3,22 @@ package com.sakethh.linkora.data.repository
 import com.sakethh.linkora.LinkoraWebSocket
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.dto.link.*
+import com.sakethh.linkora.domain.handler.LinksTombstoneHandler.insert
 import com.sakethh.linkora.domain.mapper.LinksMapper
 import com.sakethh.linkora.domain.model.ChangeNotification
 import com.sakethh.linkora.domain.repository.LinksRepository
 import com.sakethh.linkora.domain.repository.Message
 import com.sakethh.linkora.domain.routes.LinkRoute
 import com.sakethh.linkora.domain.tables.LinksTable
+import com.sakethh.linkora.domain.tables.LinksTombstone
 import com.sakethh.linkora.utils.RequestResultState
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.time.Instant
+import java.time.format.DateTimeFormatter
 
 class LinksImplementation(
     private val linksMapper: LinksMapper = LinksMapper()
@@ -23,6 +27,7 @@ class LinksImplementation(
         return try {
             transaction {
                 LinksTable.insert { link ->
+                    link[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
                     link[linkType] = linkDTO.linkType.name
                     link[linkTitle] = linkDTO.linkTitle
                     link[webURL] = linkDTO.webURL
@@ -52,6 +57,12 @@ class LinksImplementation(
     override suspend fun deleteALink(deleteALinkDTO: DeleteALinkDTO): RequestResultState<Message> {
         return try {
             transaction {
+                LinksTable.selectAll()
+                    .where(LinksTable.id.eq(deleteALinkDTO.linkId) and LinksTable.linkType.eq(deleteALinkDTO.linkType.name))
+                    .forEach { resultRow ->
+                        LinksTombstone.insert(resultRow)
+                    }
+
                 LinksTable.deleteWhere {
                     id.eq(deleteALinkDTO.linkId) and linkType.eq(deleteALinkDTO.linkType.name)
                 }
@@ -70,6 +81,12 @@ class LinksImplementation(
     override suspend fun deleteLinksOfAFolder(folderId: Long): RequestResultState<Message> {
         return try {
             transaction {
+                LinksTable.selectAll()
+                    .where(LinksTable.idOfLinkedFolder.eq(folderId))
+                    .forEach { resultRow ->
+                        LinksTombstone.insert(resultRow)
+                    }
+
                 LinksTable.deleteWhere {
                     idOfLinkedFolder.eq(folderId)
                 }
@@ -88,6 +105,7 @@ class LinksImplementation(
                         updateLinkedFolderIDDto.linkType.name
                     )
                 }) {
+                    it[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
                     it[idOfLinkedFolder] = updateLinkedFolderIDDto.linkId
                 }
             }
@@ -111,6 +129,7 @@ class LinksImplementation(
                         updateTitleOfTheLinkDTO.linkType.name
                     )
                 }) {
+                    it[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
                     it[linkTitle] = updateTitleOfTheLinkDTO.newTitleOfTheLink
                 }
 
@@ -135,6 +154,7 @@ class LinksImplementation(
                         updateNoteOfALinkDTO.linkType.name
                     )
                 }) {
+                    it[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
                     it[infoForSaving] = updateNoteOfALinkDTO.newNote
                 }
             }
@@ -158,6 +178,7 @@ class LinksImplementation(
                         updateLinkUserAgentDTO.linkType.name
                     )
                 }) {
+                    it[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
                     it[this.userAgent] = userAgent
                 }
             }

@@ -1,11 +1,10 @@
 package com.sakethh.linkora.domain.tables
 
-import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.dao.id.LongIdTable
 
-object LinksTable : Table(name = "links_table") {
+object LinksTombstone : LongIdTable("links_tombstone") {
     val lastModified = text("last_modified")
-    val id = long("id")
-    override val primaryKey = PrimaryKey(id)
+    val originId = long("originId")
     val linkType = text("link_type")
     val linkTitle = text(name = "linkTitle")
     val webURL = text(name = "webURL")
