@@ -9,5 +9,6 @@ data class ServerConfig(
     val databaseUser: String = "database_user",
     val databasePassword: String = "database_password",
     val hostAddress: String = InetAddress.getLocalHost().hostAddress,
-    val serverPort: Int = 45454
+    val serverPort: Int = 45454,
+    val serverAuthToken: String = "TOKEN",
 )
