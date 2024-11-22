@@ -64,12 +64,12 @@ fun configureDatabase() {
                 ServerConfiguration.createConfig(forceWrite = true)
             } else {
                 val invalidCharText = listOf(
-                    "Was waiting for a 'Y', but since you're too cool for that, crashing the setup like it's no big deal. Enjoy the chaos! 💥\n",
-                    "Expected a nice 'Y' to play along, but since we’re not on the same page, crashing the setup without hesitation! 😏\n",
-                    "Waiting for a 'Y' to keep things moving, but since it’s missing... BOOM, setup crash incoming! 💣\n",
-                    "Was hoping for a friendly 'Y', but nope—no mercy! Forcing a crash now. You asked for it! 😜",
-                    "You didn’t hit me with that 'Y'? Guess what? Setup crashing like it’s a Nas verse—smooth but hard-hitting. Ain’t no mercy, fam. 🔨\n",
-                    "No 'Y'? You know what that means? Time to crash this setup like Nas’ flow—effortless but packs a punch. Get ready for it. ⚡\n"
+                    "\n\nWas waiting for a 'Y', but since you're too cool for that, crashing the setup like it's no big deal. Enjoy the chaos! 💥\n",
+                    "\n\nExpected a nice 'Y' to play along, but since we’re not on the same page, crashing the setup without hesitation! 😏\n",
+                    "\n\nWaiting for a 'Y' to keep things moving, but since it’s missing... BOOM, setup crash incoming! 💣\n",
+                    "\n\nWas hoping for a friendly 'Y', but nope—no mercy! Forcing a crash now. You asked for it! 😜",
+                    "\n\nYou didn’t hit me with that 'Y'? Guess what? Setup crashing like it’s a Nas verse—smooth but hard-hitting. Ain’t no mercy, fam. 🔨\n",
+                    "\n\nNo 'Y'? You know what that means? Time to crash this setup like Nas’ flow—effortless but packs a punch. Get ready for it. ⚡\n"
                 )
                 println(invalidCharText.random())
                 throw IllegalArgumentException()

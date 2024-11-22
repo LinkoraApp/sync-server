@@ -10,7 +10,6 @@ import kotlinx.serialization.json.Json
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
-import kotlin.system.exitProcess
 import kotlin.time.Duration.Companion.seconds
 
 fun main() {
@@ -44,7 +43,7 @@ object ServerConfiguration {
             if (forceWrite.not()) {
                 println("A configuration file named `linkoraConfig.json` has been created. Do not change the name or extension.")
             }
-            println("Press 'P' (should be in uppercase) and hit Enter to start the setup, which will proceed with the configuration. If you prefer to configure it manually, press any key other than 'Y', complete the configuration, and then relaunch this JAR file to run the server.")
+            println("Press 'P' (should be in uppercase) and hit Enter to start the setup, which will proceed with the configuration.")
             val inputChar = readln()
             if (inputChar == "P") {
 
@@ -68,7 +67,16 @@ object ServerConfiguration {
                 Files.writeString(configFilePath, jsonConfigString, StandardOpenOption.TRUNCATE_EXISTING)
                 println("Successfully configured the server with the given data.")
             } else {
-                exitProcess(0)
+                val invalidCharText = listOf(
+                    "\n\nWas waiting for a 'P', but since you're too cool for that, crashing the setup like it's no big deal. Enjoy the chaos! 💥\n",
+                    "\n\nExpected a nice 'P' to play along, but since we’re not on the same page, crashing the setup without hesitation! 😏\n",
+                    "\n\nWaiting for a 'P' to keep things moving, but since it’s missing... BOOM, setup crash incoming! 💣\n",
+                    "\n\nWas hoping for a friendly 'P', but nope—no mercy! Forcing a crash now. You asked for it! 😜",
+                    "\n\nYou didn’t hit me with that 'P'? Guess what? Setup crashing like it’s a Nas verse—smooth but hard-hitting. Ain’t no mercy, fam. 🔨\n",
+                    "\n\nNo 'P'? You know what that means? Time to crash this setup like Nas’ flow—effortless but packs a punch. Get ready for it. ⚡\n"
+                )
+                println(invalidCharText.random())
+                throw IllegalArgumentException()
             }
         }
     }
@@ -91,7 +99,6 @@ fun Application.module() {
     configureDatabase()
     configureSecurity()
     configureSerialization()
-    configureAdministration()
     configureRouting()
     install(WebSockets) {
         pingPeriod = 15.seconds
