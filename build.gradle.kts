@@ -11,7 +11,7 @@ group = "com.sakethh"
 version = "0.0.1"
 
 application {
-    mainClass.set("io.ktor.server.netty.EngineMain")
+    mainClass.set("com.sakethh.linkora.ApplicationKt")
 
     val isDevelopment: Boolean = project.ext.has("development")
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
@@ -30,7 +30,6 @@ dependencies {
     implementation("io.ktor:ktor-server-websockets")
     implementation("io.ktor:ktor-network")
     implementation("ch.qos.logback:logback-classic:$logback_version")
-    implementation("io.ktor:ktor-server-config-yaml-jvm")
     implementation("io.ktor:ktor-server-websockets-jvm:3.0.1")
     testImplementation("io.ktor:ktor-server-test-host-jvm")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
@@ -44,4 +43,8 @@ dependencies {
     implementation("com.oracle.database.jdbc:ojdbc8:12.2.0.1")
     implementation("org.postgresql:postgresql:42.7.1")
     implementation("com.microsoft.sqlserver:mssql-jdbc:9.4.1.jre8")
+}
+
+tasks.named<JavaExec>("run") {
+    standardInput = System.`in`
 }
