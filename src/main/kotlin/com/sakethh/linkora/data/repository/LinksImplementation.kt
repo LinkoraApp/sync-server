@@ -11,7 +11,7 @@ import com.sakethh.linkora.domain.repository.Message
 import com.sakethh.linkora.domain.routes.LinkRoute
 import com.sakethh.linkora.domain.tables.LinksTable
 import com.sakethh.linkora.domain.tables.LinksTombstone
-import com.sakethh.linkora.utils.RequestResultState
+import com.sakethh.linkora.utils.Result
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
 import org.jetbrains.exposed.sql.*
@@ -23,10 +23,10 @@ import java.time.format.DateTimeFormatter
 class LinksImplementation(
     private val linksMapper: LinksMapper = LinksMapper()
 ) : LinksRepository {
-    override suspend fun createANewLink(linkDTO: LinkDTO): RequestResultState<Message> {
+    override suspend fun createANewLink(linkDTO: LinkDTO): Result<NewItemResponseDTO> {
         return try {
             transaction {
-                LinksTable.insert { link ->
+                LinksTable.insertAndGetId { link ->
                     link[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
                     link[linkType] = linkDTO.linkType.name
                     link[linkTitle] = linkDTO.linkTitle
@@ -38,23 +38,29 @@ class LinksImplementation(
                     link[isLinkedWithFolders] = linkDTO.isLinkedWithFolders
                     link[idOfLinkedFolder] = linkDTO.idOfLinkedFolder
                     link[userAgent] = linkDTO.userAgent
-                    link[id] = linkDTO.id
+                    link[mediaType] = linkDTO.mediaType.name
                 }
-            }.let {
+            }.value.let { idOfNewlyAddedLink ->
                 LinkoraWebSocket.sendNotification(
                     ChangeNotification(
-                        operation = LinkRoute.CREATE_A_NEW_LINK.name, payload = Json.encodeToJsonElement(linkDTO)
+                        operation = LinkRoute.CREATE_A_NEW_LINK.name,
+                        payload = Json.encodeToJsonElement(linkDTO.copy(id = idOfNewlyAddedLink))
                     )
                 )
-                RequestResultState.Success("Link created successfully for ${linkDTO.linkType.name} with id = ${linkDTO.id}.")
+                Result.Success(
+                    NewItemResponseDTO(
+                        message = "Link created successfully for ${linkDTO.linkType.name} with id = ${idOfNewlyAddedLink}.",
+                        id = idOfNewlyAddedLink
+                    )
+                )
             }
         } catch (e: Exception) {
-            RequestResultState.Failure(e)
+            Result.Failure(e)
         }
     }
 
 
-    override suspend fun deleteALink(deleteALinkDTO: DeleteALinkDTO): RequestResultState<Message> {
+    override suspend fun deleteALink(deleteALinkDTO: DeleteALinkDTO): Result<Message> {
         return try {
             transaction {
                 LinksTable.selectAll()
@@ -72,13 +78,13 @@ class LinksImplementation(
                     operation = LinkRoute.DELETE_A_LINK.name, payload = Json.encodeToJsonElement(deleteALinkDTO)
                 )
             )
-            RequestResultState.Success("Link deleted successfully.")
+            Result.Success("Link deleted successfully.")
         } catch (e: Exception) {
-            RequestResultState.Failure(e)
+            Result.Failure(e)
         }
     }
 
-    override suspend fun deleteLinksOfAFolder(folderId: Long): RequestResultState<Message> {
+    override suspend fun deleteLinksOfAFolder(folderId: Long): Result<Message> {
         return try {
             transaction {
                 LinksTable.selectAll()
@@ -91,13 +97,13 @@ class LinksImplementation(
                     idOfLinkedFolder.eq(folderId)
                 }
             }
-            RequestResultState.Success("Links deleted successfully from the folderId = $folderId.")
+            Result.Success("Links deleted successfully from the folderId = $folderId.")
         } catch (e: Exception) {
-            RequestResultState.Failure(e)
+            Result.Failure(e)
         }
     }
 
-    override suspend fun updateLinkedFolderIdOfALink(updateLinkedFolderIDDto: UpdateLinkedFolderIDDto): RequestResultState<Message> {
+    override suspend fun updateLinkedFolderIdOfALink(updateLinkedFolderIDDto: UpdateLinkedFolderIDDto): Result<Message> {
         return try {
             transaction {
                 LinksTable.update(where = {
@@ -115,13 +121,13 @@ class LinksImplementation(
                     payload = Json.encodeToJsonElement(updateLinkedFolderIDDto)
                 )
             )
-            RequestResultState.Success("idOfLinkedFolder Updated Successfully.")
+            Result.Success("idOfLinkedFolder Updated Successfully.")
         } catch (e: Exception) {
-            RequestResultState.Failure(e)
+            Result.Failure(e)
         }
     }
 
-    override suspend fun updateTitleOfTheLink(updateTitleOfTheLinkDTO: UpdateTitleOfTheLinkDTO): RequestResultState<Message> {
+    override suspend fun updateTitleOfTheLink(updateTitleOfTheLinkDTO: UpdateTitleOfTheLinkDTO): Result<Message> {
         return try {
             transaction {
                 LinksTable.update(where = {
@@ -140,13 +146,13 @@ class LinksImplementation(
                     payload = Json.encodeToJsonElement(updateTitleOfTheLinkDTO)
                 )
             )
-            RequestResultState.Success("Title was updated successfully.")
+            Result.Success("Title was updated successfully.")
         } catch (e: Exception) {
-            RequestResultState.Failure(e)
+            Result.Failure(e)
         }
     }
 
-    override suspend fun updateNote(updateNoteOfALinkDTO: UpdateNoteOfALinkDTO): RequestResultState<Message> {
+    override suspend fun updateNote(updateNoteOfALinkDTO: UpdateNoteOfALinkDTO): Result<Message> {
         return try {
             transaction {
                 LinksTable.update(where = {
@@ -164,13 +170,13 @@ class LinksImplementation(
                     payload = Json.encodeToJsonElement(updateNoteOfALinkDTO)
                 )
             )
-            RequestResultState.Success("Note was updated successfully.")
+            Result.Success("Note was updated successfully.")
         } catch (e: Exception) {
-            RequestResultState.Failure(e)
+            Result.Failure(e)
         }
     }
 
-    override suspend fun updateUserAgent(updateLinkUserAgentDTO: UpdateLinkUserAgentDTO): RequestResultState<Message> {
+    override suspend fun updateUserAgent(updateLinkUserAgentDTO: UpdateLinkUserAgentDTO): Result<Message> {
         return try {
             transaction {
                 LinksTable.update(where = {
@@ -188,13 +194,13 @@ class LinksImplementation(
                     payload = Json.encodeToJsonElement(updateLinkUserAgentDTO)
                 )
             )
-            RequestResultState.Success("User agent was updated successfully.")
+            Result.Success("User agent was updated successfully.")
         } catch (e: Exception) {
-            RequestResultState.Failure(e)
+            Result.Failure(e)
         }
     }
 
-    override suspend fun getLinks(linkType: LinkType): RequestResultState<List<LinkDTO>> {
+    override suspend fun getLinks(linkType: LinkType): Result<List<LinkDTO>> {
         return try {
             transaction {
                 LinksTable.selectAll().where {
@@ -203,14 +209,14 @@ class LinksImplementation(
                     linksMapper.toDto(it)
                 }
             }.let {
-                RequestResultState.Success(it)
+                Result.Success(it)
             }
         } catch (e: Exception) {
-            RequestResultState.Failure(e)
+            Result.Failure(e)
         }
     }
 
-    override suspend fun getLinksFromAFolder(folderId: Long): RequestResultState<List<LinkDTO>> {
+    override suspend fun getLinksFromAFolder(folderId: Long): Result<List<LinkDTO>> {
         return try {
             transaction {
                 LinksTable.selectAll().where {
@@ -221,10 +227,10 @@ class LinksImplementation(
                     linksMapper.toDto(it)
                 }
             }.let {
-                RequestResultState.Success(it)
+                Result.Success(it)
             }
         } catch (e: Exception) {
-            RequestResultState.Failure(e)
+            Result.Failure(e)
         }
     }
 }

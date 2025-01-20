@@ -6,9 +6,10 @@ import io.ktor.server.routing.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
-suspend inline fun <reified T> RoutingContext.respondWithResult(resultState: RequestResultState<T>) {
+suspend inline fun <reified T> RoutingContext.respondWithResult(resultState: Result<T>) {
     when (resultState) {
-        is RequestResultState.Failure -> {
+        is Result.Failure -> {
+            resultState.exception.printStackTrace()
             call.respond(
                 status = resultState.httpStatusCode,
                 message = resultState.exception.message + "\nStack Trace:\n" + resultState.exception.stackTrace.contentToString()
@@ -16,7 +17,7 @@ suspend inline fun <reified T> RoutingContext.respondWithResult(resultState: Req
             )
         }
 
-        is RequestResultState.Success -> {
+        is Result.Success -> {
             call.respondText(
                 status = HttpStatusCode.OK,
                 contentType = ContentType.Application.Json,

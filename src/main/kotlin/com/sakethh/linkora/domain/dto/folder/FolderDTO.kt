@@ -5,8 +5,8 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class FolderDTO(
     val id: Long? = null,
-    val folderName: String,
-    val infoForSaving: String,
-    val parentFolderID: Long?,
-    val isFolderArchived: Boolean
+    val name: String,
+    val note: String,
+    val parentFolderId: Long?,
+    val isArchived: Boolean
 )

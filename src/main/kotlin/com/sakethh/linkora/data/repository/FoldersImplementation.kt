@@ -5,13 +5,14 @@ import com.sakethh.linkora.domain.dto.folder.ChangeParentFolderDTO
 import com.sakethh.linkora.domain.dto.folder.FolderDTO
 import com.sakethh.linkora.domain.dto.folder.UpdateFolderNameDTO
 import com.sakethh.linkora.domain.dto.folder.UpdateFolderNoteDTO
+import com.sakethh.linkora.domain.dto.link.NewItemResponseDTO
 import com.sakethh.linkora.domain.model.ChangeNotification
 import com.sakethh.linkora.domain.repository.FoldersRepository
 import com.sakethh.linkora.domain.repository.LinksRepository
 import com.sakethh.linkora.domain.repository.Message
 import com.sakethh.linkora.domain.routes.FolderRoute
 import com.sakethh.linkora.domain.tables.FoldersTable
-import com.sakethh.linkora.utils.RequestResultState
+import com.sakethh.linkora.utils.Result
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
 import org.jetbrains.exposed.sql.and
@@ -23,35 +24,35 @@ import java.time.Instant
 import java.time.format.DateTimeFormatter
 
 class FoldersImplementation(private val linksRepository: LinksRepository) : FoldersRepository {
-    override suspend fun createFolder(folderDTO: FolderDTO): RequestResultState<Message> {
+    override suspend fun createFolder(folderDTO: FolderDTO): Result<NewItemResponseDTO> {
         return try {
             transaction {
                 FoldersTable.insertAndGetId { folder ->
                     folder[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
-                    folder[folderName] = folderDTO.folderName
-                    folder[infoForSaving] = folderDTO.infoForSaving
-                    folder[parentFolderID] = folderDTO.parentFolderID
-                    folder[isFolderArchived] = folderDTO.isFolderArchived
+                    folder[folderName] = folderDTO.name
+                    folder[infoForSaving] = folderDTO.note
+                    folder[parentFolderID] = folderDTO.parentFolderId
+                    folder[isFolderArchived] = folderDTO.isArchived
                 }
             }.value.let {
                 LinkoraWebSocket.sendNotification(
                     ChangeNotification(
                         operation = FolderRoute.CREATE_FOLDER.name,
-                        payload = Json.encodeToJsonElement(folderDTO)
+                        payload = Json.encodeToJsonElement(folderDTO.copy(id = it))
                     )
                 )
-                RequestResultState.Success("Folder created successfully with id = $it")
+                Result.Success(NewItemResponseDTO(message = "Folder created successfully with id = $it", id = it))
             }
         } catch (e: Exception) {
-            RequestResultState.Failure(e)
+            Result.Failure(e)
         }
     }
 
-    override suspend fun deleteFolder(folderId: Long): RequestResultState<Message> {
+    override suspend fun deleteFolder(folderId: Long): Result<Message> {
         TODO()
     }
 
-    override suspend fun getChildFolders(parentFolderId: Long): RequestResultState<List<FolderDTO>> {
+    override suspend fun getChildFolders(parentFolderId: Long): Result<List<FolderDTO>> {
         return try {
             transaction {
                 FoldersTable.selectAll().where {
@@ -59,21 +60,21 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
                 }.toList().map {
                     FolderDTO(
                         id = it[FoldersTable.id].value,
-                        folderName = it[FoldersTable.folderName],
-                        infoForSaving = it[FoldersTable.infoForSaving],
-                        parentFolderID = it[FoldersTable.parentFolderID],
-                        isFolderArchived = it[FoldersTable.isFolderArchived]
+                        name = it[FoldersTable.folderName],
+                        note = it[FoldersTable.infoForSaving],
+                        parentFolderId = it[FoldersTable.parentFolderID],
+                        isArchived = it[FoldersTable.isFolderArchived]
                     )
                 }
             }.let {
-                RequestResultState.Success(it)
+                Result.Success(it)
             }
         } catch (e: Exception) {
-            RequestResultState.Failure(e)
+            Result.Failure(e)
         }
     }
 
-    override suspend fun getRootFolders(): RequestResultState<List<FolderDTO>> {
+    override suspend fun getRootFolders(): Result<List<FolderDTO>> {
         return try {
             transaction {
                 FoldersTable.selectAll().where {
@@ -81,21 +82,21 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
                 }.toList().map {
                     FolderDTO(
                         id = it[FoldersTable.id].value,
-                        folderName = it[FoldersTable.folderName],
-                        infoForSaving = it[FoldersTable.infoForSaving],
-                        parentFolderID = it[FoldersTable.parentFolderID],
-                        isFolderArchived = it[FoldersTable.isFolderArchived]
+                        name = it[FoldersTable.folderName],
+                        note = it[FoldersTable.infoForSaving],
+                        parentFolderId = it[FoldersTable.parentFolderID],
+                        isArchived = it[FoldersTable.isFolderArchived]
                     )
                 }
             }.let {
-                RequestResultState.Success(it)
+                Result.Success(it)
             }
         } catch (e: Exception) {
-            RequestResultState.Failure(e)
+            Result.Failure(e)
         }
     }
 
-    override suspend fun markAsArchive(folderId: Long): RequestResultState<Message> {
+    override suspend fun markAsArchive(folderId: Long): Result<Message> {
         return try {
             transaction {
                 FoldersTable.update(where = { FoldersTable.id.eq(folderId) }) {
@@ -109,14 +110,14 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
                         payload = Json.encodeToJsonElement(folderId)
                     )
                 )
-                RequestResultState.Success("Number of rows affected by the update = $it")
+                Result.Success("Number of rows affected by the update = $it")
             }
         } catch (e: Exception) {
-            RequestResultState.Failure(e)
+            Result.Failure(e)
         }
     }
 
-    override suspend fun markAsRegularFolder(folderId: Long): RequestResultState<Message> {
+    override suspend fun markAsRegularFolder(folderId: Long): Result<Message> {
         return try {
             transaction {
                 FoldersTable.update(where = { FoldersTable.id.eq(folderId) }) {
@@ -130,14 +131,14 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
                         payload = Json.encodeToJsonElement(folderId)
                     )
                 )
-                RequestResultState.Success("Number of rows affected by the update = $it")
+                Result.Success("Number of rows affected by the update = $it")
             }
         } catch (e: Exception) {
-            RequestResultState.Failure(e)
+            Result.Failure(e)
         }
     }
 
-    override suspend fun changeParentFolder(folderId: Long, newParentFolderId: Long): RequestResultState<Message> {
+    override suspend fun changeParentFolder(folderId: Long, newParentFolderId: Long): Result<Message> {
         return try {
             transaction {
                 FoldersTable.update(where = { FoldersTable.id.eq(folderId) }) {
@@ -151,14 +152,14 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
                         payload = Json.encodeToJsonElement(ChangeParentFolderDTO(folderId, newParentFolderId))
                     )
                 )
-                RequestResultState.Success("Number of rows affected by the update = $it")
+                Result.Success("Number of rows affected by the update = $it")
             }
         } catch (e: Exception) {
-            RequestResultState.Failure(e)
+            Result.Failure(e)
         }
     }
 
-    override suspend fun updateFolderName(folderId: Long, newFolderName: String): RequestResultState<Message> {
+    override suspend fun updateFolderName(folderId: Long, newFolderName: String): Result<Message> {
         return try {
             transaction {
                 FoldersTable.update(where = { FoldersTable.id.eq(folderId) }) {
@@ -172,14 +173,14 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
                         payload = Json.encodeToJsonElement(UpdateFolderNameDTO(folderId, newFolderName))
                     )
                 )
-                RequestResultState.Success("Number of rows affected by the update = $it")
+                Result.Success("Number of rows affected by the update = $it")
             }
         } catch (e: Exception) {
-            RequestResultState.Failure(e)
+            Result.Failure(e)
         }
     }
 
-    override suspend fun updateFolderNote(folderId: Long, newNote: String): RequestResultState<Message> {
+    override suspend fun updateFolderNote(folderId: Long, newNote: String): Result<Message> {
         return try {
             transaction {
                 FoldersTable.update(where = { FoldersTable.id.eq(folderId) }) {
@@ -193,14 +194,14 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
                         payload = Json.encodeToJsonElement(UpdateFolderNoteDTO(folderId, newNote))
                     )
                 )
-                RequestResultState.Success("Number of rows affected by the update = $it")
+                Result.Success("Number of rows affected by the update = $it")
             }
         } catch (e: Exception) {
-            RequestResultState.Failure(e)
+            Result.Failure(e)
         }
     }
 
-    override suspend fun deleteFolderNote(folderId: Long): RequestResultState<Message> {
+    override suspend fun deleteFolderNote(folderId: Long): Result<Message> {
         return try {
             transaction {
                 FoldersTable.update(where = { FoldersTable.id.eq(folderId) }) {
@@ -214,10 +215,10 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
                         payload = Json.encodeToJsonElement(folderId)
                     )
                 )
-                RequestResultState.Success("Number of rows affected by the update = $it")
+                Result.Success("Number of rows affected by the update = $it")
             }
         } catch (e: Exception) {
-            RequestResultState.Failure(e)
+            Result.Failure(e)
         }
     }
 }

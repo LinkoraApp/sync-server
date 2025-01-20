@@ -1,11 +1,9 @@
 package com.sakethh.linkora.domain.tables
 
-import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.dao.id.LongIdTable
 
-object LinksTable : Table(name = "links_table") {
+object LinksTable : LongIdTable(name = "links_table") {
     val lastModified = text("last_modified")
-    val id = long("id")
-    override val primaryKey = PrimaryKey(id)
     val linkType = text("link_type")
     val linkTitle = text(name = "linkTitle")
     val webURL = text(name = "webURL")
@@ -16,4 +14,5 @@ object LinksTable : Table(name = "links_table") {
     val isLinkedWithFolders = bool(name = "isLinkedWithFolders")
     val idOfLinkedFolder = long(name = "idOfLinkedFolder").nullable()
     val userAgent = text(name = "userAgent").nullable()
+    val mediaType = text(name = "mediaType")
 }

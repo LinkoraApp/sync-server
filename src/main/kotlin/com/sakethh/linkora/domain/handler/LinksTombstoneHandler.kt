@@ -13,7 +13,7 @@ object LinksTombstoneHandler {
             insert[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
             insert[infoForSaving] = resultRow[LinksTable.infoForSaving]
             insert[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
-            insert[originId] = resultRow[LinksTable.id]
+            insert[originId] = resultRow[LinksTable.id].value
             insert[linkType] = resultRow[LinksTable.linkType]
             insert[linkTitle] = resultRow[LinksTable.linkTitle]
             insert[webURL] = resultRow[LinksTable.webURL]

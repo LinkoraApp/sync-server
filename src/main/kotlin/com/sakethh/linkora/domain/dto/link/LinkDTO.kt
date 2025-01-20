@@ -1,6 +1,7 @@
 package com.sakethh.linkora.domain.dto.link
 
 import com.sakethh.linkora.domain.LinkType
+import com.sakethh.linkora.domain.MediaType
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -17,4 +18,5 @@ data class LinkDTO(
     val isLinkedWithFolders: Boolean,
     val idOfLinkedFolder: Long?,
     val userAgent: String?,
+    val mediaType: MediaType
 )
