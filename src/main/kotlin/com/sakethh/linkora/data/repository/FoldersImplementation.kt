@@ -15,11 +15,9 @@ import com.sakethh.linkora.domain.tables.FoldersTable
 import com.sakethh.linkora.utils.Result
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.insertAndGetId
-import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.update
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 
@@ -49,7 +47,29 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
     }
 
     override suspend fun deleteFolder(folderId: Long): Result<Message> {
-        TODO()
+        return try {
+            transaction {
+                FoldersTable.deleteWhere {
+                    FoldersTable.id.eq(folderId)
+                }
+            }
+            when (val childFolders = getChildFolders(folderId)) {
+                is Result.Failure -> {
+                    throw childFolders.exception
+                }
+
+                is Result.Success -> {
+                    childFolders.result.map { it.id }.forEach { childFolderId ->
+                        childFolderId?.let {
+                            deleteFolder(it)
+                        }
+                    }
+                }
+            }
+            Result.Success("Folder and its contents have been successfully deleted.")
+        } catch (e: Exception) {
+            Result.Failure(e)
+        }
     }
 
     override suspend fun getChildFolders(parentFolderId: Long): Result<List<FolderDTO>> {
