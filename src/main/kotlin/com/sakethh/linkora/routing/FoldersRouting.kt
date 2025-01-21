@@ -19,39 +19,27 @@ fun Application.foldersRouting(foldersRepository: FoldersRepository) {
             post<FolderDTO>(FolderRoute.CREATE_FOLDER.name) { folderDTO ->
                 respondWithResult(foldersRepository.createFolder(folderDTO))
             }
-        }
 
-        authenticate(Security.BEARER.name) {
             post<Long>(FolderRoute.DELETE_FOLDER.name) { folderId ->
                 respondWithResult(foldersRepository.deleteFolder(folderId))
             }
-        }
 
-        authenticate(Security.BEARER.name) {
             post<Long>(FolderRoute.GET_CHILD_FOLDERS.name) { folderId ->
                 respondWithResult(foldersRepository.getChildFolders(folderId))
             }
-        }
 
-        authenticate(Security.BEARER.name) {
             get(FolderRoute.GET_ROOT_FOLDERS.name) {
                 respondWithResult(foldersRepository.getRootFolders())
             }
-        }
 
-        authenticate(Security.BEARER.name) {
             post<Long>(FolderRoute.MARK_AS_ARCHIVE.name) { folderId ->
                 respondWithResult(foldersRepository.markAsArchive(folderId))
             }
-        }
 
-        authenticate(Security.BEARER.name) {
             post<Long>(FolderRoute.MARK_AS_REGULAR_FOLDER.name) { folderId ->
                 respondWithResult(foldersRepository.markAsRegularFolder(folderId))
             }
-        }
 
-        authenticate(Security.BEARER.name) {
             post<ChangeParentFolderDTO>(FolderRoute.CHANGE_PARENT_FOLDER.name) {
                 respondWithResult(
                     foldersRepository.changeParentFolder(
@@ -59,9 +47,7 @@ fun Application.foldersRouting(foldersRepository: FoldersRepository) {
                     )
                 )
             }
-        }
 
-        authenticate(Security.BEARER.name) {
             post<UpdateFolderNameDTO>(FolderRoute.UPDATE_FOLDER_NAME.name) {
                 respondWithResult(
                     foldersRepository.updateFolderName(
@@ -69,15 +55,11 @@ fun Application.foldersRouting(foldersRepository: FoldersRepository) {
                     )
                 )
             }
-        }
 
-        authenticate(Security.BEARER.name) {
             post<UpdateFolderNoteDTO>(FolderRoute.UPDATE_FOLDER_NOTE.name) {
                 respondWithResult(foldersRepository.updateFolderNote(folderId = it.folderId, newNote = it.newNote))
             }
-        }
 
-        authenticate(Security.BEARER.name) {
             post<Long>(FolderRoute.DELETE_FOLDER_NOTE.name) { folderId ->
                 respondWithResult(foldersRepository.deleteFolderNote(folderId = folderId))
             }
