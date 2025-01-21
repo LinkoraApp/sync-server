@@ -16,14 +16,7 @@ fun configureDatabase() {
         transaction {
             println("Connected to the database at ${this.db.url}")
             SchemaUtils.createDatabase("linkora")
-            SchemaUtils.create(
-                FoldersTable,
-                LinksTable,
-                FoldersTombstone,
-                LinksTombstone,
-                PanelsTable,
-                PanelFoldersTable
-            )
+            createRequiredTables()
         }
         println("Linkora database is operational and accessible.")
     } catch (e: Exception) {
@@ -45,12 +38,7 @@ fun configureDatabase() {
                 password = serverConfig.databasePassword
             )
             transaction {
-                SchemaUtils.create(
-                    FoldersTable,
-                    LinksTable,
-                    FoldersTombstone,
-                    LinksTombstone
-                )
+                createRequiredTables()
                 println("Connected to the database at ${this.db.url}")
             }
         } else if (e.message?.contains("Database driver not found for") == true || e.message?.contains("Access denied") == true) {
@@ -77,4 +65,10 @@ fun configureDatabase() {
             throw e
         }
     }
+}
+
+private fun createRequiredTables() {
+    SchemaUtils.create(
+        FoldersTable, LinksTable, FoldersTombstone, LinksTombstone, PanelsTable, PanelFoldersTable
+    )
 }
