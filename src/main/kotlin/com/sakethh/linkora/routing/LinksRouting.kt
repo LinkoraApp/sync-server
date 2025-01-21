@@ -16,49 +16,45 @@ fun Application.linksRouting(linksRepository: LinksRepository) {
             post<LinkDTO>(LinkRoute.CREATE_A_NEW_LINK.name) {
                 respondWithResult(linksRepository.createANewLink(it))
             }
-        }
 
-        authenticate(Security.BEARER.name) {
             post<DeleteALinkDTO>(LinkRoute.DELETE_A_LINK.name) {
                 respondWithResult(linksRepository.deleteALink(it))
             }
-        }
 
-        authenticate(Security.BEARER.name) {
             post<UpdateLinkedFolderIDDto>(LinkRoute.UPDATE_LINKED_FOLDER_ID.name) {
                 respondWithResult(
                     linksRepository.updateLinkedFolderIdOfALink(it)
                 )
             }
-        }
 
-        authenticate(Security.BEARER.name) {
             post<UpdateTitleOfTheLinkDTO>(LinkRoute.UPDATE_LINK_TITLE.name) {
                 respondWithResult(
                     linksRepository.updateTitleOfTheLink(it)
                 )
             }
-        }
 
-        authenticate(Security.BEARER.name) {
             post<UpdateNoteOfALinkDTO>(LinkRoute.UPDATE_LINK_NOTE.name) {
                 respondWithResult(
                     linksRepository.updateNote(it)
                 )
             }
-        }
 
-        authenticate(Security.BEARER.name) {
             post<UpdateLinkUserAgentDTO>(LinkRoute.UPDATE_USER_AGENT.name) {
                 respondWithResult(
                     linksRepository.updateUserAgent(it)
                 )
             }
-        }
 
-        authenticate(Security.BEARER.name) {
             post<LinkType>(LinkRoute.GET_LINKS.name) {
                 respondWithResult(linksRepository.getLinks(linkType = it))
+            }
+
+            post<Long>(LinkRoute.ARCHIVE_LINK.name) {
+                respondWithResult(linksRepository.archiveALink(linkId = it))
+            }
+
+            post<Long>(LinkRoute.UNARCHIVE_LINK.name) {
+                respondWithResult(linksRepository.unArchiveALink(linkId = it))
             }
         }
     }

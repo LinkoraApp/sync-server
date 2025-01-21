@@ -214,4 +214,34 @@ class LinksImplementation(
             Result.Failure(e)
         }
     }
+
+    override suspend fun archiveALink(linkId: Long): Result<Message> {
+        return try {
+            transaction {
+                LinksTable.update(where = {
+                    LinksTable.id.eq(linkId)
+                }) {
+                    it[linkTitle] = LinkType.ARCHIVE_LINK.name
+                }
+            }
+            Result.Success("Archived link with id : $linkId successfully")
+        } catch (e: Exception) {
+            Result.Failure(e)
+        }
+    }
+
+    override suspend fun unArchiveALink(linkId: Long): Result<Message> {
+        return try {
+            transaction {
+                LinksTable.update(where = {
+                    LinksTable.id.eq(linkId)
+                }) {
+                    it[linkTitle] = LinkType.SAVED_LINK.name
+                }
+            }
+            Result.Success("Unarchived link with id : $linkId successfully as ${LinkType.SAVED_LINK.name}")
+        } catch (e: Exception) {
+            Result.Failure(e)
+        }
+    }
 }
