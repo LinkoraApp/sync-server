@@ -60,22 +60,22 @@ class LinksImplementation(
     }
 
 
-    override suspend fun deleteALink(deleteALinkDTO: DeleteALinkDTO): Result<Message> {
+    override suspend fun deleteALink(linkId: Long): Result<Message> {
         return try {
             transaction {
                 LinksTable.selectAll()
-                    .where(LinksTable.id.eq(deleteALinkDTO.linkId) and LinksTable.linkType.eq(deleteALinkDTO.linkType.name))
+                    .where(LinksTable.id.eq(linkId))
                     .forEach { resultRow ->
                         LinksTombstone.insert(resultRow)
                     }
 
                 LinksTable.deleteWhere {
-                    id.eq(deleteALinkDTO.linkId) and linkType.eq(deleteALinkDTO.linkType.name)
+                    id.eq(linkId)
                 }
             }
             LinkoraWebSocket.sendNotification(
                 ChangeNotification(
-                    operation = LinkRoute.DELETE_A_LINK.name, payload = Json.encodeToJsonElement(deleteALinkDTO)
+                    operation = LinkRoute.DELETE_A_LINK.name, payload = Json.encodeToJsonElement(linkId)
                 )
             )
             Result.Success("Link deleted successfully.")
@@ -131,9 +131,7 @@ class LinksImplementation(
         return try {
             transaction {
                 LinksTable.update(where = {
-                    LinksTable.id.eq(updateTitleOfTheLinkDTO.linkId) and LinksTable.linkType.eq(
-                        updateTitleOfTheLinkDTO.linkType.name
-                    )
+                    LinksTable.id.eq(updateTitleOfTheLinkDTO.linkId)
                 }) {
                     it[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
                     it[linkTitle] = updateTitleOfTheLinkDTO.newTitleOfTheLink
@@ -156,9 +154,7 @@ class LinksImplementation(
         return try {
             transaction {
                 LinksTable.update(where = {
-                    LinksTable.id.eq(updateNoteOfALinkDTO.linkId) and LinksTable.linkType.eq(
-                        updateNoteOfALinkDTO.linkType.name
-                    )
+                    LinksTable.id.eq(updateNoteOfALinkDTO.linkId)
                 }) {
                     it[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
                     it[note] = updateNoteOfALinkDTO.newNote
@@ -206,7 +202,7 @@ class LinksImplementation(
                 LinksTable.update(where = {
                     LinksTable.id.eq(linkId)
                 }) {
-                    it[linkTitle] = LinkType.ARCHIVE_LINK.name
+                    it[linkType] = LinkType.ARCHIVE_LINK.name
                 }
             }
             Result.Success("Archived link with id : $linkId successfully")
@@ -221,7 +217,7 @@ class LinksImplementation(
                 LinksTable.update(where = {
                     LinksTable.id.eq(linkId)
                 }) {
-                    it[linkTitle] = LinkType.SAVED_LINK.name
+                    it[linkType] = LinkType.SAVED_LINK.name
                 }
             }
             Result.Success("Unarchived link with id : $linkId successfully as ${LinkType.SAVED_LINK.name}")

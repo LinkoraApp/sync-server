@@ -17,7 +17,7 @@ fun Application.linksRouting(linksRepository: LinksRepository) {
                 respondWithResult(linksRepository.createANewLink(it))
             }
 
-            post<DeleteALinkDTO>(LinkRoute.DELETE_A_LINK.name) {
+            post<Long>(LinkRoute.DELETE_A_LINK.name) {
                 respondWithResult(linksRepository.deleteALink(it))
             }
 
