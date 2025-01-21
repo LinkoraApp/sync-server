@@ -16,7 +16,7 @@ object LinksTombstoneHandler {
             insert[originId] = resultRow[LinksTable.id].value
             insert[linkType] = resultRow[LinksTable.linkType]
             insert[linkTitle] = resultRow[LinksTable.linkTitle]
-            insert[webURL] = resultRow[LinksTable.webURL]
+            insert[webURL] = resultRow[LinksTable.url]
             insert[baseURL] = resultRow[LinksTable.baseURL]
             insert[imgURL] = resultRow[LinksTable.imgURL]
             insert[idOfLinkedFolder] = resultRow[LinksTable.idOfLinkedFolder]

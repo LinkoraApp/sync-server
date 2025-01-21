@@ -1,5 +1,6 @@
 package com.sakethh.linkora.domain.repository
 
+import com.sakethh.linkora.domain.Link
 import com.sakethh.linkora.domain.dto.link.*
 import com.sakethh.linkora.utils.Result
 
@@ -15,4 +16,5 @@ interface LinksRepository {
     suspend fun unArchiveALink(linkId:Long): Result<Message>
     suspend fun markALinkAsImp(linkId: Long):Result<Message>
     suspend fun markALinkAsNonImp(linkId: Long):Result<Message>
+    suspend fun updateLink(link: Link):Result<Message>
 }

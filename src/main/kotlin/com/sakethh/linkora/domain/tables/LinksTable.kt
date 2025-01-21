@@ -6,7 +6,7 @@ object LinksTable : LongIdTable(name = "links_table") {
     val lastModified = text("last_modified")
     val linkType = text("link_type")
     val linkTitle = text(name = "linkTitle")
-    val webURL = text(name = "webURL")
+    val url = text(name = "url")
     val baseURL = text(name = "baseURL")
     val imgURL = text(name = "imgURL")
     val note = text(name = "note")

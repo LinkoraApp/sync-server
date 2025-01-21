@@ -11,7 +11,7 @@ class LinksMapper {
         return query.map { resultRow ->
             AddLinkDTO(
                 title = resultRow[LinksTable.linkTitle],
-                url = resultRow[LinksTable.webURL],
+                url = resultRow[LinksTable.url],
                 baseURL = resultRow[LinksTable.baseURL],
                 imgURL = resultRow[LinksTable.imgURL],
                 note = resultRow[LinksTable.note],

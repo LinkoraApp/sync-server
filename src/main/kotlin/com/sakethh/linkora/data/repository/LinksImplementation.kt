@@ -1,6 +1,7 @@
 package com.sakethh.linkora.data.repository
 
 import com.sakethh.linkora.LinkoraWebSocket
+import com.sakethh.linkora.domain.Link
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.dto.link.*
 import com.sakethh.linkora.domain.handler.LinksTombstoneHandler.insert
@@ -30,7 +31,7 @@ class LinksImplementation(
                     link[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
                     link[linkType] = addLinkDTO.linkType.name
                     link[linkTitle] = addLinkDTO.title
-                    link[webURL] = addLinkDTO.url
+                    link[url] = addLinkDTO.url
                     link[baseURL] = addLinkDTO.baseURL
                     link[imgURL] = addLinkDTO.imgURL
                     link[note] = addLinkDTO.note
@@ -254,6 +255,31 @@ class LinksImplementation(
                 }
             }
             Result.Success("Marked link with id : $linkId as Non-Important.")
+        } catch (e: Exception) {
+            Result.Failure(e)
+        }
+    }
+
+    override suspend fun updateLink(link: Link): Result<Message> {
+        return try {
+            transaction {
+                LinksTable.update(where = {
+                    LinksTable.id.eq(link.id)
+                }) {
+                    it[lastModified] = link.lastModified
+                    it[linkType] = link.linkType.name
+                    it[linkTitle] = link.title
+                    it[url] = link.url
+                    it[baseURL] = link.baseURL
+                    it[imgURL] = link.imgURL
+                    it[note] = link.note
+                    it[idOfLinkedFolder] = link.idOfLinkedFolder
+                    it[userAgent] = link.userAgent
+                    it[mediaType] = link.mediaType.name
+                    it[markedAsImportant] = link.markedAsImportant
+                }
+            }
+            Result.Success("Updated the link (id : ${link.id}) successfully.")
         } catch (e: Exception) {
             Result.Failure(e)
         }

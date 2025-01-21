@@ -1,7 +1,7 @@
 package com.sakethh.linkora.routing
 
 import com.sakethh.linkora.Security
-import com.sakethh.linkora.domain.LinkType
+import com.sakethh.linkora.domain.Link
 import com.sakethh.linkora.domain.dto.link.*
 import com.sakethh.linkora.domain.repository.LinksRepository
 import com.sakethh.linkora.domain.routes.LinkRoute
@@ -59,6 +59,10 @@ fun Application.linksRouting(linksRepository: LinksRepository) {
 
             post<Long>(LinkRoute.UNMARK_AS_IMP.name) {
                 respondWithResult(linksRepository.markALinkAsNonImp(linkId = it))
+            }
+
+            post<Link>(LinkRoute.UPDATE_LINK.name) {
+                respondWithResult(linksRepository.updateLink(link = it))
             }
         }
     }
