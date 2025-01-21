@@ -15,4 +15,6 @@ interface LinksRepository {
     suspend fun getLinks(linkType: LinkType): Result<List<LinkDTO>>
     suspend fun archiveALink(linkId:Long): Result<Message>
     suspend fun unArchiveALink(linkId:Long): Result<Message>
+    suspend fun markALinkAsImp(linkId: Long):Result<Message>
+    suspend fun markALinkAsNonImp(linkId: Long):Result<Message>
 }

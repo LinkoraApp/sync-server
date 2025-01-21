@@ -56,6 +56,14 @@ fun Application.linksRouting(linksRepository: LinksRepository) {
             post<Long>(LinkRoute.UNARCHIVE_LINK.name) {
                 respondWithResult(linksRepository.unArchiveALink(linkId = it))
             }
+
+            post<Long>(LinkRoute.MARK_AS_IMP.name) {
+                respondWithResult(linksRepository.markALinkAsImp(linkId = it))
+            }
+
+            post<Long>(LinkRoute.UNMARK_AS_IMP.name) {
+                respondWithResult(linksRepository.markALinkAsNonImp(linkId = it))
+            }
         }
     }
 }

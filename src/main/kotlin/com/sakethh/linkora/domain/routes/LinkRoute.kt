@@ -11,4 +11,6 @@ enum class LinkRoute {
     GET_LINKS,
     ARCHIVE_LINK,
     UNARCHIVE_LINK,
+    MARK_AS_IMP,
+    UNMARK_AS_IMP
 }

@@ -244,4 +244,34 @@ class LinksImplementation(
             Result.Failure(e)
         }
     }
+
+    override suspend fun markALinkAsImp(linkId: Long): Result<Message> {
+        return try {
+            transaction {
+                LinksTable.update(where = {
+                    LinksTable.id.eq(linkId)
+                }) {
+                    it[markedAsImportant] = true
+                }
+            }
+            Result.Success("Marked link with id : $linkId as Important.")
+        } catch (e: Exception) {
+            Result.Failure(e)
+        }
+    }
+
+    override suspend fun markALinkAsNonImp(linkId: Long): Result<Message> {
+        return try {
+            transaction {
+                LinksTable.update(where = {
+                    LinksTable.id.eq(linkId)
+                }) {
+                    it[markedAsImportant] = false
+                }
+            }
+            Result.Success("Marked link with id : $linkId as Non-Important.")
+        } catch (e: Exception) {
+            Result.Failure(e)
+        }
+    }
 }
