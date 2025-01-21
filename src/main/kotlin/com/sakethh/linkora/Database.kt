@@ -1,9 +1,6 @@
 package com.sakethh.linkora
 
-import com.sakethh.linkora.domain.tables.FoldersTable
-import com.sakethh.linkora.domain.tables.FoldersTombstone
-import com.sakethh.linkora.domain.tables.LinksTable
-import com.sakethh.linkora.domain.tables.LinksTombstone
+import com.sakethh.linkora.domain.tables.*
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -23,7 +20,9 @@ fun configureDatabase() {
                 FoldersTable,
                 LinksTable,
                 FoldersTombstone,
-                LinksTombstone
+                LinksTombstone,
+                PanelsTable,
+                PanelFoldersTable
             )
         }
         println("Linkora database is operational and accessible.")
