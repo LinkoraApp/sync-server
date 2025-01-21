@@ -1,8 +1,9 @@
 package com.sakethh.linkora.data.repository
 
 import com.sakethh.linkora.LinkoraWebSocket
+import com.sakethh.linkora.domain.Folder
 import com.sakethh.linkora.domain.dto.folder.ChangeParentFolderDTO
-import com.sakethh.linkora.domain.dto.folder.FolderDTO
+import com.sakethh.linkora.domain.dto.folder.AddFolderDTO
 import com.sakethh.linkora.domain.dto.folder.UpdateFolderNameDTO
 import com.sakethh.linkora.domain.dto.folder.UpdateFolderNoteDTO
 import com.sakethh.linkora.domain.dto.link.NewItemResponseDTO
@@ -22,21 +23,27 @@ import java.time.Instant
 import java.time.format.DateTimeFormatter
 
 class FoldersImplementation(private val linksRepository: LinksRepository) : FoldersRepository {
-    override suspend fun createFolder(folderDTO: FolderDTO): Result<NewItemResponseDTO> {
+    override suspend fun createFolder(addFolderDTO: AddFolderDTO): Result<NewItemResponseDTO> {
         return try {
             transaction {
                 FoldersTable.insertAndGetId { folder ->
                     folder[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
-                    folder[folderName] = folderDTO.name
-                    folder[infoForSaving] = folderDTO.note
-                    folder[parentFolderID] = folderDTO.parentFolderId
-                    folder[isFolderArchived] = folderDTO.isArchived
+                    folder[folderName] = addFolderDTO.name
+                    folder[infoForSaving] = addFolderDTO.note
+                    folder[parentFolderID] = addFolderDTO.parentFolderId
+                    folder[isFolderArchived] = addFolderDTO.isArchived
                 }
             }.value.let {
                 LinkoraWebSocket.sendNotification(
                     ChangeNotification(
                         operation = FolderRoute.CREATE_FOLDER.name,
-                        payload = Json.encodeToJsonElement(folderDTO.copy(id = it))
+                        payload = Json.encodeToJsonElement(Folder(
+                            id = it,
+                            name = addFolderDTO.name,
+                            note = addFolderDTO.note,
+                            parentFolderId = addFolderDTO.parentFolderId,
+                            isArchived = addFolderDTO.isArchived
+                        ))
                     )
                 )
                 Result.Success(NewItemResponseDTO(message = "Folder created successfully with id = $it", id = it))
@@ -72,13 +79,13 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
         }
     }
 
-    override suspend fun getChildFolders(parentFolderId: Long): Result<List<FolderDTO>> {
+    override suspend fun getChildFolders(parentFolderId: Long): Result<List<Folder>> {
         return try {
             transaction {
                 FoldersTable.selectAll().where {
                     FoldersTable.parentFolderID.eq(parentFolderId)
                 }.toList().map {
-                    FolderDTO(
+                    Folder(
                         id = it[FoldersTable.id].value,
                         name = it[FoldersTable.folderName],
                         note = it[FoldersTable.infoForSaving],
@@ -94,13 +101,13 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
         }
     }
 
-    override suspend fun getRootFolders(): Result<List<FolderDTO>> {
+    override suspend fun getRootFolders(): Result<List<Folder>> {
         return try {
             transaction {
                 FoldersTable.selectAll().where {
                     FoldersTable.parentFolderID.eq(null) and FoldersTable.isFolderArchived.eq(false)
                 }.toList().map {
-                    FolderDTO(
+                    Folder(
                         id = it[FoldersTable.id].value,
                         name = it[FoldersTable.folderName],
                         note = it[FoldersTable.infoForSaving],

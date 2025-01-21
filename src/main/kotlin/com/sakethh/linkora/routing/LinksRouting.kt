@@ -13,7 +13,7 @@ import io.ktor.server.routing.*
 fun Application.linksRouting(linksRepository: LinksRepository) {
     routing {
         authenticate(Security.BEARER.name) {
-            post<LinkDTO>(LinkRoute.CREATE_A_NEW_LINK.name) {
+            post<AddLinkDTO>(LinkRoute.CREATE_A_NEW_LINK.name) {
                 respondWithResult(linksRepository.createANewLink(it))
             }
 
@@ -43,10 +43,6 @@ fun Application.linksRouting(linksRepository: LinksRepository) {
                 respondWithResult(
                     linksRepository.updateUserAgent(it)
                 )
-            }
-
-            post<LinkType>(LinkRoute.GET_LINKS.name) {
-                respondWithResult(linksRepository.getLinks(linkType = it))
             }
 
             post<Long>(LinkRoute.ARCHIVE_LINK.name) {

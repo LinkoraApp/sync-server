@@ -3,8 +3,7 @@ package com.sakethh.linkora.domain.dto.folder
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class FolderDTO(
-    val id: Long? = null,
+data class AddFolderDTO(
     val name: String,
     val note: String,
     val parentFolderId: Long?,

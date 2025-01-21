@@ -23,32 +23,32 @@ import java.time.format.DateTimeFormatter
 class LinksImplementation(
     private val linksMapper: LinksMapper = LinksMapper()
 ) : LinksRepository {
-    override suspend fun createANewLink(linkDTO: LinkDTO): Result<NewItemResponseDTO> {
+    override suspend fun createANewLink(addLinkDTO: AddLinkDTO): Result<NewItemResponseDTO> {
         return try {
             transaction {
                 LinksTable.insertAndGetId { link ->
                     link[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
-                    link[linkType] = linkDTO.linkType.name
-                    link[linkTitle] = linkDTO.title
-                    link[webURL] = linkDTO.url
-                    link[baseURL] = linkDTO.baseURL
-                    link[imgURL] = linkDTO.imgURL
-                    link[note] = linkDTO.note
-                    link[idOfLinkedFolder] = linkDTO.idOfLinkedFolder
-                    link[userAgent] = linkDTO.userAgent
-                    link[mediaType] = linkDTO.mediaType.name
-                    link[markedAsImportant] = linkDTO.markedAsImportant
+                    link[linkType] = addLinkDTO.linkType.name
+                    link[linkTitle] = addLinkDTO.title
+                    link[webURL] = addLinkDTO.url
+                    link[baseURL] = addLinkDTO.baseURL
+                    link[imgURL] = addLinkDTO.imgURL
+                    link[note] = addLinkDTO.note
+                    link[idOfLinkedFolder] = addLinkDTO.idOfLinkedFolder
+                    link[userAgent] = addLinkDTO.userAgent
+                    link[mediaType] = addLinkDTO.mediaType.name
+                    link[markedAsImportant] = addLinkDTO.markedAsImportant
                 }
             }.value.let { idOfNewlyAddedLink ->
-                LinkoraWebSocket.sendNotification(
+                /* TODO LinkoraWebSocket.sendNotification(
                     ChangeNotification(
                         operation = LinkRoute.CREATE_A_NEW_LINK.name,
-                        payload = Json.encodeToJsonElement(linkDTO.copy(id = idOfNewlyAddedLink))
+                        payload = Json.encodeToJsonElement(addLinkDTO.copy(id = idOfNewlyAddedLink))
                     )
-                )
+                )*/
                 Result.Success(
                     NewItemResponseDTO(
-                        message = "Link created successfully for ${linkDTO.linkType.name} with id = ${idOfNewlyAddedLink}.",
+                        message = "Link created successfully for ${addLinkDTO.linkType.name} with id = ${idOfNewlyAddedLink}.",
                         id = idOfNewlyAddedLink
                     )
                 )
@@ -194,22 +194,6 @@ class LinksImplementation(
                 )
             )
             Result.Success("User agent was updated successfully.")
-        } catch (e: Exception) {
-            Result.Failure(e)
-        }
-    }
-
-    override suspend fun getLinks(linkType: LinkType): Result<List<LinkDTO>> {
-        return try {
-            transaction {
-                LinksTable.selectAll().where {
-                    LinksTable.linkType.eq(linkType.name)
-                }.let {
-                    linksMapper.toDto(it)
-                }
-            }.let {
-                Result.Success(it)
-            }
         } catch (e: Exception) {
             Result.Failure(e)
         }

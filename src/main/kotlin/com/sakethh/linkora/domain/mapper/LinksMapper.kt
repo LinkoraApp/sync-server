@@ -2,15 +2,14 @@ package com.sakethh.linkora.domain.mapper
 
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.MediaType
-import com.sakethh.linkora.domain.dto.link.LinkDTO
+import com.sakethh.linkora.domain.dto.link.AddLinkDTO
 import com.sakethh.linkora.domain.tables.LinksTable
 import org.jetbrains.exposed.sql.Query
 
 class LinksMapper {
-    fun toDto(query: Query): List<LinkDTO> {
+    fun toDto(query: Query): List<AddLinkDTO> {
         return query.map { resultRow ->
-            LinkDTO(
-                id = resultRow[LinksTable.id].value,
+            AddLinkDTO(
                 title = resultRow[LinksTable.linkTitle],
                 url = resultRow[LinksTable.webURL],
                 baseURL = resultRow[LinksTable.baseURL],

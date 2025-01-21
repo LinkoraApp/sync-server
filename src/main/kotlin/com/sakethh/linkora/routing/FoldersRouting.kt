@@ -2,7 +2,7 @@ package com.sakethh.linkora.routing
 
 import com.sakethh.linkora.Security
 import com.sakethh.linkora.domain.dto.folder.ChangeParentFolderDTO
-import com.sakethh.linkora.domain.dto.folder.FolderDTO
+import com.sakethh.linkora.domain.dto.folder.AddFolderDTO
 import com.sakethh.linkora.domain.dto.folder.UpdateFolderNameDTO
 import com.sakethh.linkora.domain.dto.folder.UpdateFolderNoteDTO
 import com.sakethh.linkora.domain.repository.FoldersRepository
@@ -16,7 +16,7 @@ import io.ktor.server.routing.*
 fun Application.foldersRouting(foldersRepository: FoldersRepository) {
     routing {
         authenticate(Security.BEARER.name) {
-            post<FolderDTO>(FolderRoute.CREATE_FOLDER.name) { folderDTO ->
+            post<AddFolderDTO>(FolderRoute.CREATE_FOLDER.name) { folderDTO ->
                 respondWithResult(foldersRepository.createFolder(folderDTO))
             }
 
