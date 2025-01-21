@@ -29,16 +29,15 @@ class LinksImplementation(
                 LinksTable.insertAndGetId { link ->
                     link[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
                     link[linkType] = linkDTO.linkType.name
-                    link[linkTitle] = linkDTO.linkTitle
-                    link[webURL] = linkDTO.webURL
+                    link[linkTitle] = linkDTO.title
+                    link[webURL] = linkDTO.url
                     link[baseURL] = linkDTO.baseURL
                     link[imgURL] = linkDTO.imgURL
-                    link[infoForSaving] = linkDTO.infoForSaving
-                    link[isLinkedWithSavedLinks] = linkDTO.isLinkedWithSavedLinks
-                    link[isLinkedWithFolders] = linkDTO.isLinkedWithFolders
+                    link[note] = linkDTO.note
                     link[idOfLinkedFolder] = linkDTO.idOfLinkedFolder
                     link[userAgent] = linkDTO.userAgent
                     link[mediaType] = linkDTO.mediaType.name
+                    link[markedAsImportant] = linkDTO.markedAsImportant
                 }
             }.value.let { idOfNewlyAddedLink ->
                 LinkoraWebSocket.sendNotification(
@@ -161,7 +160,7 @@ class LinksImplementation(
                     )
                 }) {
                     it[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
-                    it[infoForSaving] = updateNoteOfALinkDTO.newNote
+                    it[note] = updateNoteOfALinkDTO.newNote
                 }
             }
             LinkoraWebSocket.sendNotification(
@@ -205,24 +204,6 @@ class LinksImplementation(
             transaction {
                 LinksTable.selectAll().where {
                     LinksTable.linkType.eq(linkType.name)
-                }.let {
-                    linksMapper.toDto(it)
-                }
-            }.let {
-                Result.Success(it)
-            }
-        } catch (e: Exception) {
-            Result.Failure(e)
-        }
-    }
-
-    override suspend fun getLinksFromAFolder(folderId: Long): Result<List<LinkDTO>> {
-        return try {
-            transaction {
-                LinksTable.selectAll().where {
-                    LinksTable.isLinkedWithFolders.eq(true) and LinksTable.idOfLinkedFolder.eq(
-                        folderId
-                    )
                 }.let {
                     linksMapper.toDto(it)
                 }

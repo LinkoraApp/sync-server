@@ -13,5 +13,4 @@ interface LinksRepository {
     suspend fun updateNote(updateNoteOfALinkDTO: UpdateNoteOfALinkDTO): Result<Message>
     suspend fun updateUserAgent(updateLinkUserAgentDTO: UpdateLinkUserAgentDTO): Result<Message>
     suspend fun getLinks(linkType: LinkType): Result<List<LinkDTO>>
-    suspend fun getLinksFromAFolder(folderId: Long): Result<List<LinkDTO>>
 }

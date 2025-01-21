@@ -11,7 +11,7 @@ object LinksTombstoneHandler {
     fun LinksTombstone.insert(resultRow: ResultRow) {
         this.insert { insert ->
             insert[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
-            insert[infoForSaving] = resultRow[LinksTable.infoForSaving]
+            insert[infoForSaving] = resultRow[LinksTable.note]
             insert[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
             insert[originId] = resultRow[LinksTable.id].value
             insert[linkType] = resultRow[LinksTable.linkType]
@@ -19,10 +19,9 @@ object LinksTombstoneHandler {
             insert[webURL] = resultRow[LinksTable.webURL]
             insert[baseURL] = resultRow[LinksTable.baseURL]
             insert[imgURL] = resultRow[LinksTable.imgURL]
-            insert[isLinkedWithSavedLinks] = resultRow[LinksTable.isLinkedWithSavedLinks]
-            insert[isLinkedWithFolders] = resultRow[LinksTable.isLinkedWithFolders]
             insert[idOfLinkedFolder] = resultRow[LinksTable.idOfLinkedFolder]
             insert[userAgent] = resultRow[LinksTable.userAgent]
+            insert[markedAsImportant] = resultRow[LinksTable.markedAsImportant]
         }
     }
 }

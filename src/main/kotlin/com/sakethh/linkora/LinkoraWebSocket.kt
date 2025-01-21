@@ -19,7 +19,12 @@ object LinkoraWebSocket {
     }
 
     suspend fun sendNotification(notification: ChangeNotification) {
-        writeChannel.get().send(Frame.Text(json.encodeToString(notification)))
+        return
+        try {
+            writeChannel.get().send(Frame.Text(json.encodeToString(notification)))
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     fun closeWriteChannel() {

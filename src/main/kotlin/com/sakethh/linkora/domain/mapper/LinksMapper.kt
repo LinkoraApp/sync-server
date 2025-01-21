@@ -11,18 +11,17 @@ class LinksMapper {
         return query.map { resultRow ->
             LinkDTO(
                 id = resultRow[LinksTable.id].value,
-                linkTitle = resultRow[LinksTable.linkTitle],
-                webURL = resultRow[LinksTable.webURL],
+                title = resultRow[LinksTable.linkTitle],
+                url = resultRow[LinksTable.webURL],
                 baseURL = resultRow[LinksTable.baseURL],
                 imgURL = resultRow[LinksTable.imgURL],
-                infoForSaving = resultRow[LinksTable.infoForSaving],
-                isLinkedWithSavedLinks = resultRow[LinksTable.isLinkedWithSavedLinks],
-                isLinkedWithFolders = resultRow[LinksTable.isLinkedWithFolders],
+                note = resultRow[LinksTable.note],
                 idOfLinkedFolder = resultRow[LinksTable.idOfLinkedFolder],
                 userAgent = resultRow[LinksTable.userAgent],
                 linkType = LinkType.valueOf(resultRow[LinksTable.linkType]),
                 lastModified = resultRow[LinksTable.lastModified],
-                mediaType = MediaType.valueOf(resultRow[LinksTable.mediaType])
+                mediaType = MediaType.valueOf(resultRow[LinksTable.mediaType]),
+                markedAsImportant = resultRow[LinksTable.markedAsImportant]
             )
         }
     }

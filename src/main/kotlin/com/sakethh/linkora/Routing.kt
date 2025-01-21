@@ -11,6 +11,7 @@ import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.plugins.swagger.*
 
 fun Application.configureRouting() {
     routing {
@@ -23,6 +24,7 @@ fun Application.configureRouting() {
                 call.respond(message = HttpStatusCode.OK, status = HttpStatusCode.OK)
             }
         }
+        swaggerUI(path = "swagger", swaggerFile = "openapi/documentation.yaml")
     }
     val linksRepository: LinksRepository = LinksImplementation()
     val foldersRepository: FoldersRepository = FoldersImplementation(linksRepository = linksRepository)

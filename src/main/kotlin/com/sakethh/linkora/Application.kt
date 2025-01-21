@@ -1,9 +1,11 @@
 package com.sakethh.linkora
 
 import com.sakethh.linkora.domain.model.ServerConfig
+import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.websocket.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -105,6 +107,10 @@ fun Application.module() {
         timeout = 15.seconds
         maxFrameSize = Long.MAX_VALUE
         masking = false
+    }
+    install(CORS) {
+        anyHost()
+        allowHeader(HttpHeaders.ContentType)
     }
     configureWebSocket()
 }

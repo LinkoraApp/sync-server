@@ -9,10 +9,9 @@ object LinksTable : LongIdTable(name = "links_table") {
     val webURL = text(name = "webURL")
     val baseURL = text(name = "baseURL")
     val imgURL = text(name = "imgURL")
-    val infoForSaving = text(name = "note")
-    val isLinkedWithSavedLinks = bool(name = "isLinkedWithSavedLinks")
-    val isLinkedWithFolders = bool(name = "isLinkedWithFolders")
+    val note = text(name = "note")
     val idOfLinkedFolder = long(name = "idOfLinkedFolder").nullable()
     val userAgent = text(name = "userAgent").nullable()
     val mediaType = text(name = "mediaType")
+    val markedAsImportant = bool("markedAsImportant")
 }

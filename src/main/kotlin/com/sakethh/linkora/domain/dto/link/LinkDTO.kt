@@ -8,15 +8,14 @@ import kotlinx.serialization.Serializable
 data class LinkDTO(
     val linkType: LinkType,
     val id: Long,
-    val linkTitle: String,
-    val webURL: String,
+    val title: String,
+    val url: String,
     val baseURL: String,
     val imgURL: String,
-    val infoForSaving: String,
+    val note: String,
     val lastModified: String,
-    val isLinkedWithSavedLinks: Boolean,
-    val isLinkedWithFolders: Boolean,
     val idOfLinkedFolder: Long?,
     val userAgent: String?,
-    val mediaType: MediaType
+    val markedAsImportant: Boolean,
+    val mediaType: MediaType = MediaType.IMAGE
 )

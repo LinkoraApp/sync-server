@@ -61,11 +61,5 @@ fun Application.linksRouting(linksRepository: LinksRepository) {
                 respondWithResult(linksRepository.getLinks(linkType = it))
             }
         }
-
-        authenticate(Security.BEARER.name) {
-            post<Long>(LinkRoute.GET_LINKS_FROM_A_FOLDER.name) {
-                respondWithResult(linksRepository.getLinksFromAFolder(it))
-            }
-        }
     }
 }
