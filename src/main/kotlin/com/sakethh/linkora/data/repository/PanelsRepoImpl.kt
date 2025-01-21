@@ -114,4 +114,17 @@ class PanelsRepoImpl : PanelsRepository {
             Result.Failure(e)
         }
     }
+
+    override suspend fun deleteAllFoldersFromAPanel(panelId: Long): Result<Message> {
+        return try {
+            transaction {
+                PanelFoldersTable.deleteWhere {
+                    connectedPanelId.eq(panelId)
+                }
+            }
+            Result.Success("Deleted all folders from the panel with id : $panelId.")
+        } catch (e: Exception) {
+            Result.Failure(e)
+        }
+    }
 }

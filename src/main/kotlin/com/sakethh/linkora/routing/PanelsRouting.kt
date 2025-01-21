@@ -38,6 +38,10 @@ fun Application.panelsRouting(panelsRepository: PanelsRepository) {
             post<DeleteAPanelFromAFolderDTO>(PanelRoute.DELETE_A_FOLDER_FROM_A_PANEL.name) {
                 respondWithResult(panelsRepository.deleteAFolderFromAPanel(it))
             }
+
+            post<Long>(PanelRoute.DELETE_ALL_FOLDERS_FROM_A_PANEL.name) {
+                respondWithResult(panelsRepository.deleteAllFoldersFromAPanel(it))
+            }
         }
     }
 }

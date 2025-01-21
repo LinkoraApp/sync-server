@@ -14,4 +14,5 @@ interface PanelsRepository {
     suspend fun updateAPanelName(updatePanelNameDTO: UpdatePanelNameDTO):Result<Message>
     suspend fun deleteAFolderFromAllPanels(folderID: Long):Result<Message>
     suspend fun deleteAFolderFromAPanel(deleteAPanelFromAFolderDTO: DeleteAPanelFromAFolderDTO):Result<Message>
+    suspend fun deleteAllFoldersFromAPanel(panelId:Long):Result<Message>
 }
