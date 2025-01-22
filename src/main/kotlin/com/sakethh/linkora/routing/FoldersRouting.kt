@@ -33,7 +33,7 @@ fun Application.foldersRouting(foldersRepository: FoldersRepository) {
                 respondWithResult(foldersRepository.getRootFolders())
             }
 
-            post<IDBasedDTO>(FolderRoute.MARK_AS_ARCHIVE.name) {
+            post<IDBasedDTO>(FolderRoute.MARK_FOLDER_AS_ARCHIVE.name) {
                 respondWithResult(foldersRepository.markAsArchive(it))
             }
 

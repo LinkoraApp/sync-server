@@ -144,7 +144,7 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
             }.let {
                 Result.Success(
                     response = "Number of rows affected by the update = $it", webSocketEvent = WebSocketEvent(
-                        operation = FolderRoute.MARK_AS_ARCHIVE.name,
+                        operation = FolderRoute.MARK_FOLDER_AS_ARCHIVE.name,
                         payload = Json.encodeToJsonElement(idBasedDTO),
                     )
                 )
