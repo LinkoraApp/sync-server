@@ -7,7 +7,7 @@ import com.sakethh.linkora.domain.dto.folder.ChangeParentFolderDTO
 import com.sakethh.linkora.domain.dto.folder.UpdateFolderNameDTO
 import com.sakethh.linkora.domain.dto.folder.UpdateFolderNoteDTO
 import com.sakethh.linkora.domain.dto.link.NewItemResponseDTO
-import com.sakethh.linkora.domain.model.ChangeNotification
+import com.sakethh.linkora.domain.model.WebSocketEvent
 import com.sakethh.linkora.domain.repository.FoldersRepository
 import com.sakethh.linkora.domain.repository.LinksRepository
 import com.sakethh.linkora.domain.repository.Message
@@ -35,8 +35,8 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
                     folder[isFolderArchived] = addFolderDTO.isArchived
                 }
             }.value.let {
-                LinkoraWebSocket.sendNotification(
-                    ChangeNotification(
+                LinkoraWebSocket.sendEvent(
+                    WebSocketEvent(
                         operation = FolderRoute.CREATE_FOLDER.name,
                         payload = Json.encodeToJsonElement(Folder(
                             id = it,
@@ -74,6 +74,12 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
                     }
                 }
             }
+            LinkoraWebSocket.sendEvent(
+                WebSocketEvent(
+                    operation = FolderRoute.DELETE_FOLDER.name,
+                    payload = Json.encodeToJsonElement(folderId)
+                )
+            )
             Result.Success("Folder and its contents have been successfully deleted.")
         } catch (e: Exception) {
             Result.Failure(e)
@@ -132,8 +138,8 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
                     it[isFolderArchived] = true
                 }
             }.let {
-                LinkoraWebSocket.sendNotification(
-                    ChangeNotification(
+                LinkoraWebSocket.sendEvent(
+                    WebSocketEvent(
                         operation = FolderRoute.MARK_AS_ARCHIVE.name,
                         payload = Json.encodeToJsonElement(folderId)
                     )
@@ -153,8 +159,8 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
                     it[isFolderArchived] = false
                 }
             }.let {
-                LinkoraWebSocket.sendNotification(
-                    ChangeNotification(
+                LinkoraWebSocket.sendEvent(
+                    WebSocketEvent(
                         operation = FolderRoute.MARK_AS_REGULAR_FOLDER.name,
                         payload = Json.encodeToJsonElement(folderId)
                     )
@@ -174,8 +180,8 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
                     it[parentFolderID] = newParentFolderId
                 }
             }.let {
-                LinkoraWebSocket.sendNotification(
-                    ChangeNotification(
+                LinkoraWebSocket.sendEvent(
+                    WebSocketEvent(
                         operation = FolderRoute.CHANGE_PARENT_FOLDER.name,
                         payload = Json.encodeToJsonElement(ChangeParentFolderDTO(folderId, newParentFolderId))
                     )
@@ -200,8 +206,8 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
                     it[folderName] = newFolderName
                 }
             }.let {
-                LinkoraWebSocket.sendNotification(
-                    ChangeNotification(
+                LinkoraWebSocket.sendEvent(
+                    WebSocketEvent(
                         operation = FolderRoute.UPDATE_FOLDER_NAME.name,
                         payload = Json.encodeToJsonElement(UpdateFolderNameDTO(folderId, newFolderName))
                     )
@@ -221,8 +227,8 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
                     it[infoForSaving] = newNote
                 }
             }.let {
-                LinkoraWebSocket.sendNotification(
-                    ChangeNotification(
+                LinkoraWebSocket.sendEvent(
+                    WebSocketEvent(
                         operation = FolderRoute.UPDATE_FOLDER_NOTE.name,
                         payload = Json.encodeToJsonElement(UpdateFolderNoteDTO(folderId, newNote))
                     )
@@ -242,8 +248,8 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
                     it[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
                 }
             }.let {
-                LinkoraWebSocket.sendNotification(
-                    ChangeNotification(
+                LinkoraWebSocket.sendEvent(
+                    WebSocketEvent(
                         operation = FolderRoute.DELETE_FOLDER_NOTE.name,
                         payload = Json.encodeToJsonElement(folderId)
                     )

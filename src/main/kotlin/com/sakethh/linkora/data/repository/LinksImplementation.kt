@@ -6,7 +6,7 @@ import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.dto.link.*
 import com.sakethh.linkora.domain.handler.LinksTombstoneHandler.insert
 import com.sakethh.linkora.domain.mapper.LinksMapper
-import com.sakethh.linkora.domain.model.ChangeNotification
+import com.sakethh.linkora.domain.model.WebSocketEvent
 import com.sakethh.linkora.domain.repository.LinksRepository
 import com.sakethh.linkora.domain.repository.Message
 import com.sakethh.linkora.domain.routes.LinkRoute
@@ -73,8 +73,8 @@ class LinksImplementation(
                     id.eq(linkId)
                 }
             }
-            LinkoraWebSocket.sendNotification(
-                ChangeNotification(
+            LinkoraWebSocket.sendEvent(
+                WebSocketEvent(
                     operation = LinkRoute.DELETE_A_LINK.name, payload = Json.encodeToJsonElement(linkId)
                 )
             )
@@ -115,8 +115,8 @@ class LinksImplementation(
                     it[idOfLinkedFolder] = updateLinkedFolderIDDto.linkId
                 }
             }
-            LinkoraWebSocket.sendNotification(
-                ChangeNotification(
+            LinkoraWebSocket.sendEvent(
+                WebSocketEvent(
                     operation = LinkRoute.UPDATE_LINKED_FOLDER_ID.name,
                     payload = Json.encodeToJsonElement(updateLinkedFolderIDDto)
                 )
@@ -138,8 +138,8 @@ class LinksImplementation(
                 }
 
             }
-            LinkoraWebSocket.sendNotification(
-                ChangeNotification(
+            LinkoraWebSocket.sendEvent(
+                WebSocketEvent(
                     operation = LinkRoute.UPDATE_LINK_TITLE.name,
                     payload = Json.encodeToJsonElement(updateTitleOfTheLinkDTO)
                 )
@@ -160,8 +160,8 @@ class LinksImplementation(
                     it[note] = updateNoteOfALinkDTO.newNote
                 }
             }
-            LinkoraWebSocket.sendNotification(
-                ChangeNotification(
+            LinkoraWebSocket.sendEvent(
+                WebSocketEvent(
                     operation = LinkRoute.UPDATE_LINK_NOTE.name,
                     payload = Json.encodeToJsonElement(updateNoteOfALinkDTO)
                 )
@@ -184,8 +184,8 @@ class LinksImplementation(
                     it[this.userAgent] = userAgent
                 }
             }
-            LinkoraWebSocket.sendNotification(
-                ChangeNotification(
+            LinkoraWebSocket.sendEvent(
+                WebSocketEvent(
                     operation = LinkRoute.UPDATE_USER_AGENT.name,
                     payload = Json.encodeToJsonElement(updateLinkUserAgentDTO)
                 )

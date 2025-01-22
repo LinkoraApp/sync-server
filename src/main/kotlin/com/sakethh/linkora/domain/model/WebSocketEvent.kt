@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
 
 @Serializable
-data class ChangeNotification(
+data class WebSocketEvent(
     val operation: String,
     val payload: JsonElement
 )

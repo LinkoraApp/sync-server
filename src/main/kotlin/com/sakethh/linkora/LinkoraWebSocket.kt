@@ -1,6 +1,6 @@
 package com.sakethh.linkora
 
-import com.sakethh.linkora.domain.model.ChangeNotification
+import com.sakethh.linkora.domain.model.WebSocketEvent
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.channels.SendChannel
@@ -18,8 +18,7 @@ object LinkoraWebSocket {
         writeChannel.set(this.outgoing)
     }
 
-    suspend fun sendNotification(notification: ChangeNotification) {
-        return
+    suspend fun sendEvent(notification: WebSocketEvent) {
         try {
             writeChannel.get().send(Frame.Text(json.encodeToString(notification)))
         } catch (e: Exception) {
