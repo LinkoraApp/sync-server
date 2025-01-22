@@ -1,7 +1,7 @@
 package com.sakethh.linkora.domain.repository
 
-import com.sakethh.linkora.domain.Link
 import com.sakethh.linkora.domain.dto.IDBasedDTO
+import com.sakethh.linkora.domain.dto.NewItemResponseDTO
 import com.sakethh.linkora.domain.dto.link.*
 import com.sakethh.linkora.utils.Result
 

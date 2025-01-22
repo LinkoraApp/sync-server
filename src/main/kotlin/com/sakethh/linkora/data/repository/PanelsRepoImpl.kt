@@ -1,7 +1,7 @@
 package com.sakethh.linkora.data.repository
 
 import com.sakethh.linkora.domain.dto.IDBasedDTO
-import com.sakethh.linkora.domain.dto.link.NewItemResponseDTO
+import com.sakethh.linkora.domain.dto.NewItemResponseDTO
 import com.sakethh.linkora.domain.dto.panel.*
 import com.sakethh.linkora.domain.model.WebSocketEvent
 import com.sakethh.linkora.domain.repository.Message

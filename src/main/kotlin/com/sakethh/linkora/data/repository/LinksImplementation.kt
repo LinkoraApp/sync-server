@@ -2,6 +2,7 @@ package com.sakethh.linkora.data.repository
 
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.dto.IDBasedDTO
+import com.sakethh.linkora.domain.dto.NewItemResponseDTO
 import com.sakethh.linkora.domain.dto.link.*
 import com.sakethh.linkora.domain.handler.LinksTombstoneHandler.insert
 import com.sakethh.linkora.domain.model.WebSocketEvent

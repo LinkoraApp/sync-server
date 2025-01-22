@@ -6,7 +6,7 @@ import com.sakethh.linkora.domain.dto.folder.AddFolderDTO
 import com.sakethh.linkora.domain.dto.folder.ChangeParentFolderDTO
 import com.sakethh.linkora.domain.dto.folder.UpdateFolderNameDTO
 import com.sakethh.linkora.domain.dto.folder.UpdateFolderNoteDTO
-import com.sakethh.linkora.domain.dto.link.NewItemResponseDTO
+import com.sakethh.linkora.domain.dto.NewItemResponseDTO
 import com.sakethh.linkora.utils.Result
 
 typealias Message = String

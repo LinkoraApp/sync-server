@@ -1,7 +1,7 @@
 package com.sakethh.linkora.domain.repository
 
 import com.sakethh.linkora.domain.dto.IDBasedDTO
-import com.sakethh.linkora.domain.dto.link.NewItemResponseDTO
+import com.sakethh.linkora.domain.dto.NewItemResponseDTO
 import com.sakethh.linkora.domain.dto.panel.AddANewPanelDTO
 import com.sakethh.linkora.domain.dto.panel.AddANewPanelFolderDTO
 import com.sakethh.linkora.domain.dto.panel.DeleteAPanelFromAFolderDTO
