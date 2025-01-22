@@ -2,8 +2,8 @@ package com.sakethh.linkora.data.repository
 
 import com.sakethh.linkora.LinkoraWebSocket
 import com.sakethh.linkora.domain.Folder
-import com.sakethh.linkora.domain.dto.folder.ChangeParentFolderDTO
 import com.sakethh.linkora.domain.dto.folder.AddFolderDTO
+import com.sakethh.linkora.domain.dto.folder.ChangeParentFolderDTO
 import com.sakethh.linkora.domain.dto.folder.UpdateFolderNameDTO
 import com.sakethh.linkora.domain.dto.folder.UpdateFolderNoteDTO
 import com.sakethh.linkora.domain.dto.link.NewItemResponseDTO
@@ -13,6 +13,7 @@ import com.sakethh.linkora.domain.repository.LinksRepository
 import com.sakethh.linkora.domain.repository.Message
 import com.sakethh.linkora.domain.routes.FolderRoute
 import com.sakethh.linkora.domain.tables.FoldersTable
+import com.sakethh.linkora.domain.tables.PanelFoldersTable
 import com.sakethh.linkora.utils.Result
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
@@ -191,6 +192,11 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
             transaction {
                 FoldersTable.update(where = { FoldersTable.id.eq(folderId) }) {
                     it[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
+                    it[folderName] = newFolderName
+                }
+                PanelFoldersTable.update(where = {
+                    PanelFoldersTable.folderId.eq(folderId)
+                }) {
                     it[folderName] = newFolderName
                 }
             }.let {
