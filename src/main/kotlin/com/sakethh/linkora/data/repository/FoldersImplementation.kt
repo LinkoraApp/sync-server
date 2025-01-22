@@ -72,9 +72,7 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
 
                 is Result.Success -> {
                     childFolders.response.map { it.id }.forEach { childFolderId ->
-                        childFolderId?.let {
-                            deleteFolder(idBasedDTO)
-                        }
+                        deleteFolder(idBasedDTO.copy(id = childFolderId))
                     }
                 }
             }
