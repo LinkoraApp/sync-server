@@ -1,8 +1,9 @@
 package com.sakethh.linkora.routing
 
 import com.sakethh.linkora.Security
-import com.sakethh.linkora.domain.dto.folder.ChangeParentFolderDTO
+import com.sakethh.linkora.domain.dto.IDBasedDTO
 import com.sakethh.linkora.domain.dto.folder.AddFolderDTO
+import com.sakethh.linkora.domain.dto.folder.ChangeParentFolderDTO
 import com.sakethh.linkora.domain.dto.folder.UpdateFolderNameDTO
 import com.sakethh.linkora.domain.dto.folder.UpdateFolderNoteDTO
 import com.sakethh.linkora.domain.repository.FoldersRepository
@@ -20,48 +21,44 @@ fun Application.foldersRouting(foldersRepository: FoldersRepository) {
                 respondWithResult(foldersRepository.createFolder(folderDTO))
             }
 
-            post<Long>(FolderRoute.DELETE_FOLDER.name) { folderId ->
-                respondWithResult(foldersRepository.deleteFolder(folderId))
+            post<IDBasedDTO>(FolderRoute.DELETE_FOLDER.name) {
+                respondWithResult(foldersRepository.deleteFolder(it))
             }
 
-            post<Long>(FolderRoute.GET_CHILD_FOLDERS.name) { folderId ->
-                respondWithResult(foldersRepository.getChildFolders(folderId))
+            post<IDBasedDTO>(FolderRoute.GET_CHILD_FOLDERS.name) {
+                respondWithResult(foldersRepository.getChildFolders(it))
             }
 
             get(FolderRoute.GET_ROOT_FOLDERS.name) {
                 respondWithResult(foldersRepository.getRootFolders())
             }
 
-            post<Long>(FolderRoute.MARK_AS_ARCHIVE.name) { folderId ->
-                respondWithResult(foldersRepository.markAsArchive(folderId))
+            post<IDBasedDTO>(FolderRoute.MARK_AS_ARCHIVE.name) {
+                respondWithResult(foldersRepository.markAsArchive(it))
             }
 
-            post<Long>(FolderRoute.MARK_AS_REGULAR_FOLDER.name) { folderId ->
-                respondWithResult(foldersRepository.markAsRegularFolder(folderId))
+            post<IDBasedDTO>(FolderRoute.MARK_AS_REGULAR_FOLDER.name) {
+                respondWithResult(foldersRepository.markAsRegularFolder(it))
             }
 
             post<ChangeParentFolderDTO>(FolderRoute.CHANGE_PARENT_FOLDER.name) {
                 respondWithResult(
-                    foldersRepository.changeParentFolder(
-                        folderId = it.folderId, newParentFolderId = it.newParentFolderId
-                    )
+                    foldersRepository.changeParentFolder(it)
                 )
             }
 
             post<UpdateFolderNameDTO>(FolderRoute.UPDATE_FOLDER_NAME.name) {
                 respondWithResult(
-                    foldersRepository.updateFolderName(
-                        folderId = it.folderId, newFolderName = it.newFolderName
-                    )
+                    foldersRepository.updateFolderName(it)
                 )
             }
 
             post<UpdateFolderNoteDTO>(FolderRoute.UPDATE_FOLDER_NOTE.name) {
-                respondWithResult(foldersRepository.updateFolderNote(folderId = it.folderId, newNote = it.newNote))
+                respondWithResult(foldersRepository.updateFolderNote(it))
             }
 
-            post<Long>(FolderRoute.DELETE_FOLDER_NOTE.name) { folderId ->
-                respondWithResult(foldersRepository.deleteFolderNote(folderId = folderId))
+            post<IDBasedDTO>(FolderRoute.DELETE_FOLDER_NOTE.name) {
+                respondWithResult(foldersRepository.deleteFolderNote(it))
             }
         }
     }

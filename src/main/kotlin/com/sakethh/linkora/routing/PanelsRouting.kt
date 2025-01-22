@@ -1,6 +1,7 @@
 package com.sakethh.linkora.routing
 
 import com.sakethh.linkora.Security
+import com.sakethh.linkora.domain.dto.IDBasedDTO
 import com.sakethh.linkora.domain.dto.panel.AddANewPanelDTO
 import com.sakethh.linkora.domain.dto.panel.AddANewPanelFolderDTO
 import com.sakethh.linkora.domain.dto.panel.DeleteAPanelFromAFolderDTO
@@ -23,7 +24,7 @@ fun Application.panelsRouting(panelsRepository: PanelsRepository) {
                 respondWithResult(panelsRepository.addANewFolderInAPanel(it))
             }
 
-            post<Long>(PanelRoute.DELETE_A_PANEL.name) {
+            post<IDBasedDTO>(PanelRoute.DELETE_A_PANEL.name) {
                 respondWithResult(panelsRepository.deleteAPanel(it))
             }
 
@@ -31,7 +32,7 @@ fun Application.panelsRouting(panelsRepository: PanelsRepository) {
                 respondWithResult(panelsRepository.updateAPanelName(it))
             }
 
-            post<Long>(PanelRoute.DELETE_A_FOLDER_FROM_ALL_PANELS.name) {
+            post<IDBasedDTO>(PanelRoute.DELETE_A_FOLDER_FROM_ALL_PANELS.name) {
                 respondWithResult(panelsRepository.deleteAFolderFromAllPanels(it))
             }
 
@@ -39,7 +40,7 @@ fun Application.panelsRouting(panelsRepository: PanelsRepository) {
                 respondWithResult(panelsRepository.deleteAFolderFromAPanel(it))
             }
 
-            post<Long>(PanelRoute.DELETE_ALL_FOLDERS_FROM_A_PANEL.name) {
+            post<IDBasedDTO>(PanelRoute.DELETE_ALL_FOLDERS_FROM_A_PANEL.name) {
                 respondWithResult(panelsRepository.deleteAllFoldersFromAPanel(it))
             }
         }

@@ -5,5 +5,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class NewItemResponseDTO(
     val message: String,
-    val id: Long
+    val id: Long,
+    val correlationId:String
 )

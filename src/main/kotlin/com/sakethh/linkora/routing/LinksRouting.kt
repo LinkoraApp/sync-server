@@ -2,6 +2,7 @@ package com.sakethh.linkora.routing
 
 import com.sakethh.linkora.Security
 import com.sakethh.linkora.domain.Link
+import com.sakethh.linkora.domain.dto.IDBasedDTO
 import com.sakethh.linkora.domain.dto.link.*
 import com.sakethh.linkora.domain.repository.LinksRepository
 import com.sakethh.linkora.domain.routes.LinkRoute
@@ -17,7 +18,7 @@ fun Application.linksRouting(linksRepository: LinksRepository) {
                 respondWithResult(linksRepository.createANewLink(it))
             }
 
-            post<Long>(LinkRoute.DELETE_A_LINK.name) {
+            post<IDBasedDTO>(LinkRoute.DELETE_A_LINK.name) {
                 respondWithResult(linksRepository.deleteALink(it))
             }
 
@@ -45,24 +46,24 @@ fun Application.linksRouting(linksRepository: LinksRepository) {
                 )
             }
 
-            post<Long>(LinkRoute.ARCHIVE_LINK.name) {
-                respondWithResult(linksRepository.archiveALink(linkId = it))
+            post<IDBasedDTO>(LinkRoute.ARCHIVE_LINK.name) {
+                respondWithResult(linksRepository.archiveALink(it))
             }
 
-            post<Long>(LinkRoute.UNARCHIVE_LINK.name) {
-                respondWithResult(linksRepository.unArchiveALink(linkId = it))
+            post<IDBasedDTO>(LinkRoute.UNARCHIVE_LINK.name) {
+                respondWithResult(linksRepository.unArchiveALink(it))
             }
 
-            post<Long>(LinkRoute.MARK_AS_IMP.name) {
-                respondWithResult(linksRepository.markALinkAsImp(linkId = it))
+            post<IDBasedDTO>(LinkRoute.MARK_AS_IMP.name) {
+                respondWithResult(linksRepository.markALinkAsImp(it))
             }
 
-            post<Long>(LinkRoute.UNMARK_AS_IMP.name) {
-                respondWithResult(linksRepository.markALinkAsNonImp(linkId = it))
+            post<IDBasedDTO>(LinkRoute.UNMARK_AS_IMP.name) {
+                respondWithResult(linksRepository.markALinkAsNonImp(it))
             }
 
-            post<Link>(LinkRoute.UPDATE_LINK.name) {
-                respondWithResult(linksRepository.updateLink(link = it))
+            post<LinkDTO>(LinkRoute.UPDATE_LINK.name) {
+                respondWithResult(linksRepository.updateLink(it))
             }
         }
     }

@@ -5,5 +5,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class UpdateTitleOfTheLinkDTO(
     val linkId: Long,
-    val newTitleOfTheLink: String
+    val newTitleOfTheLink: String,
+    val correlationId:String
 )

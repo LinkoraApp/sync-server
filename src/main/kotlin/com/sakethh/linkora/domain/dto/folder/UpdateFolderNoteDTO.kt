@@ -5,5 +5,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class UpdateFolderNoteDTO(
     val folderId: Long,
-    val newNote: String
+    val newNote: String,
+    val correlationId:String
 )

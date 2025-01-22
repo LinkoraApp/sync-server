@@ -7,5 +7,6 @@ import kotlinx.serialization.Serializable
 data class UpdateLinkUserAgentDTO(
     val linkType: LinkType,
     val linkId: Long,
-    val userAgent: String
+    val userAgent: String,
+    val correlationId:String
 )

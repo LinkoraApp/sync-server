@@ -1,10 +1,8 @@
 package com.sakethh.linkora.data.repository
 
 import com.sakethh.linkora.domain.Folder
-import com.sakethh.linkora.domain.dto.folder.AddFolderDTO
-import com.sakethh.linkora.domain.dto.folder.ChangeParentFolderDTO
-import com.sakethh.linkora.domain.dto.folder.UpdateFolderNameDTO
-import com.sakethh.linkora.domain.dto.folder.UpdateFolderNoteDTO
+import com.sakethh.linkora.domain.dto.IDBasedDTO
+import com.sakethh.linkora.domain.dto.folder.*
 import com.sakethh.linkora.domain.dto.link.NewItemResponseDTO
 import com.sakethh.linkora.domain.model.WebSocketEvent
 import com.sakethh.linkora.domain.repository.FoldersRepository
@@ -35,17 +33,22 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
                 }
             }.value.let {
                 Result.Success(
-                    response = NewItemResponseDTO(message = "Folder created successfully with id = $it", id = it),
+                    response = NewItemResponseDTO(
+                        message = "Folder created successfully with id = $it",
+                        id = it,
+                        correlationId = addFolderDTO.correlationId
+                    ),
                     webSocketEvent = WebSocketEvent(
                         operation = FolderRoute.CREATE_FOLDER.name, payload = Json.encodeToJsonElement(
-                            Folder(
+                            FolderDTO(
                                 id = it,
                                 name = addFolderDTO.name,
                                 note = addFolderDTO.note,
                                 parentFolderId = addFolderDTO.parentFolderId,
-                                isArchived = addFolderDTO.isArchived
+                                isArchived = addFolderDTO.isArchived,
+                                correlationId = addFolderDTO.correlationId
                             )
-                        )
+                        ),
                     )
                 )
             }
@@ -54,14 +57,15 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
         }
     }
 
-    override suspend fun deleteFolder(folderId: Long): Result<Message> {
+    override suspend fun deleteFolder(idBasedDTO: IDBasedDTO): Result<Message> {
+        val folderId = idBasedDTO.id
         return try {
             transaction {
                 FoldersTable.deleteWhere {
                     FoldersTable.id.eq(folderId)
                 }
             }
-            when (val childFolders = getChildFolders(folderId)) {
+            when (val childFolders = getChildFolders(idBasedDTO)) {
                 is Result.Failure -> {
                     throw childFolders.exception
                 }
@@ -69,7 +73,7 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
                 is Result.Success -> {
                     childFolders.response.map { it.id }.forEach { childFolderId ->
                         childFolderId?.let {
-                            deleteFolder(it)
+                            deleteFolder(idBasedDTO)
                         }
                     }
                 }
@@ -77,7 +81,7 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
             Result.Success(
                 response = "Folder and its contents have been successfully deleted.", webSocketEvent = WebSocketEvent(
                     operation = FolderRoute.DELETE_FOLDER.name,
-                    payload = Json.encodeToJsonElement(folderId)
+                    payload = Json.encodeToJsonElement(idBasedDTO),
                 )
             )
         } catch (e: Exception) {
@@ -85,11 +89,11 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
         }
     }
 
-    override suspend fun getChildFolders(parentFolderId: Long): Result<List<Folder>> {
+    override suspend fun getChildFolders(idBasedDTO: IDBasedDTO): Result<List<Folder>> {
         return try {
             transaction {
                 FoldersTable.selectAll().where {
-                    FoldersTable.parentFolderID.eq(parentFolderId)
+                    FoldersTable.parentFolderID.eq(idBasedDTO.id)
                 }.toList().map {
                     Folder(
                         id = it[FoldersTable.id].value,
@@ -129,7 +133,8 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
         }
     }
 
-    override suspend fun markAsArchive(folderId: Long): Result<Message> {
+    override suspend fun markAsArchive(idBasedDTO: IDBasedDTO): Result<Message> {
+        val folderId = idBasedDTO.id
         return try {
             transaction {
                 FoldersTable.update(where = { FoldersTable.id.eq(folderId) }) {
@@ -140,7 +145,7 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
                 Result.Success(
                     response = "Number of rows affected by the update = $it", webSocketEvent = WebSocketEvent(
                         operation = FolderRoute.MARK_AS_ARCHIVE.name,
-                        payload = Json.encodeToJsonElement(folderId)
+                        payload = Json.encodeToJsonElement(idBasedDTO),
                     )
                 )
             }
@@ -149,7 +154,8 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
         }
     }
 
-    override suspend fun markAsRegularFolder(folderId: Long): Result<Message> {
+    override suspend fun markAsRegularFolder(idBasedDTO: IDBasedDTO): Result<Message> {
+        val folderId = idBasedDTO.id
         return try {
             transaction {
                 FoldersTable.update(where = { FoldersTable.id.eq(folderId) }) {
@@ -160,7 +166,7 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
                 Result.Success(
                     response = "Number of rows affected by the update = $it", webSocketEvent = WebSocketEvent(
                         operation = FolderRoute.MARK_AS_REGULAR_FOLDER.name,
-                        payload = Json.encodeToJsonElement(folderId)
+                        payload = Json.encodeToJsonElement(idBasedDTO),
                     )
                 )
             }
@@ -169,7 +175,9 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
         }
     }
 
-    override suspend fun changeParentFolder(folderId: Long, newParentFolderId: Long): Result<Message> {
+    override suspend fun changeParentFolder(changeParentFolderDTO: ChangeParentFolderDTO): Result<Message> {
+        val folderId = changeParentFolderDTO.folderId
+        val newParentFolderId = changeParentFolderDTO.newParentFolderId
         return try {
             transaction {
                 FoldersTable.update(where = { FoldersTable.id.eq(folderId) }) {
@@ -180,7 +188,7 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
                 Result.Success(
                     response = "Number of rows affected by the update = $it", webSocketEvent = WebSocketEvent(
                         operation = FolderRoute.CHANGE_PARENT_FOLDER.name,
-                        payload = Json.encodeToJsonElement(ChangeParentFolderDTO(folderId, newParentFolderId))
+                        payload = Json.encodeToJsonElement(changeParentFolderDTO),
                     )
                 )
             }
@@ -189,7 +197,9 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
         }
     }
 
-    override suspend fun updateFolderName(folderId: Long, newFolderName: String): Result<Message> {
+    override suspend fun updateFolderName(updateFolderNameDTO: UpdateFolderNameDTO): Result<Message> {
+        val folderId = updateFolderNameDTO.folderId
+        val newFolderName = updateFolderNameDTO.newFolderName
         return try {
             transaction {
                 FoldersTable.update(where = { FoldersTable.id.eq(folderId) }) {
@@ -205,7 +215,7 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
                 Result.Success(
                     response = "Number of rows affected by the update = $it", webSocketEvent = WebSocketEvent(
                         operation = FolderRoute.UPDATE_FOLDER_NAME.name,
-                        payload = Json.encodeToJsonElement(UpdateFolderNameDTO(folderId, newFolderName))
+                        payload = Json.encodeToJsonElement(updateFolderNameDTO),
                     )
                 )
             }
@@ -214,7 +224,9 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
         }
     }
 
-    override suspend fun updateFolderNote(folderId: Long, newNote: String): Result<Message> {
+    override suspend fun updateFolderNote(updateFolderNoteDTO: UpdateFolderNoteDTO): Result<Message> {
+        val folderId = updateFolderNoteDTO.folderId
+        val newNote = updateFolderNoteDTO.newNote
         return try {
             transaction {
                 FoldersTable.update(where = { FoldersTable.id.eq(folderId) }) {
@@ -225,7 +237,7 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
                 Result.Success(
                     response = "Number of rows affected by the update = $it", webSocketEvent = WebSocketEvent(
                         operation = FolderRoute.UPDATE_FOLDER_NOTE.name,
-                        payload = Json.encodeToJsonElement(UpdateFolderNoteDTO(folderId, newNote))
+                        payload = Json.encodeToJsonElement(updateFolderNoteDTO),
                     )
                 )
             }
@@ -234,10 +246,10 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
         }
     }
 
-    override suspend fun deleteFolderNote(folderId: Long): Result<Message> {
+    override suspend fun deleteFolderNote(idBasedDTO: IDBasedDTO): Result<Message> {
         return try {
             transaction {
-                FoldersTable.update(where = { FoldersTable.id.eq(folderId) }) {
+                FoldersTable.update(where = { FoldersTable.id.eq(idBasedDTO.id) }) {
                     it[infoForSaving] = ""
                     it[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
                 }
@@ -245,7 +257,7 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
                 Result.Success(
                     response = "Number of rows affected by the update = $it", webSocketEvent = WebSocketEvent(
                         operation = FolderRoute.DELETE_FOLDER_NOTE.name,
-                        payload = Json.encodeToJsonElement(folderId)
+                        payload = Json.encodeToJsonElement(idBasedDTO),
                     )
                 )
             }

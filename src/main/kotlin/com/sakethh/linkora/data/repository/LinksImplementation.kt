@@ -1,10 +1,9 @@
 package com.sakethh.linkora.data.repository
 
-import com.sakethh.linkora.domain.Link
 import com.sakethh.linkora.domain.LinkType
+import com.sakethh.linkora.domain.dto.IDBasedDTO
 import com.sakethh.linkora.domain.dto.link.*
 import com.sakethh.linkora.domain.handler.LinksTombstoneHandler.insert
-import com.sakethh.linkora.domain.mapper.LinksMapper
 import com.sakethh.linkora.domain.model.WebSocketEvent
 import com.sakethh.linkora.domain.repository.LinksRepository
 import com.sakethh.linkora.domain.repository.Message
@@ -20,9 +19,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 
-class LinksImplementation(
-    private val linksMapper: LinksMapper = LinksMapper()
-) : LinksRepository {
+class LinksImplementation : LinksRepository {
     override suspend fun createANewLink(addLinkDTO: AddLinkDTO): Result<NewItemResponseDTO> {
         return try {
             transaction {
@@ -40,17 +37,30 @@ class LinksImplementation(
                     link[markedAsImportant] = addLinkDTO.markedAsImportant
                 }
             }.value.let { idOfNewlyAddedLink ->
-                /* TODO LinkoraWebSocket.sendNotification(
-                    ChangeNotification(
-                        operation = LinkRoute.CREATE_A_NEW_LINK.name,
-                        payload = Json.encodeToJsonElement(addLinkDTO.copy(id = idOfNewlyAddedLink))
-                    )
-                )*/
                 Result.Success(
                     response = NewItemResponseDTO(
                         message = "Link created successfully for ${addLinkDTO.linkType.name} with id = ${idOfNewlyAddedLink}.",
-                        id = idOfNewlyAddedLink
-                    ), webSocketEvent = null
+                        id = idOfNewlyAddedLink,
+                        correlationId = addLinkDTO.correlationId
+                    ), webSocketEvent = WebSocketEvent(
+                        operation = LinkRoute.CREATE_A_NEW_LINK.name, payload = Json.encodeToJsonElement(
+                            LinkDTO(
+                                id = idOfNewlyAddedLink,
+                                linkType = addLinkDTO.linkType,
+                                title = addLinkDTO.title,
+                                url = addLinkDTO.url,
+                                baseURL = addLinkDTO.baseURL,
+                                imgURL = addLinkDTO.imgURL,
+                                note = addLinkDTO.note,
+                                lastModified = addLinkDTO.lastModified,
+                                idOfLinkedFolder = addLinkDTO.idOfLinkedFolder,
+                                userAgent = addLinkDTO.userAgent,
+                                markedAsImportant = addLinkDTO.markedAsImportant,
+                                mediaType = addLinkDTO.mediaType,
+                                correlationId = addLinkDTO.correlationId
+                            )
+                        )
+                    )
                 )
             }
         } catch (e: Exception) {
@@ -59,22 +69,21 @@ class LinksImplementation(
     }
 
 
-    override suspend fun deleteALink(linkId: Long): Result<Message> {
+    override suspend fun deleteALink(idBasedDTO: IDBasedDTO): Result<Message> {
         return try {
             transaction {
-                LinksTable.selectAll()
-                    .where(LinksTable.id.eq(linkId))
+                LinksTable.selectAll().where(LinksTable.id.eq(idBasedDTO.id))
                     .forEach { resultRow ->
                         LinksTombstone.insert(resultRow)
                     }
 
                 LinksTable.deleteWhere {
-                    id.eq(linkId)
+                    id.eq(idBasedDTO.id)
                 }
             }
             Result.Success(
                 response = "Link deleted successfully.", webSocketEvent = WebSocketEvent(
-                    operation = LinkRoute.DELETE_A_LINK.name, payload = Json.encodeToJsonElement(linkId)
+                    operation = LinkRoute.DELETE_A_LINK.name, payload = Json.encodeToJsonElement(idBasedDTO),
                 )
             )
         } catch (e: Exception) {
@@ -82,20 +91,21 @@ class LinksImplementation(
         }
     }
 
-    override suspend fun deleteLinksOfAFolder(folderId: Long): Result<Message> {
+    override suspend fun deleteLinksOfAFolder(idBasedDTO: IDBasedDTO): Result<Message> {
         return try {
             transaction {
-                LinksTable.selectAll()
-                    .where(LinksTable.idOfLinkedFolder.eq(folderId))
+                LinksTable.selectAll().where(LinksTable.idOfLinkedFolder.eq(idBasedDTO.id))
                     .forEach { resultRow ->
                         LinksTombstone.insert(resultRow)
                     }
 
                 LinksTable.deleteWhere {
-                    idOfLinkedFolder.eq(folderId)
+                    idOfLinkedFolder.eq(idBasedDTO.id)
                 }
             }
-            Result.Success("Links deleted successfully from the folderId = $folderId.")
+            Result.Success(
+                response = "Links deleted successfully from the folderId = ${idBasedDTO.id}.", webSocketEvent = null
+            )
         } catch (e: Exception) {
             Result.Failure(e)
         }
@@ -116,7 +126,7 @@ class LinksImplementation(
             Result.Success(
                 response = "idOfLinkedFolder Updated Successfully.", webSocketEvent = WebSocketEvent(
                     operation = LinkRoute.UPDATE_LINKED_FOLDER_ID.name,
-                    payload = Json.encodeToJsonElement(updateLinkedFolderIDDto)
+                    payload = Json.encodeToJsonElement(updateLinkedFolderIDDto),
                 )
             )
         } catch (e: Exception) {
@@ -138,7 +148,7 @@ class LinksImplementation(
             Result.Success(
                 response = "Title was updated successfully.", webSocketEvent = WebSocketEvent(
                     operation = LinkRoute.UPDATE_LINK_TITLE.name,
-                    payload = Json.encodeToJsonElement(updateTitleOfTheLinkDTO)
+                    payload = Json.encodeToJsonElement(updateTitleOfTheLinkDTO),
                 )
             )
         } catch (e: Exception) {
@@ -159,7 +169,7 @@ class LinksImplementation(
             Result.Success(
                 response = "Note was updated successfully.", webSocketEvent = WebSocketEvent(
                     operation = LinkRoute.UPDATE_LINK_NOTE.name,
-                    payload = Json.encodeToJsonElement(updateNoteOfALinkDTO)
+                    payload = Json.encodeToJsonElement(updateNoteOfALinkDTO),
                 )
             )
         } catch (e: Exception) {
@@ -182,7 +192,7 @@ class LinksImplementation(
             Result.Success(
                 response = "User agent was updated successfully.", webSocketEvent = WebSocketEvent(
                     operation = LinkRoute.UPDATE_USER_AGENT.name,
-                    payload = Json.encodeToJsonElement(updateLinkUserAgentDTO)
+                    payload = Json.encodeToJsonElement(updateLinkUserAgentDTO),
                 )
             )
         } catch (e: Exception) {
@@ -190,86 +200,109 @@ class LinksImplementation(
         }
     }
 
-    override suspend fun archiveALink(linkId: Long): Result<Message> {
+    override suspend fun archiveALink(idBasedDTO: IDBasedDTO): Result<Message> {
         return try {
             transaction {
                 LinksTable.update(where = {
-                    LinksTable.id.eq(linkId)
+                    LinksTable.id.eq(idBasedDTO.id)
                 }) {
                     it[linkType] = LinkType.ARCHIVE_LINK.name
                 }
             }
-            Result.Success("Archived link with id : $linkId successfully")
+            Result.Success(
+                response = "Archived link with id : ${idBasedDTO.id} successfully", webSocketEvent = WebSocketEvent(
+                    operation = LinkRoute.ARCHIVE_LINK.name, payload = Json.encodeToJsonElement(idBasedDTO)
+                )
+            )
         } catch (e: Exception) {
             Result.Failure(e)
         }
     }
 
-    override suspend fun unArchiveALink(linkId: Long): Result<Message> {
+    override suspend fun unArchiveALink(idBasedDTO: IDBasedDTO): Result<Message> {
         return try {
             transaction {
                 LinksTable.update(where = {
-                    LinksTable.id.eq(linkId)
+                    LinksTable.id.eq(idBasedDTO.id)
                 }) {
                     it[linkType] = LinkType.SAVED_LINK.name
                 }
             }
-            Result.Success("Unarchived link with id : $linkId successfully as ${LinkType.SAVED_LINK.name}")
+            Result.Success(
+                response = "Unarchived link with id : ${idBasedDTO.id} successfully as ${LinkType.SAVED_LINK.name}",
+                webSocketEvent = WebSocketEvent(
+                    operation = LinkRoute.UNARCHIVE_LINK.name, payload = Json.encodeToJsonElement(idBasedDTO)
+                )
+            )
         } catch (e: Exception) {
             Result.Failure(e)
         }
     }
 
-    override suspend fun markALinkAsImp(linkId: Long): Result<Message> {
+    override suspend fun markALinkAsImp(idBasedDTO: IDBasedDTO): Result<Message> {
         return try {
             transaction {
                 LinksTable.update(where = {
-                    LinksTable.id.eq(linkId)
+                    LinksTable.id.eq(idBasedDTO.id)
                 }) {
                     it[markedAsImportant] = true
                 }
             }
-            Result.Success("Marked link with id : $linkId as Important.")
+            Result.Success(
+                response = "Marked link with id : ${idBasedDTO.id} as Important.", webSocketEvent = WebSocketEvent(
+                    operation = LinkRoute.MARK_AS_IMP.name, payload = Json.encodeToJsonElement(idBasedDTO)
+                )
+            )
         } catch (e: Exception) {
             Result.Failure(e)
         }
     }
 
-    override suspend fun markALinkAsNonImp(linkId: Long): Result<Message> {
+    override suspend fun markALinkAsNonImp(idBasedDTO: IDBasedDTO): Result<Message> {
         return try {
             transaction {
                 LinksTable.update(where = {
-                    LinksTable.id.eq(linkId)
+                    LinksTable.id.eq(idBasedDTO.id)
                 }) {
                     it[markedAsImportant] = false
                 }
             }
-            Result.Success("Marked link with id : $linkId as Non-Important.")
+            Result.Success(
+                response = "Marked link with id : ${idBasedDTO.id} as Non-Important.", webSocketEvent = WebSocketEvent(
+                    operation = LinkRoute.UNMARK_AS_IMP.name, payload = Json.encodeToJsonElement(idBasedDTO)
+                )
+            )
         } catch (e: Exception) {
             Result.Failure(e)
         }
     }
 
-    override suspend fun updateLink(link: Link): Result<Message> {
+    override suspend fun updateLink(linkDTO: LinkDTO): Result<Message> {
         return try {
             transaction {
                 LinksTable.update(where = {
-                    LinksTable.id.eq(link.id)
+                    LinksTable.id.eq(linkDTO.id)
                 }) {
-                    it[lastModified] = link.lastModified
-                    it[linkType] = link.linkType.name
-                    it[linkTitle] = link.title
-                    it[url] = link.url
-                    it[baseURL] = link.baseURL
-                    it[imgURL] = link.imgURL
-                    it[note] = link.note
-                    it[idOfLinkedFolder] = link.idOfLinkedFolder
-                    it[userAgent] = link.userAgent
-                    it[mediaType] = link.mediaType.name
-                    it[markedAsImportant] = link.markedAsImportant
+                    it[lastModified] = linkDTO.lastModified
+                    it[linkType] = linkDTO.linkType.name
+                    it[linkTitle] = linkDTO.title
+                    it[url] = linkDTO.url
+                    it[baseURL] = linkDTO.baseURL
+                    it[imgURL] = linkDTO.imgURL
+                    it[note] = linkDTO.note
+                    it[idOfLinkedFolder] = linkDTO.idOfLinkedFolder
+                    it[userAgent] = linkDTO.userAgent
+                    it[mediaType] = linkDTO.mediaType.name
+                    it[markedAsImportant] = linkDTO.markedAsImportant
                 }
             }
-            Result.Success("Updated the link (id : ${link.id}) successfully.")
+            Result.Success(
+                response = "Updated the link (id : ${linkDTO.id}) successfully.",
+                webSocketEvent = WebSocketEvent(
+                    operation = LinkRoute.UPDATE_LINK.name,
+                    payload = Json.encodeToJsonElement(linkDTO)
+                )
+            )
         } catch (e: Exception) {
             Result.Failure(e)
         }

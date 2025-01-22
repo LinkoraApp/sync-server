@@ -7,5 +7,6 @@ import kotlinx.serialization.Serializable
 data class UpdateLinkedFolderIDDto(
     val linkType: LinkType,
     val linkId: Long,
-    val newParentFolderId: Long
+    val newParentFolderId: Long,
+    val correlationId:String
 )

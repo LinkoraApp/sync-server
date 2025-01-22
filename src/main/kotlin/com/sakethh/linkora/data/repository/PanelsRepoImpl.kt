@@ -1,15 +1,17 @@
 package com.sakethh.linkora.data.repository
 
+import com.sakethh.linkora.domain.dto.IDBasedDTO
 import com.sakethh.linkora.domain.dto.link.NewItemResponseDTO
-import com.sakethh.linkora.domain.dto.panel.AddANewPanelDTO
-import com.sakethh.linkora.domain.dto.panel.AddANewPanelFolderDTO
-import com.sakethh.linkora.domain.dto.panel.DeleteAPanelFromAFolderDTO
-import com.sakethh.linkora.domain.dto.panel.UpdatePanelNameDTO
+import com.sakethh.linkora.domain.dto.panel.*
+import com.sakethh.linkora.domain.model.WebSocketEvent
 import com.sakethh.linkora.domain.repository.Message
 import com.sakethh.linkora.domain.repository.PanelsRepository
+import com.sakethh.linkora.domain.routes.PanelRoute
 import com.sakethh.linkora.domain.tables.PanelFoldersTable
 import com.sakethh.linkora.domain.tables.PanelsTable
 import com.sakethh.linkora.utils.Result
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.encodeToJsonElement
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
@@ -26,8 +28,18 @@ class PanelsRepoImpl : PanelsRepository {
                 }
             }.value.let {
                 Result.Success(
-                    NewItemResponseDTO(
-                        message = "New panel added with id : $it", id = it
+                    response = NewItemResponseDTO(
+                        message = "New panel added with id : $it",
+                        id = it,
+                        correlationId = addANewPanelDTO.correlationId
+                    ), webSocketEvent = WebSocketEvent(
+                        operation = PanelRoute.ADD_A_NEW_PANEL.name, payload = Json.encodeToJsonElement(
+                            PanelDTO(
+                                panelId = it,
+                                panelName = addANewPanelDTO.panelName,
+                                correlationId = addANewPanelDTO.correlationId
+                            )
+                        )
                     )
                 )
             }
@@ -47,9 +59,21 @@ class PanelsRepoImpl : PanelsRepository {
                 }
             }.value.let {
                 Result.Success(
-                    NewItemResponseDTO(
+                    response = NewItemResponseDTO(
                         message = "New folder added in a panel (id : ${addANewPanelFolderDTO.connectedPanelId}) with id : $it",
-                        id = it
+                        id = it,
+                        correlationId = addANewPanelFolderDTO.correlationId
+                    ), webSocketEvent = WebSocketEvent(
+                        operation = PanelRoute.ADD_A_NEW_FOLDER_IN_A_PANEL.name, payload = Json.encodeToJsonElement(
+                            PanelFolderDTO(
+                                id = it,
+                                folderId = addANewPanelFolderDTO.folderId,
+                                panelPosition = addANewPanelFolderDTO.panelPosition,
+                                folderName = addANewPanelFolderDTO.folderName,
+                                connectedPanelId = addANewPanelFolderDTO.connectedPanelId,
+                                correlationId = addANewPanelFolderDTO.correlationId
+                            )
+                        )
                     )
                 )
             }
@@ -58,17 +82,22 @@ class PanelsRepoImpl : PanelsRepository {
         }
     }
 
-    override suspend fun deleteAPanel(id: Long): Result<Message> {
+    override suspend fun deleteAPanel(idBasedDTO: IDBasedDTO): Result<Message> {
         return try {
             transaction {
                 PanelsTable.deleteWhere {
-                    PanelsTable.id.eq(id)
+                    PanelsTable.id.eq(idBasedDTO.id)
                 }
                 PanelFoldersTable.deleteWhere {
-                    connectedPanelId.eq(id)
+                    connectedPanelId.eq(idBasedDTO.id)
                 }
             }
-            Result.Success("Deleted the panel and respective connected panel folders (id : $id) successfully.")
+            Result.Success(
+                response = "Deleted the panel and respective connected panel folders (id : ${idBasedDTO.id}) successfully.",
+                webSocketEvent = WebSocketEvent(
+                    operation = PanelRoute.DELETE_A_PANEL.name, payload = Json.encodeToJsonElement(idBasedDTO)
+                )
+            )
         } catch (e: Exception) {
             Result.Failure(e)
         }
@@ -83,20 +112,32 @@ class PanelsRepoImpl : PanelsRepository {
                     it[panelName] = updatePanelNameDTO.newName
                 }
             }
-            Result.Success("Updated panel name to ${updatePanelNameDTO.newName} (id : ${updatePanelNameDTO.panelId}).")
+            Result.Success(
+                response = "Updated panel name to ${updatePanelNameDTO.newName} (id : ${updatePanelNameDTO.panelId}).",
+                webSocketEvent = WebSocketEvent(
+                    operation = PanelRoute.UPDATE_A_PANEL_NAME.name,
+                    payload = Json.encodeToJsonElement(updatePanelNameDTO)
+                )
+            )
         } catch (e: Exception) {
             Result.Failure(e)
         }
     }
 
-    override suspend fun deleteAFolderFromAllPanels(folderID: Long): Result<Message> {
+    override suspend fun deleteAFolderFromAllPanels(idBasedDTO: IDBasedDTO): Result<Message> {
         return try {
             transaction {
                 PanelFoldersTable.deleteWhere {
-                    folderId.eq(folderID)
+                    folderId.eq(idBasedDTO.id)
                 }
             }
-            Result.Success("Deleted folder from all panel folders where id = $folderID.")
+            Result.Success(
+                response = "Deleted folder from all panel folders where id = ${idBasedDTO.id}.",
+                webSocketEvent = WebSocketEvent(
+                    operation = PanelRoute.DELETE_A_FOLDER_FROM_ALL_PANELS.name,
+                    payload = Json.encodeToJsonElement(idBasedDTO)
+                )
+            )
         } catch (e: Exception) {
             Result.Failure(e)
         }
@@ -109,20 +150,32 @@ class PanelsRepoImpl : PanelsRepository {
                     folderId.eq(deleteAPanelFromAFolderDTO.folderID) and connectedPanelId.eq(deleteAPanelFromAFolderDTO.panelId)
                 }
             }
-            Result.Success("Deleted the folder with id ${deleteAPanelFromAFolderDTO.folderID} from a panel with id ${deleteAPanelFromAFolderDTO.panelId}.")
+            Result.Success(
+                response = "Deleted the folder with id ${deleteAPanelFromAFolderDTO.folderID} from a panel with id ${deleteAPanelFromAFolderDTO.panelId}.",
+                webSocketEvent = WebSocketEvent(
+                    operation = PanelRoute.DELETE_A_FOLDER_FROM_A_PANEL.name,
+                    payload = Json.encodeToJsonElement(deleteAPanelFromAFolderDTO)
+                )
+            )
         } catch (e: Exception) {
             Result.Failure(e)
         }
     }
 
-    override suspend fun deleteAllFoldersFromAPanel(panelId: Long): Result<Message> {
+    override suspend fun deleteAllFoldersFromAPanel(idBasedDTO: IDBasedDTO): Result<Message> {
         return try {
             transaction {
                 PanelFoldersTable.deleteWhere {
-                    connectedPanelId.eq(panelId)
+                    connectedPanelId.eq(idBasedDTO.id)
                 }
             }
-            Result.Success("Deleted all folders from the panel with id : $panelId.")
+            Result.Success(
+                response = "Deleted all folders from the panel with id : ${idBasedDTO.id}.",
+                webSocketEvent = WebSocketEvent(
+                    operation = PanelRoute.DELETE_ALL_FOLDERS_FROM_A_PANEL.name,
+                    payload = Json.encodeToJsonElement(idBasedDTO)
+                )
+            )
         } catch (e: Exception) {
             Result.Failure(e)
         }

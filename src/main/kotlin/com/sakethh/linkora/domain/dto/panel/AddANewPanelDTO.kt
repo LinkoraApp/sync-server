@@ -4,5 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class AddANewPanelDTO(
-    val panelName: String
+    val panelName: String,
+    val correlationId:String
 )
