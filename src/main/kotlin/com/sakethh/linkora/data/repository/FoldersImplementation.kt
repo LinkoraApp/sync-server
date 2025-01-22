@@ -1,6 +1,5 @@
 package com.sakethh.linkora.data.repository
 
-import com.sakethh.linkora.LinkoraWebSocket
 import com.sakethh.linkora.domain.Folder
 import com.sakethh.linkora.domain.dto.folder.AddFolderDTO
 import com.sakethh.linkora.domain.dto.folder.ChangeParentFolderDTO
@@ -35,19 +34,20 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
                     folder[isFolderArchived] = addFolderDTO.isArchived
                 }
             }.value.let {
-                LinkoraWebSocket.sendEvent(
-                    WebSocketEvent(
-                        operation = FolderRoute.CREATE_FOLDER.name,
-                        payload = Json.encodeToJsonElement(Folder(
-                            id = it,
-                            name = addFolderDTO.name,
-                            note = addFolderDTO.note,
-                            parentFolderId = addFolderDTO.parentFolderId,
-                            isArchived = addFolderDTO.isArchived
-                        ))
+                Result.Success(
+                    response = NewItemResponseDTO(message = "Folder created successfully with id = $it", id = it),
+                    webSocketEvent = WebSocketEvent(
+                        operation = FolderRoute.CREATE_FOLDER.name, payload = Json.encodeToJsonElement(
+                            Folder(
+                                id = it,
+                                name = addFolderDTO.name,
+                                note = addFolderDTO.note,
+                                parentFolderId = addFolderDTO.parentFolderId,
+                                isArchived = addFolderDTO.isArchived
+                            )
+                        )
                     )
                 )
-                Result.Success(NewItemResponseDTO(message = "Folder created successfully with id = $it", id = it))
             }
         } catch (e: Exception) {
             Result.Failure(e)
@@ -67,20 +67,19 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
                 }
 
                 is Result.Success -> {
-                    childFolders.result.map { it.id }.forEach { childFolderId ->
+                    childFolders.response.map { it.id }.forEach { childFolderId ->
                         childFolderId?.let {
                             deleteFolder(it)
                         }
                     }
                 }
             }
-            LinkoraWebSocket.sendEvent(
-                WebSocketEvent(
+            Result.Success(
+                response = "Folder and its contents have been successfully deleted.", webSocketEvent = WebSocketEvent(
                     operation = FolderRoute.DELETE_FOLDER.name,
                     payload = Json.encodeToJsonElement(folderId)
                 )
             )
-            Result.Success("Folder and its contents have been successfully deleted.")
         } catch (e: Exception) {
             Result.Failure(e)
         }
@@ -101,7 +100,7 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
                     )
                 }
             }.let {
-                Result.Success(it)
+                Result.Success(response = it, webSocketEvent = null)
             }
         } catch (e: Exception) {
             Result.Failure(e)
@@ -123,7 +122,7 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
                     )
                 }
             }.let {
-                Result.Success(it)
+                Result.Success(response = it, webSocketEvent = null)
             }
         } catch (e: Exception) {
             Result.Failure(e)
@@ -138,13 +137,12 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
                     it[isFolderArchived] = true
                 }
             }.let {
-                LinkoraWebSocket.sendEvent(
-                    WebSocketEvent(
+                Result.Success(
+                    response = "Number of rows affected by the update = $it", webSocketEvent = WebSocketEvent(
                         operation = FolderRoute.MARK_AS_ARCHIVE.name,
                         payload = Json.encodeToJsonElement(folderId)
                     )
                 )
-                Result.Success("Number of rows affected by the update = $it")
             }
         } catch (e: Exception) {
             Result.Failure(e)
@@ -159,13 +157,12 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
                     it[isFolderArchived] = false
                 }
             }.let {
-                LinkoraWebSocket.sendEvent(
-                    WebSocketEvent(
+                Result.Success(
+                    response = "Number of rows affected by the update = $it", webSocketEvent = WebSocketEvent(
                         operation = FolderRoute.MARK_AS_REGULAR_FOLDER.name,
                         payload = Json.encodeToJsonElement(folderId)
                     )
                 )
-                Result.Success("Number of rows affected by the update = $it")
             }
         } catch (e: Exception) {
             Result.Failure(e)
@@ -180,13 +177,12 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
                     it[parentFolderID] = newParentFolderId
                 }
             }.let {
-                LinkoraWebSocket.sendEvent(
-                    WebSocketEvent(
+                Result.Success(
+                    response = "Number of rows affected by the update = $it", webSocketEvent = WebSocketEvent(
                         operation = FolderRoute.CHANGE_PARENT_FOLDER.name,
                         payload = Json.encodeToJsonElement(ChangeParentFolderDTO(folderId, newParentFolderId))
                     )
                 )
-                Result.Success("Number of rows affected by the update = $it")
             }
         } catch (e: Exception) {
             Result.Failure(e)
@@ -206,13 +202,12 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
                     it[folderName] = newFolderName
                 }
             }.let {
-                LinkoraWebSocket.sendEvent(
-                    WebSocketEvent(
+                Result.Success(
+                    response = "Number of rows affected by the update = $it", webSocketEvent = WebSocketEvent(
                         operation = FolderRoute.UPDATE_FOLDER_NAME.name,
                         payload = Json.encodeToJsonElement(UpdateFolderNameDTO(folderId, newFolderName))
                     )
                 )
-                Result.Success("Number of rows affected by the update = $it")
             }
         } catch (e: Exception) {
             Result.Failure(e)
@@ -227,13 +222,12 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
                     it[infoForSaving] = newNote
                 }
             }.let {
-                LinkoraWebSocket.sendEvent(
-                    WebSocketEvent(
+                Result.Success(
+                    response = "Number of rows affected by the update = $it", webSocketEvent = WebSocketEvent(
                         operation = FolderRoute.UPDATE_FOLDER_NOTE.name,
                         payload = Json.encodeToJsonElement(UpdateFolderNoteDTO(folderId, newNote))
                     )
                 )
-                Result.Success("Number of rows affected by the update = $it")
             }
         } catch (e: Exception) {
             Result.Failure(e)
@@ -248,13 +242,12 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
                     it[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
                 }
             }.let {
-                LinkoraWebSocket.sendEvent(
-                    WebSocketEvent(
+                Result.Success(
+                    response = "Number of rows affected by the update = $it", webSocketEvent = WebSocketEvent(
                         operation = FolderRoute.DELETE_FOLDER_NOTE.name,
                         payload = Json.encodeToJsonElement(folderId)
                     )
                 )
-                Result.Success("Number of rows affected by the update = $it")
             }
         } catch (e: Exception) {
             Result.Failure(e)

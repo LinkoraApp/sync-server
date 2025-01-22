@@ -1,5 +1,6 @@
 package com.sakethh.linkora.utils
 
+import com.sakethh.linkora.LinkoraWebSocket
 import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -21,8 +22,11 @@ suspend inline fun <reified T> RoutingContext.respondWithResult(resultState: Res
             call.respondText(
                 status = HttpStatusCode.OK,
                 contentType = ContentType.Application.Json,
-                text = Json.encodeToString(resultState.result)
+                text = Json.encodeToString(resultState.response)
             )
+            if (resultState.webSocketEvent != null) {
+                LinkoraWebSocket.sendEvent(resultState.webSocketEvent)
+            }
         }
     }
 }

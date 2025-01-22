@@ -1,6 +1,5 @@
 package com.sakethh.linkora.data.repository
 
-import com.sakethh.linkora.LinkoraWebSocket
 import com.sakethh.linkora.domain.Link
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.dto.link.*
@@ -48,10 +47,10 @@ class LinksImplementation(
                     )
                 )*/
                 Result.Success(
-                    NewItemResponseDTO(
+                    response = NewItemResponseDTO(
                         message = "Link created successfully for ${addLinkDTO.linkType.name} with id = ${idOfNewlyAddedLink}.",
                         id = idOfNewlyAddedLink
-                    )
+                    ), webSocketEvent = null
                 )
             }
         } catch (e: Exception) {
@@ -73,12 +72,11 @@ class LinksImplementation(
                     id.eq(linkId)
                 }
             }
-            LinkoraWebSocket.sendEvent(
-                WebSocketEvent(
+            Result.Success(
+                response = "Link deleted successfully.", webSocketEvent = WebSocketEvent(
                     operation = LinkRoute.DELETE_A_LINK.name, payload = Json.encodeToJsonElement(linkId)
                 )
             )
-            Result.Success("Link deleted successfully.")
         } catch (e: Exception) {
             Result.Failure(e)
         }
@@ -115,13 +113,12 @@ class LinksImplementation(
                     it[idOfLinkedFolder] = updateLinkedFolderIDDto.linkId
                 }
             }
-            LinkoraWebSocket.sendEvent(
-                WebSocketEvent(
+            Result.Success(
+                response = "idOfLinkedFolder Updated Successfully.", webSocketEvent = WebSocketEvent(
                     operation = LinkRoute.UPDATE_LINKED_FOLDER_ID.name,
                     payload = Json.encodeToJsonElement(updateLinkedFolderIDDto)
                 )
             )
-            Result.Success("idOfLinkedFolder Updated Successfully.")
         } catch (e: Exception) {
             Result.Failure(e)
         }
@@ -138,13 +135,12 @@ class LinksImplementation(
                 }
 
             }
-            LinkoraWebSocket.sendEvent(
-                WebSocketEvent(
+            Result.Success(
+                response = "Title was updated successfully.", webSocketEvent = WebSocketEvent(
                     operation = LinkRoute.UPDATE_LINK_TITLE.name,
                     payload = Json.encodeToJsonElement(updateTitleOfTheLinkDTO)
                 )
             )
-            Result.Success("Title was updated successfully.")
         } catch (e: Exception) {
             Result.Failure(e)
         }
@@ -160,13 +156,12 @@ class LinksImplementation(
                     it[note] = updateNoteOfALinkDTO.newNote
                 }
             }
-            LinkoraWebSocket.sendEvent(
-                WebSocketEvent(
+            Result.Success(
+                response = "Note was updated successfully.", webSocketEvent = WebSocketEvent(
                     operation = LinkRoute.UPDATE_LINK_NOTE.name,
                     payload = Json.encodeToJsonElement(updateNoteOfALinkDTO)
                 )
             )
-            Result.Success("Note was updated successfully.")
         } catch (e: Exception) {
             Result.Failure(e)
         }
@@ -184,13 +179,12 @@ class LinksImplementation(
                     it[this.userAgent] = userAgent
                 }
             }
-            LinkoraWebSocket.sendEvent(
-                WebSocketEvent(
+            Result.Success(
+                response = "User agent was updated successfully.", webSocketEvent = WebSocketEvent(
                     operation = LinkRoute.UPDATE_USER_AGENT.name,
                     payload = Json.encodeToJsonElement(updateLinkUserAgentDTO)
                 )
             )
-            Result.Success("User agent was updated successfully.")
         } catch (e: Exception) {
             Result.Failure(e)
         }
