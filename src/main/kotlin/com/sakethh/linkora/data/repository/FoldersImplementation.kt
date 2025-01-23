@@ -36,7 +36,7 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
                     response = NewItemResponseDTO(
                         message = "Folder created successfully with id = $it",
                         id = it,
-                        correlationId = addFolderDTO.correlationId
+                        correlation = addFolderDTO.correlation
                     ),
                     webSocketEvent = WebSocketEvent(
                         operation = FolderRoute.CREATE_FOLDER.name, payload = Json.encodeToJsonElement(
@@ -46,7 +46,7 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
                                 note = addFolderDTO.note,
                                 parentFolderId = addFolderDTO.parentFolderId,
                                 isArchived = addFolderDTO.isArchived,
-                                correlationId = addFolderDTO.correlationId
+                                correlation = addFolderDTO.correlation
                             )
                         ),
                     )

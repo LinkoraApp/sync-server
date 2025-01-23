@@ -42,7 +42,7 @@ class LinksImplementation : LinksRepository {
                     response = NewItemResponseDTO(
                         message = "Link created successfully for ${addLinkDTO.linkType.name} with id = ${idOfNewlyAddedLink}.",
                         id = idOfNewlyAddedLink,
-                        correlationId = addLinkDTO.correlationId
+                        correlation = addLinkDTO.correlation
                     ), webSocketEvent = WebSocketEvent(
                         operation = LinkRoute.CREATE_A_NEW_LINK.name, payload = Json.encodeToJsonElement(
                             LinkDTO(
@@ -58,7 +58,7 @@ class LinksImplementation : LinksRepository {
                                 userAgent = addLinkDTO.userAgent,
                                 markedAsImportant = addLinkDTO.markedAsImportant,
                                 mediaType = addLinkDTO.mediaType,
-                                correlationId = addLinkDTO.correlationId
+                                correlation = addLinkDTO.correlation
                             )
                         )
                     )

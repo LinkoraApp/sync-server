@@ -31,13 +31,13 @@ class PanelsRepoImpl : PanelsRepository {
                     response = NewItemResponseDTO(
                         message = "New panel added with id : $it",
                         id = it,
-                        correlationId = addANewPanelDTO.correlationId
+                        correlation = addANewPanelDTO.correlation
                     ), webSocketEvent = WebSocketEvent(
                         operation = PanelRoute.ADD_A_NEW_PANEL.name, payload = Json.encodeToJsonElement(
                             PanelDTO(
                                 panelId = it,
                                 panelName = addANewPanelDTO.panelName,
-                                correlationId = addANewPanelDTO.correlationId
+                                correlation = addANewPanelDTO.correlation
                             )
                         )
                     )
@@ -62,7 +62,7 @@ class PanelsRepoImpl : PanelsRepository {
                     response = NewItemResponseDTO(
                         message = "New folder added in a panel (id : ${addANewPanelFolderDTO.connectedPanelId}) with id : $it",
                         id = it,
-                        correlationId = addANewPanelFolderDTO.correlationId
+                        correlation = addANewPanelFolderDTO.correlation
                     ), webSocketEvent = WebSocketEvent(
                         operation = PanelRoute.ADD_A_NEW_FOLDER_IN_A_PANEL.name, payload = Json.encodeToJsonElement(
                             PanelFolderDTO(
@@ -71,7 +71,7 @@ class PanelsRepoImpl : PanelsRepository {
                                 panelPosition = addANewPanelFolderDTO.panelPosition,
                                 folderName = addANewPanelFolderDTO.folderName,
                                 connectedPanelId = addANewPanelFolderDTO.connectedPanelId,
-                                correlationId = addANewPanelFolderDTO.correlationId
+                                correlation = addANewPanelFolderDTO.correlation
                             )
                         )
                     )
