@@ -28,7 +28,7 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
                 FoldersTable.insertAndGetId { folder ->
                     folder[lastModified] = Instant.now().epochSecond
                     folder[folderName] = addFolderDTO.name
-                    folder[infoForSaving] = addFolderDTO.note
+                    folder[note] = addFolderDTO.note
                     folder[parentFolderID] = addFolderDTO.parentFolderId
                     folder[isFolderArchived] = addFolderDTO.isArchived
                 }
@@ -98,7 +98,7 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
                     Folder(
                         id = it[FoldersTable.id].value,
                         name = it[FoldersTable.folderName],
-                        note = it[FoldersTable.infoForSaving],
+                        note = it[FoldersTable.note],
                         parentFolderId = it[FoldersTable.parentFolderID],
                         isArchived = it[FoldersTable.isFolderArchived]
                     )
@@ -120,7 +120,7 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
                     Folder(
                         id = it[FoldersTable.id].value,
                         name = it[FoldersTable.folderName],
-                        note = it[FoldersTable.infoForSaving],
+                        note = it[FoldersTable.note],
                         parentFolderId = it[FoldersTable.parentFolderID],
                         isArchived = it[FoldersTable.isFolderArchived]
                     )
@@ -231,7 +231,7 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
             transaction {
                 FoldersTable.update(where = { FoldersTable.id.eq(folderId) }) {
                     it[lastModified] = Instant.now().epochSecond
-                    it[infoForSaving] = newNote
+                    it[note] = newNote
                 }
             }.let {
                 Result.Success(
@@ -250,7 +250,7 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
         return try {
             transaction {
                 FoldersTable.update(where = { FoldersTable.id.eq(idBasedDTO.id) }) {
-                    it[infoForSaving] = ""
+                    it[note] = ""
                     it[lastModified] = Instant.now().epochSecond
                 }
             }.let {

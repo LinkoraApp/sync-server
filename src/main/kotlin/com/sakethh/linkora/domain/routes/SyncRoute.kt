@@ -1,7 +1,7 @@
 package com.sakethh.linkora.domain.routes
 
-enum class AppRoute {
+enum class SyncRoute {
     TEST_BEARER,
-    GET_UPDATES_SINCE,
-    TOMBSTONES
+    GET_UPDATES,
+    GET_TOMBSTONES
 }

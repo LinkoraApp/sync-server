@@ -11,7 +11,6 @@ data class Link(
     val baseURL: String,
     val imgURL: String,
     val note: String,
-    val lastModified: String,
     val idOfLinkedFolder: Long?,
     val userAgent: String?,
     val markedAsImportant: Boolean,
