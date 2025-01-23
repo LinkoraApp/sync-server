@@ -8,7 +8,6 @@ import com.sakethh.linkora.utils.Result
 interface LinksRepository {
     suspend fun createANewLink(addLinkDTO: AddLinkDTO): Result<NewItemResponseDTO>
     suspend fun deleteALink(idBasedDTO: IDBasedDTO): Result<Message>
-    suspend fun deleteLinksOfAFolder(idBasedDTO: IDBasedDTO): Result<Message>
     suspend fun updateLinkedFolderIdOfALink(updateLinkedFolderIDDto: UpdateLinkedFolderIDDto): Result<Message>
     suspend fun updateTitleOfTheLink(updateTitleOfTheLinkDTO: UpdateTitleOfTheLinkDTO): Result<Message>
     suspend fun updateNote(updateNoteOfALinkDTO: UpdateNoteOfALinkDTO): Result<Message>

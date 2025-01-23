@@ -4,19 +4,22 @@ import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.dto.IDBasedDTO
 import com.sakethh.linkora.domain.dto.NewItemResponseDTO
 import com.sakethh.linkora.domain.dto.link.*
-import com.sakethh.linkora.domain.handler.LinksTombstoneHandler.insert
 import com.sakethh.linkora.domain.model.WebSocketEvent
 import com.sakethh.linkora.domain.repository.LinksRepository
 import com.sakethh.linkora.domain.repository.Message
 import com.sakethh.linkora.domain.routes.LinkRoute
 import com.sakethh.linkora.domain.tables.LinksTable
-import com.sakethh.linkora.domain.tables.LinksTombstone
+import com.sakethh.linkora.domain.tables.helper.TombStoneHelper
 import com.sakethh.linkora.utils.Result
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
-import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.insertAndGetId
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.update
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 
@@ -73,11 +76,9 @@ class LinksImplementation : LinksRepository {
     override suspend fun deleteALink(idBasedDTO: IDBasedDTO): Result<Message> {
         return try {
             transaction {
-                LinksTable.selectAll().where(LinksTable.id.eq(idBasedDTO.id))
-                    .forEach { resultRow ->
-                        LinksTombstone.insert(resultRow)
-                    }
-
+                TombStoneHelper.insert(
+                    payload = Json.encodeToString(idBasedDTO), operation = LinkRoute.DELETE_A_LINK.name
+                )
                 LinksTable.deleteWhere {
                     id.eq(idBasedDTO.id)
                 }
@@ -86,26 +87,6 @@ class LinksImplementation : LinksRepository {
                 response = "Link deleted successfully.", webSocketEvent = WebSocketEvent(
                     operation = LinkRoute.DELETE_A_LINK.name, payload = Json.encodeToJsonElement(idBasedDTO),
                 )
-            )
-        } catch (e: Exception) {
-            Result.Failure(e)
-        }
-    }
-
-    override suspend fun deleteLinksOfAFolder(idBasedDTO: IDBasedDTO): Result<Message> {
-        return try {
-            transaction {
-                LinksTable.selectAll().where(LinksTable.idOfLinkedFolder.eq(idBasedDTO.id))
-                    .forEach { resultRow ->
-                        LinksTombstone.insert(resultRow)
-                    }
-
-                LinksTable.deleteWhere {
-                    idOfLinkedFolder.eq(idBasedDTO.id)
-                }
-            }
-            Result.Success(
-                response = "Links deleted successfully from the folderId = ${idBasedDTO.id}.", webSocketEvent = null
             )
         } catch (e: Exception) {
             Result.Failure(e)
@@ -207,6 +188,7 @@ class LinksImplementation : LinksRepository {
                 LinksTable.update(where = {
                     LinksTable.id.eq(idBasedDTO.id)
                 }) {
+                    it[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
                     it[linkType] = LinkType.ARCHIVE_LINK.name
                 }
             }
@@ -226,6 +208,7 @@ class LinksImplementation : LinksRepository {
                 LinksTable.update(where = {
                     LinksTable.id.eq(idBasedDTO.id)
                 }) {
+                    it[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
                     it[linkType] = LinkType.SAVED_LINK.name
                 }
             }
@@ -246,6 +229,7 @@ class LinksImplementation : LinksRepository {
                 LinksTable.update(where = {
                     LinksTable.id.eq(idBasedDTO.id)
                 }) {
+                    it[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
                     it[markedAsImportant] = true
                 }
             }
@@ -265,6 +249,7 @@ class LinksImplementation : LinksRepository {
                 LinksTable.update(where = {
                     LinksTable.id.eq(idBasedDTO.id)
                 }) {
+                    it[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
                     it[markedAsImportant] = false
                 }
             }
@@ -284,7 +269,7 @@ class LinksImplementation : LinksRepository {
                 LinksTable.update(where = {
                     LinksTable.id.eq(linkDTO.id)
                 }) {
-                    it[lastModified] = linkDTO.lastModified
+                    it[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
                     it[linkType] = linkDTO.linkType.name
                     it[linkTitle] = linkDTO.title
                     it[url] = linkDTO.url

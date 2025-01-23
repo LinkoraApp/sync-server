@@ -9,7 +9,9 @@ import com.sakethh.linkora.domain.repository.PanelsRepository
 import com.sakethh.linkora.domain.routes.PanelRoute
 import com.sakethh.linkora.domain.tables.PanelFoldersTable
 import com.sakethh.linkora.domain.tables.PanelsTable
+import com.sakethh.linkora.domain.tables.helper.TombStoneHelper
 import com.sakethh.linkora.utils.Result
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -18,6 +20,8 @@ import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insertAndGetId
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
+import java.time.Instant
+import java.time.format.DateTimeFormatter
 
 class PanelsRepoImpl : PanelsRepository {
     override suspend fun addANewPanel(addANewPanelDTO: AddANewPanelDTO): Result<NewItemResponseDTO> {
@@ -25,6 +29,7 @@ class PanelsRepoImpl : PanelsRepository {
             transaction {
                 PanelsTable.insertAndGetId {
                     it[panelName] = addANewPanelDTO.panelName
+                    it[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
                 }
             }.value.let {
                 Result.Success(
@@ -56,6 +61,7 @@ class PanelsRepoImpl : PanelsRepository {
                     it[folderName] = addANewPanelFolderDTO.folderName
                     it[panelPosition] = addANewPanelFolderDTO.panelPosition
                     it[connectedPanelId] = addANewPanelFolderDTO.connectedPanelId
+                    it[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
                 }
             }.value.let {
                 Result.Success(
@@ -91,6 +97,7 @@ class PanelsRepoImpl : PanelsRepository {
                 PanelFoldersTable.deleteWhere {
                     connectedPanelId.eq(idBasedDTO.id)
                 }
+                TombStoneHelper.insert(payload = Json.encodeToString(idBasedDTO), operation = PanelRoute.DELETE_A_PANEL.name)
             }
             Result.Success(
                 response = "Deleted the panel and respective connected panel folders (id : ${idBasedDTO.id}) successfully.",
@@ -110,6 +117,7 @@ class PanelsRepoImpl : PanelsRepository {
                     PanelsTable.id.eq(updatePanelNameDTO.panelId)
                 }) {
                     it[panelName] = updatePanelNameDTO.newName
+                    it[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
                 }
             }
             Result.Success(
@@ -130,6 +138,7 @@ class PanelsRepoImpl : PanelsRepository {
                 PanelFoldersTable.deleteWhere {
                     folderId.eq(idBasedDTO.id)
                 }
+                TombStoneHelper.insert(payload = Json.encodeToString(idBasedDTO), operation = PanelRoute.DELETE_A_FOLDER_FROM_ALL_PANELS.name)
             }
             Result.Success(
                 response = "Deleted folder from all panel folders where id = ${idBasedDTO.id}.",
@@ -149,6 +158,7 @@ class PanelsRepoImpl : PanelsRepository {
                 PanelFoldersTable.deleteWhere {
                     folderId.eq(deleteAPanelFromAFolderDTO.folderID) and connectedPanelId.eq(deleteAPanelFromAFolderDTO.panelId)
                 }
+                TombStoneHelper.insert(payload = Json.encodeToString(deleteAPanelFromAFolderDTO), operation = PanelRoute.DELETE_A_FOLDER_FROM_A_PANEL.name)
             }
             Result.Success(
                 response = "Deleted the folder with id ${deleteAPanelFromAFolderDTO.folderID} from a panel with id ${deleteAPanelFromAFolderDTO.panelId}.",
@@ -168,6 +178,7 @@ class PanelsRepoImpl : PanelsRepository {
                 PanelFoldersTable.deleteWhere {
                     connectedPanelId.eq(idBasedDTO.id)
                 }
+                TombStoneHelper.insert(payload = Json.encodeToString(idBasedDTO), operation = PanelRoute.DELETE_ALL_FOLDERS_FROM_A_PANEL.name)
             }
             Result.Success(
                 response = "Deleted all folders from the panel with id : ${idBasedDTO.id}.",

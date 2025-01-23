@@ -7,4 +7,5 @@ object PanelFoldersTable : LongIdTable(name = "panel_folders") {
     val folderName = text(name = "folderName")
     val panelPosition = long(name = "panelPosition")
     val connectedPanelId = long(name = "connectedPanelId")
+    val lastModified = text("last_modified")
 }

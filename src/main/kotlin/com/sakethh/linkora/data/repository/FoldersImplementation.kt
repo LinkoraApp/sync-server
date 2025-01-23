@@ -9,9 +9,12 @@ import com.sakethh.linkora.domain.repository.FoldersRepository
 import com.sakethh.linkora.domain.repository.LinksRepository
 import com.sakethh.linkora.domain.repository.Message
 import com.sakethh.linkora.domain.routes.FolderRoute
+import com.sakethh.linkora.domain.routes.PanelRoute
 import com.sakethh.linkora.domain.tables.FoldersTable
 import com.sakethh.linkora.domain.tables.PanelFoldersTable
+import com.sakethh.linkora.domain.tables.helper.TombStoneHelper
 import com.sakethh.linkora.utils.Result
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
 import org.jetbrains.exposed.sql.*
@@ -64,6 +67,7 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
                 FoldersTable.deleteWhere {
                     FoldersTable.id.eq(folderId)
                 }
+                TombStoneHelper.insert(payload = Json.encodeToString(idBasedDTO), operation = FolderRoute.DELETE_FOLDER.name)
             }
             when (val childFolders = getChildFolders(idBasedDTO)) {
                 is Result.Failure -> {
