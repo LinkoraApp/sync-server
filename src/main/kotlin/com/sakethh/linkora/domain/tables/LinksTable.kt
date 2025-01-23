@@ -3,15 +3,15 @@ package com.sakethh.linkora.domain.tables
 import org.jetbrains.exposed.dao.id.LongIdTable
 
 object LinksTable : LongIdTable(name = "links_table") {
-    val lastModified = text("last_modified")
+    val lastModified = long("last_modified")
     val linkType = text("link_type")
-    val linkTitle = text(name = "linkTitle")
+    val linkTitle = text(name = "link_title")
     val url = text(name = "url")
-    val baseURL = text(name = "baseURL")
-    val imgURL = text(name = "imgURL")
+    val baseURL = text(name = "base_url")
+    val imgURL = text(name = "img_url")
     val note = text(name = "note")
-    val idOfLinkedFolder = long(name = "idOfLinkedFolder").nullable()
-    val userAgent = text(name = "userAgent").nullable()
-    val mediaType = text(name = "mediaType")
-    val markedAsImportant = bool("markedAsImportant")
+    val idOfLinkedFolder = long(name = "id_of_linked_folder").nullable()
+    val userAgent = text(name = "user_agent").nullable()
+    val mediaType = text(name = "media_type")
+    val markedAsImportant = bool("marked_as_important")
 }

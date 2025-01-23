@@ -29,7 +29,7 @@ class PanelsRepoImpl : PanelsRepository {
             transaction {
                 PanelsTable.insertAndGetId {
                     it[panelName] = addANewPanelDTO.panelName
-                    it[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
+                    it[lastModified] = Instant.now().epochSecond
                 }
             }.value.let {
                 Result.Success(
@@ -61,7 +61,7 @@ class PanelsRepoImpl : PanelsRepository {
                     it[folderName] = addANewPanelFolderDTO.folderName
                     it[panelPosition] = addANewPanelFolderDTO.panelPosition
                     it[connectedPanelId] = addANewPanelFolderDTO.connectedPanelId
-                    it[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
+                    it[lastModified] = Instant.now().epochSecond
                 }
             }.value.let {
                 Result.Success(
@@ -117,7 +117,7 @@ class PanelsRepoImpl : PanelsRepository {
                     PanelsTable.id.eq(updatePanelNameDTO.panelId)
                 }) {
                     it[panelName] = updatePanelNameDTO.newName
-                    it[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
+                    it[lastModified] = Instant.now().epochSecond
                 }
             }
             Result.Success(

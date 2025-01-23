@@ -28,7 +28,7 @@ class LinksImplementation : LinksRepository {
         return try {
             transaction {
                 LinksTable.insertAndGetId { link ->
-                    link[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
+                    link[lastModified] = Instant.now().epochSecond
                     link[linkType] = addLinkDTO.linkType.name
                     link[linkTitle] = addLinkDTO.title
                     link[url] = addLinkDTO.url
@@ -101,7 +101,7 @@ class LinksImplementation : LinksRepository {
                         updateLinkedFolderIDDto.linkType.name
                     )
                 }) {
-                    it[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
+                    it[lastModified] = Instant.now().epochSecond
                     it[idOfLinkedFolder] = updateLinkedFolderIDDto.linkId
                 }
             }
@@ -122,7 +122,7 @@ class LinksImplementation : LinksRepository {
                 LinksTable.update(where = {
                     LinksTable.id.eq(updateTitleOfTheLinkDTO.linkId)
                 }) {
-                    it[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
+                    it[lastModified] = Instant.now().epochSecond
                     it[linkTitle] = updateTitleOfTheLinkDTO.newTitleOfTheLink
                 }
 
@@ -144,7 +144,7 @@ class LinksImplementation : LinksRepository {
                 LinksTable.update(where = {
                     LinksTable.id.eq(updateNoteOfALinkDTO.linkId)
                 }) {
-                    it[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
+                    it[lastModified] = Instant.now().epochSecond
                     it[note] = updateNoteOfALinkDTO.newNote
                 }
             }
@@ -167,7 +167,7 @@ class LinksImplementation : LinksRepository {
                         updateLinkUserAgentDTO.linkType.name
                     )
                 }) {
-                    it[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
+                    it[lastModified] = Instant.now().epochSecond
                     it[this.userAgent] = userAgent
                 }
             }
@@ -188,7 +188,7 @@ class LinksImplementation : LinksRepository {
                 LinksTable.update(where = {
                     LinksTable.id.eq(idBasedDTO.id)
                 }) {
-                    it[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
+                    it[lastModified] = Instant.now().epochSecond
                     it[linkType] = LinkType.ARCHIVE_LINK.name
                 }
             }
@@ -208,7 +208,7 @@ class LinksImplementation : LinksRepository {
                 LinksTable.update(where = {
                     LinksTable.id.eq(idBasedDTO.id)
                 }) {
-                    it[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
+                    it[lastModified] = Instant.now().epochSecond
                     it[linkType] = LinkType.SAVED_LINK.name
                 }
             }
@@ -229,7 +229,7 @@ class LinksImplementation : LinksRepository {
                 LinksTable.update(where = {
                     LinksTable.id.eq(idBasedDTO.id)
                 }) {
-                    it[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
+                    it[lastModified] = Instant.now().epochSecond
                     it[markedAsImportant] = true
                 }
             }
@@ -249,7 +249,7 @@ class LinksImplementation : LinksRepository {
                 LinksTable.update(where = {
                     LinksTable.id.eq(idBasedDTO.id)
                 }) {
-                    it[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
+                    it[lastModified] = Instant.now().epochSecond
                     it[markedAsImportant] = false
                 }
             }
@@ -269,7 +269,7 @@ class LinksImplementation : LinksRepository {
                 LinksTable.update(where = {
                     LinksTable.id.eq(linkDTO.id)
                 }) {
-                    it[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
+                    it[lastModified] = Instant.now().epochSecond
                     it[linkType] = linkDTO.linkType.name
                     it[linkTitle] = linkDTO.title
                     it[url] = linkDTO.url

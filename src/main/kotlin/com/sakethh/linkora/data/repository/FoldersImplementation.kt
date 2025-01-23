@@ -2,14 +2,13 @@ package com.sakethh.linkora.data.repository
 
 import com.sakethh.linkora.domain.Folder
 import com.sakethh.linkora.domain.dto.IDBasedDTO
-import com.sakethh.linkora.domain.dto.folder.*
 import com.sakethh.linkora.domain.dto.NewItemResponseDTO
+import com.sakethh.linkora.domain.dto.folder.*
 import com.sakethh.linkora.domain.model.WebSocketEvent
 import com.sakethh.linkora.domain.repository.FoldersRepository
 import com.sakethh.linkora.domain.repository.LinksRepository
 import com.sakethh.linkora.domain.repository.Message
 import com.sakethh.linkora.domain.routes.FolderRoute
-import com.sakethh.linkora.domain.routes.PanelRoute
 import com.sakethh.linkora.domain.tables.FoldersTable
 import com.sakethh.linkora.domain.tables.PanelFoldersTable
 import com.sakethh.linkora.domain.tables.helper.TombStoneHelper
@@ -21,14 +20,13 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.Instant
-import java.time.format.DateTimeFormatter
 
 class FoldersImplementation(private val linksRepository: LinksRepository) : FoldersRepository {
     override suspend fun createFolder(addFolderDTO: AddFolderDTO): Result<NewItemResponseDTO> {
         return try {
             transaction {
                 FoldersTable.insertAndGetId { folder ->
-                    folder[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
+                    folder[lastModified] = Instant.now().epochSecond
                     folder[folderName] = addFolderDTO.name
                     folder[infoForSaving] = addFolderDTO.note
                     folder[parentFolderID] = addFolderDTO.parentFolderId
@@ -140,7 +138,7 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
         return try {
             transaction {
                 FoldersTable.update(where = { FoldersTable.id.eq(folderId) }) {
-                    it[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
+                    it[lastModified] = Instant.now().epochSecond
                     it[isFolderArchived] = true
                 }
             }.let {
@@ -161,7 +159,7 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
         return try {
             transaction {
                 FoldersTable.update(where = { FoldersTable.id.eq(folderId) }) {
-                    it[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
+                    it[lastModified] = Instant.now().epochSecond
                     it[isFolderArchived] = false
                 }
             }.let {
@@ -183,7 +181,7 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
         return try {
             transaction {
                 FoldersTable.update(where = { FoldersTable.id.eq(folderId) }) {
-                    it[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
+                    it[lastModified] = Instant.now().epochSecond
                     it[parentFolderID] = newParentFolderId
                 }
             }.let {
@@ -205,7 +203,7 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
         return try {
             transaction {
                 FoldersTable.update(where = { FoldersTable.id.eq(folderId) }) {
-                    it[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
+                    it[lastModified] = Instant.now().epochSecond
                     it[folderName] = newFolderName
                 }
                 PanelFoldersTable.update(where = {
@@ -232,7 +230,7 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
         return try {
             transaction {
                 FoldersTable.update(where = { FoldersTable.id.eq(folderId) }) {
-                    it[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
+                    it[lastModified] = Instant.now().epochSecond
                     it[infoForSaving] = newNote
                 }
             }.let {
@@ -253,7 +251,7 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
             transaction {
                 FoldersTable.update(where = { FoldersTable.id.eq(idBasedDTO.id) }) {
                     it[infoForSaving] = ""
-                    it[lastModified] = DateTimeFormatter.ISO_INSTANT.format(Instant.now())
+                    it[lastModified] = Instant.now().epochSecond
                 }
             }.let {
                 Result.Success(
