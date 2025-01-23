@@ -5,5 +5,5 @@ import kotlinx.serialization.json.JsonElement
 
 @Serializable
 data class Tombstone(
-    val deletedAt: String, val payload: JsonElement
+    val deletedAt: Long, val operation: String, val payload: JsonElement
 )

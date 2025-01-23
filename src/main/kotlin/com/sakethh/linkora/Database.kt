@@ -69,6 +69,6 @@ fun configureDatabase() {
 
 private fun createRequiredTables() {
     SchemaUtils.create(
-        FoldersTable, LinksTable, Tombstone, PanelsTable, PanelFoldersTable
+        FoldersTable, LinksTable, TombstoneTable, PanelsTable, PanelFoldersTable
     )
 }
