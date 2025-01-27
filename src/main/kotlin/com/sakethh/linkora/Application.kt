@@ -2,6 +2,7 @@ package com.sakethh.linkora
 
 import com.sakethh.linkora.domain.model.ServerConfig
 import com.sakethh.linkora.utils.SysEnvKey
+import com.sakethh.linkora.utils.hostedOnRemote
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
@@ -74,12 +75,7 @@ object ServerConfiguration {
     }
 
     fun readConfig(): ServerConfig {
-        val isHostedRemotely = try {
-            System.getenv(SysEnvKey.LINKORA_SERVER_ON_REMOTE.name).toBooleanStrict()
-        } catch (e: Exception) {
-            false
-        }
-        return if (isHostedRemotely) {
+        return if (hostedOnRemote()) {
             ServerConfig(
                 databaseUrl = System.getenv(SysEnvKey.LINKORA_DATABASE_URL.name),
                 databaseUser = System.getenv(SysEnvKey.LINKORA_DATABASE_USER.name),
