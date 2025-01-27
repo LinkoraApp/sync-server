@@ -47,7 +47,7 @@ dependencies {
     implementation("org.mariadb.jdbc:mariadb-java-client:3.3.1")
     implementation("mysql:mysql-connector-java:8.0.33")
     implementation("com.oracle.database.jdbc:ojdbc8:12.2.0.1")
-    implementation("org.postgresql:postgresql:42.7.1")
+    implementation("org.postgresql:postgresql:42.7.5")
     implementation("com.microsoft.sqlserver:mssql-jdbc:9.4.1.jre8")
 }
 

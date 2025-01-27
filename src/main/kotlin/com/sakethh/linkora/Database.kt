@@ -1,19 +1,23 @@
 package com.sakethh.linkora
 
+import com.sakethh.linkora.domain.model.ServerConfig
 import com.sakethh.linkora.domain.tables.*
 import com.sakethh.linkora.utils.hostedOnRemote
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
 
+private fun connectToADatabase(serverConfig: ServerConfig): Database {
+    return Database.connect(
+        url = serverConfig.databaseUrl, user = serverConfig.databaseUser, password = serverConfig.databasePassword
+    )
+}
+
 fun configureDatabase() {
     val serverConfig = ServerConfiguration.readConfig()
+    lateinit var database: Database
     try {
-        Database.connect(
-            url = serverConfig.databaseUrl,
-            user = serverConfig.databaseUser,
-            password = serverConfig.databasePassword
-        )
+        database = connectToADatabase(serverConfig)
         transaction {
             println("Connected to the database at ${this.db.url}")
             SchemaUtils.createDatabase("linkora")
@@ -21,6 +25,16 @@ fun configureDatabase() {
         }
         println("Linkora database is operational and accessible.")
     } catch (e: Exception) {
+        database.connector().close()
+
+        if (e.message.toString().contains("requires autoCommit to be enabled")) {
+            println("Enabling `autoCommit` as the database connected to requires it.")
+            connectToADatabase(serverConfig).connector().autoCommit = true
+            transaction {
+                createRequiredTables()
+            }
+            return
+        }
         if (e.message == "Unknown database 'linkora'") {
             println("Linkora database does not exist; proceeding with creation.")
             Database.connect(
@@ -33,11 +47,7 @@ fun configureDatabase() {
                 }
                 it.connector().close()
             }
-            Database.connect(
-                url = serverConfig.databaseUrl,
-                user = serverConfig.databaseUser,
-                password = serverConfig.databasePassword
-            )
+            connectToADatabase(serverConfig)
             transaction {
                 createRequiredTables()
                 println("Connected to the database at ${this.db.url}")

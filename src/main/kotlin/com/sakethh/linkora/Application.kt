@@ -77,7 +77,7 @@ object ServerConfiguration {
     fun readConfig(): ServerConfig {
         return if (hostedOnRemote()) {
             ServerConfig(
-                databaseUrl = System.getenv(SysEnvKey.LINKORA_DATABASE_URL.name),
+                databaseUrl = "jdbc:" + System.getenv(SysEnvKey.LINKORA_DATABASE_URL.name),
                 databaseUser = System.getenv(SysEnvKey.LINKORA_DATABASE_USER.name),
                 databasePassword = System.getenv(SysEnvKey.LINKORA_DATABASE_PASSWORD.name),
                 hostAddress = "0.0.0.0",
@@ -88,7 +88,9 @@ object ServerConfiguration {
             createConfig(forceWrite = false)
             Files.readString(configFilePath).let {
                 try {
-                    json.decodeFromString<ServerConfig>(it)
+                    json.decodeFromString<ServerConfig>(it).let {
+                        it.copy(databaseUrl = "jdbc:" + it.databaseUrl)
+                    }
                 } catch (_: Exception) {
                     println("It seems you’ve manipulated `linkoraConfig.json` and messed things up a bit. No problemo, we’ll restart the configuration process to make sure things go smoothly.")
                     createConfig(forceWrite = true)
