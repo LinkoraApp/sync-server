@@ -1,11 +1,10 @@
 package com.sakethh.linkora
 
 import com.sakethh.linkora.domain.model.ServerConfig
-import io.ktor.http.*
+import com.sakethh.linkora.utils.SysEnvKey
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.websocket.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -69,29 +68,36 @@ object ServerConfiguration {
                 Files.writeString(configFilePath, jsonConfigString, StandardOpenOption.TRUNCATE_EXISTING)
                 println("Successfully configured the server with the given data.")
             } else {
-                val invalidCharText = listOf(
-                    "\n\nWas waiting for a 'P', but since you're too cool for that, crashing the setup like it's no big deal. Enjoy the chaos! 💥\n",
-                    "\n\nExpected a nice 'P' to play along, but since we’re not on the same page, crashing the setup without hesitation! 😏\n",
-                    "\n\nWaiting for a 'P' to keep things moving, but since it’s missing... BOOM, setup crash incoming! 💣\n",
-                    "\n\nWas hoping for a friendly 'P', but nope—no mercy! Forcing a crash now. You asked for it! 😜",
-                    "\n\nYou didn’t hit me with that 'P'? Guess what? Setup crashing like it’s a Nas verse—smooth but hard-hitting. Ain’t no mercy, fam. 🔨\n",
-                    "\n\nNo 'P'? You know what that means? Time to crash this setup like Nas’ flow—effortless but packs a punch. Get ready for it. ⚡\n"
-                )
-                println(invalidCharText.random())
                 throw IllegalArgumentException()
             }
         }
     }
 
     fun readConfig(): ServerConfig {
-        createConfig(forceWrite = false)
-        return Files.readString(configFilePath).let {
-            try {
-                json.decodeFromString<ServerConfig>(it)
-            } catch (_: Exception) {
-                println("It seems you’ve manipulated `linkoraConfig.json` and messed things up a bit. No problemo, we’ll restart the configuration process to make sure things go smoothly.")
-                createConfig(forceWrite = true)
-                readConfig()
+        val isHostedRemotely = try {
+            System.getenv(SysEnvKey.LINKORA_SERVER_ON_REMOTE.name).toBooleanStrict()
+        } catch (e: Exception) {
+            false
+        }
+        return if (isHostedRemotely) {
+            ServerConfig(
+                databaseUrl = System.getenv(SysEnvKey.LINKORA_DATABASE_URL.name),
+                databaseUser = System.getenv(SysEnvKey.LINKORA_DATABASE_USER.name),
+                databasePassword = System.getenv(SysEnvKey.LINKORA_DATABASE_PASSWORD.name),
+                hostAddress = "0.0.0.0",
+                serverPort = 8080,
+                serverAuthToken = System.getenv(SysEnvKey.LINKORA_SERVER_AUTH_TOKEN.name)
+            )
+        } else {
+            createConfig(forceWrite = false)
+            Files.readString(configFilePath).let {
+                try {
+                    json.decodeFromString<ServerConfig>(it)
+                } catch (_: Exception) {
+                    println("It seems you’ve manipulated `linkoraConfig.json` and messed things up a bit. No problemo, we’ll restart the configuration process to make sure things go smoothly.")
+                    createConfig(forceWrite = true)
+                    readConfig()
+                }
             }
         }
     }
@@ -106,11 +112,6 @@ fun Application.module() {
         pingPeriod = 15.seconds
         timeout = 15.seconds
         maxFrameSize = Long.MAX_VALUE
-        masking = false
-    }
-    install(CORS) {
-        anyHost()
-        allowHeader(HttpHeaders.ContentType)
     }
     configureWebSocket()
 }
