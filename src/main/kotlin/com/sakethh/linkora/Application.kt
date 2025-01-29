@@ -102,6 +102,7 @@ object ServerConfiguration {
 }
 
 fun Application.module() {
+    println("The server version is ${Constants.SERVER_VERSION}")
     configureDatabase()
     configureSecurity()
     configureSerialization()
@@ -111,5 +112,5 @@ fun Application.module() {
         timeout = 15.seconds
         maxFrameSize = Long.MAX_VALUE
     }
-    configureWebSocket()
+    eventsWebSocket()
 }

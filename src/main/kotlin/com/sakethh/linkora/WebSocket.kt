@@ -8,7 +8,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import java.util.*
 
-fun Application.configureWebSocket() {
+fun Application.eventsWebSocket() {
     routing {
         authenticate(Security.BEARER.name) {
             webSocket("/events") {
