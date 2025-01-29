@@ -56,7 +56,6 @@ class LinksImplementation : LinksRepository {
                                 baseURL = addLinkDTO.baseURL,
                                 imgURL = addLinkDTO.imgURL,
                                 note = addLinkDTO.note,
-                                lastModified = addLinkDTO.lastModified,
                                 idOfLinkedFolder = addLinkDTO.idOfLinkedFolder,
                                 userAgent = addLinkDTO.userAgent,
                                 markedAsImportant = addLinkDTO.markedAsImportant,
