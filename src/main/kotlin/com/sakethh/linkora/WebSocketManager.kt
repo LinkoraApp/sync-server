@@ -13,24 +13,24 @@ object WebSocketManager {
         prettyPrint = true
     }
 
-    fun DefaultWebSocketServerSession.initializeWriteChannel(sessionId: String) {
-        writeChannels[sessionId] = this
+    fun DefaultWebSocketServerSession.initializeWriteChannel(correlationId: String) {
+        writeChannels[correlationId] = this
     }
 
     suspend fun sendEvent(notification: WebSocketEvent) {
-        writeChannels.forEach { (sessionId, session) ->
+        writeChannels.forEach { (correlationId, session) ->
             try {
                 session.send(Frame.Text(json.encodeToString(notification)))
-                println("Sent event to the client with sessionId: $sessionId")
+                println("Sent event to the client : $correlationId")
             } catch (e: Exception) {
-                println("removing the client $sessionId due to ${e.message}")
-                closeWriteChannel(sessionId)
+                println("removing the client $correlationId due to ${e.message}")
+                closeWriteChannel(correlationId)
                 e.printStackTrace()
             }
         }
     }
 
-    fun closeWriteChannel(sessionId: String) {
-        writeChannels.remove(sessionId)
+    fun closeWriteChannel(correlationId: String) {
+        writeChannels.remove(correlationId)
     }
 }
