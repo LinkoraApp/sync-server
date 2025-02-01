@@ -9,5 +9,6 @@ data class UpdateLinkUserAgentDTO(
     val linkType: LinkType,
     val linkId: Long,
     val userAgent: String,
-    val correlation: Correlation
+    val correlation: Correlation,
+    val eventTimestamp: Long
 )

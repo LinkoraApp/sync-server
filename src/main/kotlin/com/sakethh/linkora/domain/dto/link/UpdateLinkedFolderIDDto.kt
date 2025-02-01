@@ -9,5 +9,6 @@ data class UpdateLinkedFolderIDDto(
     val linkType: LinkType,
     val linkId: Long,
     val newParentFolderId: Long,
-    val correlation: Correlation
+    val correlation: Correlation,
+    val eventTimestamp: Long
 )

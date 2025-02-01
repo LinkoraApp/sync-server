@@ -7,5 +7,6 @@ import kotlinx.serialization.Serializable
 data class PanelDTO(
     val panelId:Long,
     val panelName:String,
-    val correlation: Correlation
+    val correlation: Correlation,
+    val eventTimeStamp: Long
 )

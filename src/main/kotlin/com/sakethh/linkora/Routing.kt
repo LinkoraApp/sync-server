@@ -32,7 +32,7 @@ fun Application.configureRouting() {
         }
     }
     val linksRepository: LinksRepository = LinksImplementation()
-    val foldersRepository: FoldersRepository = FoldersImplementation(linksRepository = linksRepository)
+    val foldersRepository: FoldersRepository = FoldersImplementation()
     val panelsRepository: PanelsRepository = PanelsRepoImpl()
     val tombstoneRouting: SyncRepo = SyncRepoImpl()
     foldersRouting(foldersRepository)

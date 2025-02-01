@@ -13,10 +13,10 @@ import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 
 class SyncRepoImpl : SyncRepo {
-    override suspend fun getTombstonesAfter(timestamp: Long): List<Tombstone> {
+    override suspend fun getTombstonesAfter(eventTimestamp: Long): List<Tombstone> {
         return transaction {
             TombstoneTable.selectAll().where {
-                TombstoneTable.deletedAt.greater(timestamp)
+                TombstoneTable.deletedAt.greater(eventTimestamp)
             }.toList().map {
                 Tombstone(
                     deletedAt = it[TombstoneTable.deletedAt],
@@ -27,7 +27,7 @@ class SyncRepoImpl : SyncRepo {
         }
     }
 
-    override suspend fun getUpdatesAfter(timestamp: Long): AllTablesDTO = coroutineScope {
+    override suspend fun getUpdatesAfter(eventTimestamp: Long): AllTablesDTO = coroutineScope {
         val updatedLinks = mutableListOf<Link>()
         val updatedFolders = mutableListOf<Folder>()
         val updatedPanels = mutableListOf<Panel>()
@@ -36,7 +36,7 @@ class SyncRepoImpl : SyncRepo {
         awaitAll(async {
             transaction {
                 LinksTable.selectAll().where {
-                    LinksTable.lastModified.greater(timestamp)
+                    LinksTable.lastModified.greater(eventTimestamp)
                 }.toList().forEach {
                     updatedLinks.add(
                         Link(
@@ -58,7 +58,7 @@ class SyncRepoImpl : SyncRepo {
         }, async {
             transaction {
                 PanelsTable.selectAll().where {
-                    PanelsTable.lastModified.greater(timestamp)
+                    PanelsTable.lastModified.greater(eventTimestamp)
                 }.toList().forEach {
                     updatedPanels.add(
                         Panel(panelId = it[PanelsTable.id].value, panelName = it[PanelsTable.panelName])
@@ -68,7 +68,7 @@ class SyncRepoImpl : SyncRepo {
         }, async {
             transaction {
                 PanelFoldersTable.selectAll().where {
-                    PanelFoldersTable.lastModified.greater(timestamp)
+                    PanelFoldersTable.lastModified.greater(eventTimestamp)
                 }.toList().forEach {
                     updatedPanelFolders.add(
                         PanelFolder(
@@ -84,7 +84,7 @@ class SyncRepoImpl : SyncRepo {
         }, async {
             transaction {
                 FoldersTable.selectAll().where {
-                    FoldersTable.lastModified.greater(timestamp)
+                    FoldersTable.lastModified.greater(eventTimestamp)
                 }.toList().forEach {
                     updatedFolders.add(
                         Folder(

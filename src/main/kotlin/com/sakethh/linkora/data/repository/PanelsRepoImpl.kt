@@ -2,9 +2,9 @@ package com.sakethh.linkora.data.repository
 
 import com.sakethh.linkora.domain.dto.IDBasedDTO
 import com.sakethh.linkora.domain.dto.NewItemResponseDTO
+import com.sakethh.linkora.domain.dto.TimeStampBasedResponse
 import com.sakethh.linkora.domain.dto.panel.*
 import com.sakethh.linkora.domain.model.WebSocketEvent
-import com.sakethh.linkora.domain.repository.Message
 import com.sakethh.linkora.domain.repository.PanelsRepository
 import com.sakethh.linkora.domain.routes.PanelRoute
 import com.sakethh.linkora.domain.tables.PanelFoldersTable
@@ -21,28 +21,32 @@ import org.jetbrains.exposed.sql.insertAndGetId
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 import java.time.Instant
-import java.time.format.DateTimeFormatter
 
 class PanelsRepoImpl : PanelsRepository {
     override suspend fun addANewPanel(addANewPanelDTO: AddANewPanelDTO): Result<NewItemResponseDTO> {
         return try {
+            val eventTimestamp = Instant.now().epochSecond
             transaction {
                 PanelsTable.insertAndGetId {
                     it[panelName] = addANewPanelDTO.panelName
-                    it[lastModified] = Instant.now().epochSecond
+                    it[lastModified] = eventTimestamp
                 }
             }.value.let {
                 Result.Success(
                     response = NewItemResponseDTO(
-                        message = "New panel added with id : $it",
+                        timeStampBasedResponse = TimeStampBasedResponse(
+                            message = "New panel added with id : $it",
+                            eventTimestamp = eventTimestamp
+                        ),
                         id = it,
-                        correlation = addANewPanelDTO.correlation
+                        correlation = addANewPanelDTO.correlation,
                     ), webSocketEvent = WebSocketEvent(
                         operation = PanelRoute.ADD_A_NEW_PANEL.name, payload = Json.encodeToJsonElement(
                             PanelDTO(
                                 panelId = it,
                                 panelName = addANewPanelDTO.panelName,
-                                correlation = addANewPanelDTO.correlation
+                                correlation = addANewPanelDTO.correlation,
+                                eventTimeStamp = eventTimestamp
                             )
                         )
                     )
@@ -55,20 +59,24 @@ class PanelsRepoImpl : PanelsRepository {
 
     override suspend fun addANewFolderInAPanel(addANewPanelFolderDTO: AddANewPanelFolderDTO): Result<NewItemResponseDTO> {
         return try {
+            val eventTimestamp = Instant.now().epochSecond
             transaction {
                 PanelFoldersTable.insertAndGetId {
                     it[folderId] = addANewPanelFolderDTO.folderId
                     it[folderName] = addANewPanelFolderDTO.folderName
                     it[panelPosition] = addANewPanelFolderDTO.panelPosition
                     it[connectedPanelId] = addANewPanelFolderDTO.connectedPanelId
-                    it[lastModified] = Instant.now().epochSecond
+                    it[lastModified] = eventTimestamp
                 }
             }.value.let {
                 Result.Success(
                     response = NewItemResponseDTO(
-                        message = "New folder added in a panel (id : ${addANewPanelFolderDTO.connectedPanelId}) with id : $it",
+                        timeStampBasedResponse = TimeStampBasedResponse(
+                            message = "New folder added in a panel (id : ${addANewPanelFolderDTO.connectedPanelId}) with id : $it",
+                            eventTimestamp = eventTimestamp
+                        ),
                         id = it,
-                        correlation = addANewPanelFolderDTO.correlation
+                        correlation = addANewPanelFolderDTO.correlation,
                     ), webSocketEvent = WebSocketEvent(
                         operation = PanelRoute.ADD_A_NEW_FOLDER_IN_A_PANEL.name, payload = Json.encodeToJsonElement(
                             PanelFolderDTO(
@@ -88,8 +96,9 @@ class PanelsRepoImpl : PanelsRepository {
         }
     }
 
-    override suspend fun deleteAPanel(idBasedDTO: IDBasedDTO): Result<Message> {
+    override suspend fun deleteAPanel(idBasedDTO: IDBasedDTO): Result<TimeStampBasedResponse> {
         return try {
+            val eventTimestamp = Instant.now().epochSecond
             transaction {
                 PanelsTable.deleteWhere {
                     PanelsTable.id.eq(idBasedDTO.id)
@@ -97,12 +106,20 @@ class PanelsRepoImpl : PanelsRepository {
                 PanelFoldersTable.deleteWhere {
                     connectedPanelId.eq(idBasedDTO.id)
                 }
-                TombStoneHelper.insert(payload = Json.encodeToString(idBasedDTO), operation = PanelRoute.DELETE_A_PANEL.name)
+                TombStoneHelper.insert(
+                    payload = Json.encodeToString(idBasedDTO),
+                    operation = PanelRoute.DELETE_A_PANEL.name,
+                    eventTimestamp
+                )
             }
             Result.Success(
-                response = "Deleted the panel and respective connected panel folders (id : ${idBasedDTO.id}) successfully.",
+                response = TimeStampBasedResponse(
+                    message = "Deleted the panel and respective connected panel folders (id : ${idBasedDTO.id}) successfully.",
+                    eventTimestamp = eventTimestamp
+                ),
                 webSocketEvent = WebSocketEvent(
-                    operation = PanelRoute.DELETE_A_PANEL.name, payload = Json.encodeToJsonElement(idBasedDTO)
+                    operation = PanelRoute.DELETE_A_PANEL.name,
+                    payload = Json.encodeToJsonElement(idBasedDTO.copy(eventTimestamp = eventTimestamp))
                 )
             )
         } catch (e: Exception) {
@@ -110,21 +127,25 @@ class PanelsRepoImpl : PanelsRepository {
         }
     }
 
-    override suspend fun updateAPanelName(updatePanelNameDTO: UpdatePanelNameDTO): Result<Message> {
+    override suspend fun updateAPanelName(updatePanelNameDTO: UpdatePanelNameDTO): Result<TimeStampBasedResponse> {
         return try {
+            val eventTimestamp = Instant.now().epochSecond
             transaction {
                 PanelsTable.update(where = {
                     PanelsTable.id.eq(updatePanelNameDTO.panelId)
                 }) {
                     it[panelName] = updatePanelNameDTO.newName
-                    it[lastModified] = Instant.now().epochSecond
+                    it[lastModified] = eventTimestamp
                 }
             }
             Result.Success(
-                response = "Updated panel name to ${updatePanelNameDTO.newName} (id : ${updatePanelNameDTO.panelId}).",
+                response = TimeStampBasedResponse(
+                    eventTimestamp = eventTimestamp,
+                    message = "Updated panel name to ${updatePanelNameDTO.newName} (id : ${updatePanelNameDTO.panelId})."
+                ),
                 webSocketEvent = WebSocketEvent(
                     operation = PanelRoute.UPDATE_A_PANEL_NAME.name,
-                    payload = Json.encodeToJsonElement(updatePanelNameDTO)
+                    payload = Json.encodeToJsonElement(updatePanelNameDTO.copy(eventTimestamp = eventTimestamp))
                 )
             )
         } catch (e: Exception) {
@@ -132,19 +153,31 @@ class PanelsRepoImpl : PanelsRepository {
         }
     }
 
-    override suspend fun deleteAFolderFromAllPanels(idBasedDTO: IDBasedDTO): Result<Message> {
+    override suspend fun deleteAFolderFromAllPanels(idBasedDTO: IDBasedDTO): Result<TimeStampBasedResponse> {
         return try {
+            val eventTimestamp = Instant.now().epochSecond
             transaction {
                 PanelFoldersTable.deleteWhere {
                     folderId.eq(idBasedDTO.id)
                 }
-                TombStoneHelper.insert(payload = Json.encodeToString(idBasedDTO), operation = PanelRoute.DELETE_A_FOLDER_FROM_ALL_PANELS.name)
+                TombStoneHelper.insert(
+                    payload = Json.encodeToString(idBasedDTO.copy(eventTimestamp = eventTimestamp)),
+                    operation = PanelRoute.DELETE_A_FOLDER_FROM_ALL_PANELS.name,
+                    eventTimestamp
+                )
             }
             Result.Success(
-                response = "Deleted folder from all panel folders where id = ${idBasedDTO.id}.",
+                response = TimeStampBasedResponse(
+                    eventTimestamp = eventTimestamp,
+                    message = "Deleted folder from all panel folders where id = ${idBasedDTO.id}."
+                ),
                 webSocketEvent = WebSocketEvent(
                     operation = PanelRoute.DELETE_A_FOLDER_FROM_ALL_PANELS.name,
-                    payload = Json.encodeToJsonElement(idBasedDTO)
+                    payload = Json.encodeToJsonElement(
+                        idBasedDTO.copy(
+                            eventTimestamp = eventTimestamp
+                        )
+                    )
                 )
             )
         } catch (e: Exception) {
@@ -152,19 +185,27 @@ class PanelsRepoImpl : PanelsRepository {
         }
     }
 
-    override suspend fun deleteAFolderFromAPanel(deleteAPanelFromAFolderDTO: DeleteAPanelFromAFolderDTO): Result<Message> {
+    override suspend fun deleteAFolderFromAPanel(deleteAPanelFromAFolderDTO: DeleteAPanelFromAFolderDTO): Result<TimeStampBasedResponse> {
         return try {
+            val eventTimestamp = Instant.now().epochSecond
             transaction {
                 PanelFoldersTable.deleteWhere {
                     folderId.eq(deleteAPanelFromAFolderDTO.folderID) and connectedPanelId.eq(deleteAPanelFromAFolderDTO.panelId)
                 }
-                TombStoneHelper.insert(payload = Json.encodeToString(deleteAPanelFromAFolderDTO), operation = PanelRoute.DELETE_A_FOLDER_FROM_A_PANEL.name)
+                TombStoneHelper.insert(
+                    payload = Json.encodeToString(deleteAPanelFromAFolderDTO.copy(eventTimestamp = eventTimestamp)),
+                    operation = PanelRoute.DELETE_A_FOLDER_FROM_A_PANEL.name,
+                    eventTimestamp
+                )
             }
             Result.Success(
-                response = "Deleted the folder with id ${deleteAPanelFromAFolderDTO.folderID} from a panel with id ${deleteAPanelFromAFolderDTO.panelId}.",
+                response = TimeStampBasedResponse(
+                    eventTimestamp = eventTimestamp,
+                    message = "Deleted the folder with id ${deleteAPanelFromAFolderDTO.folderID} from a panel with id ${deleteAPanelFromAFolderDTO.panelId}."
+                ),
                 webSocketEvent = WebSocketEvent(
                     operation = PanelRoute.DELETE_A_FOLDER_FROM_A_PANEL.name,
-                    payload = Json.encodeToJsonElement(deleteAPanelFromAFolderDTO)
+                    payload = Json.encodeToJsonElement(deleteAPanelFromAFolderDTO.copy(eventTimestamp = eventTimestamp))
                 )
             )
         } catch (e: Exception) {
@@ -172,19 +213,27 @@ class PanelsRepoImpl : PanelsRepository {
         }
     }
 
-    override suspend fun deleteAllFoldersFromAPanel(idBasedDTO: IDBasedDTO): Result<Message> {
+    override suspend fun deleteAllFoldersFromAPanel(idBasedDTO: IDBasedDTO): Result<TimeStampBasedResponse> {
         return try {
+            val eventTimestamp = Instant.now().epochSecond
             transaction {
                 PanelFoldersTable.deleteWhere {
                     connectedPanelId.eq(idBasedDTO.id)
                 }
-                TombStoneHelper.insert(payload = Json.encodeToString(idBasedDTO), operation = PanelRoute.DELETE_ALL_FOLDERS_FROM_A_PANEL.name)
+                TombStoneHelper.insert(
+                    deletedAt = eventTimestamp,
+                    payload = Json.encodeToString(idBasedDTO.copy(eventTimestamp = eventTimestamp)),
+                    operation = PanelRoute.DELETE_ALL_FOLDERS_FROM_A_PANEL.name
+                )
             }
             Result.Success(
-                response = "Deleted all folders from the panel with id : ${idBasedDTO.id}.",
+                response = TimeStampBasedResponse(
+                    message = "Deleted all folders from the panel with id : ${idBasedDTO.id}.",
+                    eventTimestamp = eventTimestamp
+                ),
                 webSocketEvent = WebSocketEvent(
                     operation = PanelRoute.DELETE_ALL_FOLDERS_FROM_A_PANEL.name,
-                    payload = Json.encodeToJsonElement(idBasedDTO)
+                    payload = Json.encodeToJsonElement(idBasedDTO.copy(eventTimestamp = eventTimestamp))
                 )
             )
         } catch (e: Exception) {

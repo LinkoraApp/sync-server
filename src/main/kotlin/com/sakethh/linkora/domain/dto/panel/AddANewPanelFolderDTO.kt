@@ -9,5 +9,6 @@ data class AddANewPanelFolderDTO(
     val panelPosition: Long,
     val folderName: String,
     val connectedPanelId: Long,
-    val correlation: Correlation
+    val correlation: Correlation,
+    val eventTimestamp: Long
 )

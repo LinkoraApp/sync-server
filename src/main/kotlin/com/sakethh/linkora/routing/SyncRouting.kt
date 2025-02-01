@@ -13,18 +13,18 @@ fun Application.syncRouting(syncRepo: SyncRepo) {
     routing {
         authenticate(Security.BEARER.name) {
             get(SyncRoute.GET_TOMBSTONES.name) {
-                val timestamp = getTimeStampFromParam() ?: return@get
+                val eventTimestamp = getTimeStampFromParam() ?: return@get
                 try {
-                    call.respond(syncRepo.getTombstonesAfter(timestamp))
+                    call.respond(syncRepo.getTombstonesAfter(eventTimestamp))
                 } catch (e: Exception) {
                     call.respond(e.message.toString())
                 }
             }
 
             get(SyncRoute.GET_UPDATES.name) {
-                val timestamp = getTimeStampFromParam() ?: return@get
+                val eventTimestamp = getTimeStampFromParam() ?: return@get
                 try {
-                    call.respond(syncRepo.getUpdatesAfter(timestamp))
+                    call.respond(syncRepo.getUpdatesAfter(eventTimestamp))
                 } catch (e: Exception) {
                     call.respond(e.message.toString())
                 }
@@ -35,8 +35,8 @@ fun Application.syncRouting(syncRepo: SyncRepo) {
 
 private suspend fun RoutingContext.getTimeStampFromParam(): Long? {
     return try {
-        this.call.parameters["timestamp"]?.toLong()
-            ?: throw IllegalArgumentException("Expected a valid timestamp value, but received null.")
+        this.call.parameters["eventTimestamp"]?.toLong()
+            ?: throw IllegalArgumentException("Expected a valid eventTimestamp value, but received null.")
     } catch (e: Exception) {
         call.respond(message = e.message.toString(), status = HttpStatusCode.BadRequest)
         null

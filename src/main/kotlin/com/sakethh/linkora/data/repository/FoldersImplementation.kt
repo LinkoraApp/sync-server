@@ -3,11 +3,10 @@ package com.sakethh.linkora.data.repository
 import com.sakethh.linkora.domain.Folder
 import com.sakethh.linkora.domain.dto.IDBasedDTO
 import com.sakethh.linkora.domain.dto.NewItemResponseDTO
+import com.sakethh.linkora.domain.dto.TimeStampBasedResponse
 import com.sakethh.linkora.domain.dto.folder.*
 import com.sakethh.linkora.domain.model.WebSocketEvent
 import com.sakethh.linkora.domain.repository.FoldersRepository
-import com.sakethh.linkora.domain.repository.LinksRepository
-import com.sakethh.linkora.domain.repository.Message
 import com.sakethh.linkora.domain.routes.FolderRoute
 import com.sakethh.linkora.domain.tables.FoldersTable
 import com.sakethh.linkora.domain.tables.PanelFoldersTable
@@ -21,12 +20,13 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.Instant
 
-class FoldersImplementation(private val linksRepository: LinksRepository) : FoldersRepository {
+class FoldersImplementation : FoldersRepository {
     override suspend fun createFolder(addFolderDTO: AddFolderDTO): Result<NewItemResponseDTO> {
         return try {
+            val eventTimestamp = Instant.now().epochSecond
             transaction {
                 FoldersTable.insertAndGetId { folder ->
-                    folder[lastModified] = Instant.now().epochSecond
+                    folder[lastModified] = eventTimestamp
                     folder[folderName] = addFolderDTO.name
                     folder[note] = addFolderDTO.note
                     folder[parentFolderID] = addFolderDTO.parentFolderId
@@ -35,7 +35,10 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
             }.value.let {
                 Result.Success(
                     response = NewItemResponseDTO(
-                        message = "Folder created successfully with id = $it",
+                        timeStampBasedResponse = TimeStampBasedResponse(
+                            message = "Folder created successfully with id = $it",
+                            eventTimestamp = eventTimestamp
+                        ),
                         id = it,
                         correlation = addFolderDTO.correlation
                     ),
@@ -47,7 +50,8 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
                                 note = addFolderDTO.note,
                                 parentFolderId = addFolderDTO.parentFolderId,
                                 isArchived = addFolderDTO.isArchived,
-                                correlation = addFolderDTO.correlation
+                                correlation = addFolderDTO.correlation,
+                                eventTimestamp = eventTimestamp
                             )
                         ),
                     )
@@ -58,14 +62,19 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
         }
     }
 
-    override suspend fun deleteFolder(idBasedDTO: IDBasedDTO): Result<Message> {
+    override suspend fun deleteFolder(idBasedDTO: IDBasedDTO): Result<TimeStampBasedResponse> {
         val folderId = idBasedDTO.id
         return try {
+            val eventTimestamp = Instant.now().epochSecond
             transaction {
                 FoldersTable.deleteWhere {
                     FoldersTable.id.eq(folderId)
                 }
-                TombStoneHelper.insert(payload = Json.encodeToString(idBasedDTO), operation = FolderRoute.DELETE_FOLDER.name)
+                TombStoneHelper.insert(
+                    payload = Json.encodeToString(idBasedDTO.copy(eventTimestamp = eventTimestamp)),
+                    operation = FolderRoute.DELETE_FOLDER.name,
+                    eventTimestamp
+                )
             }
             when (val childFolders = getChildFolders(idBasedDTO)) {
                 is Result.Failure -> {
@@ -74,14 +83,17 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
 
                 is Result.Success -> {
                     childFolders.response.map { it.id }.forEach { childFolderId ->
-                        deleteFolder(idBasedDTO.copy(id = childFolderId))
+                        deleteFolder(idBasedDTO.copy(id = childFolderId, eventTimestamp = eventTimestamp))
                     }
                 }
             }
             Result.Success(
-                response = "Folder and its contents have been successfully deleted.", webSocketEvent = WebSocketEvent(
+                response = TimeStampBasedResponse(
+                    message = "Folder and its contents have been successfully deleted.",
+                    eventTimestamp = eventTimestamp
+                ), webSocketEvent = WebSocketEvent(
                     operation = FolderRoute.DELETE_FOLDER.name,
-                    payload = Json.encodeToJsonElement(idBasedDTO),
+                    payload = Json.encodeToJsonElement(idBasedDTO.copy(eventTimestamp = eventTimestamp)),
                 )
             )
         } catch (e: Exception) {
@@ -133,19 +145,23 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
         }
     }
 
-    override suspend fun markAsArchive(idBasedDTO: IDBasedDTO): Result<Message> {
+    override suspend fun markAsArchive(idBasedDTO: IDBasedDTO): Result<TimeStampBasedResponse> {
         val folderId = idBasedDTO.id
         return try {
+            val eventTimestamp = Instant.now().epochSecond
             transaction {
                 FoldersTable.update(where = { FoldersTable.id.eq(folderId) }) {
-                    it[lastModified] = Instant.now().epochSecond
+                    it[lastModified] = eventTimestamp
                     it[isFolderArchived] = true
                 }
             }.let {
                 Result.Success(
-                    response = "Number of rows affected by the update = $it", webSocketEvent = WebSocketEvent(
+                    response = TimeStampBasedResponse(
+                        eventTimestamp = eventTimestamp,
+                        message = "Number of rows affected by the update = $it"
+                    ), webSocketEvent = WebSocketEvent(
                         operation = FolderRoute.MARK_FOLDER_AS_ARCHIVE.name,
-                        payload = Json.encodeToJsonElement(idBasedDTO),
+                        payload = Json.encodeToJsonElement(idBasedDTO.copy(eventTimestamp = eventTimestamp)),
                     )
                 )
             }
@@ -154,19 +170,23 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
         }
     }
 
-    override suspend fun markAsRegularFolder(idBasedDTO: IDBasedDTO): Result<Message> {
+    override suspend fun markAsRegularFolder(idBasedDTO: IDBasedDTO): Result<TimeStampBasedResponse> {
         val folderId = idBasedDTO.id
         return try {
+            val eventTimestamp = Instant.now().epochSecond
             transaction {
                 FoldersTable.update(where = { FoldersTable.id.eq(folderId) }) {
-                    it[lastModified] = Instant.now().epochSecond
+                    it[lastModified] = eventTimestamp
                     it[isFolderArchived] = false
                 }
             }.let {
                 Result.Success(
-                    response = "Number of rows affected by the update = $it", webSocketEvent = WebSocketEvent(
+                    response = TimeStampBasedResponse(
+                        eventTimestamp = eventTimestamp,
+                        message = "Number of rows affected by the update = $it"
+                    ), webSocketEvent = WebSocketEvent(
                         operation = FolderRoute.MARK_AS_REGULAR_FOLDER.name,
-                        payload = Json.encodeToJsonElement(idBasedDTO),
+                        payload = Json.encodeToJsonElement(idBasedDTO.copy(eventTimestamp = eventTimestamp)),
                     )
                 )
             }
@@ -175,20 +195,28 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
         }
     }
 
-    override suspend fun changeParentFolder(changeParentFolderDTO: ChangeParentFolderDTO): Result<Message> {
+    override suspend fun changeParentFolder(changeParentFolderDTO: ChangeParentFolderDTO): Result<TimeStampBasedResponse> {
         val folderId = changeParentFolderDTO.folderId
         val newParentFolderId = changeParentFolderDTO.newParentFolderId
         return try {
+            val eventTimestamp = Instant.now().epochSecond
             transaction {
                 FoldersTable.update(where = { FoldersTable.id.eq(folderId) }) {
-                    it[lastModified] = Instant.now().epochSecond
+                    it[lastModified] = eventTimestamp
                     it[parentFolderID] = newParentFolderId
                 }
             }.let {
                 Result.Success(
-                    response = "Number of rows affected by the update = $it", webSocketEvent = WebSocketEvent(
+                    response = TimeStampBasedResponse(
+                        message = "Number of rows affected by the update = $it",
+                        eventTimestamp = eventTimestamp
+                    ), webSocketEvent = WebSocketEvent(
                         operation = FolderRoute.CHANGE_PARENT_FOLDER.name,
-                        payload = Json.encodeToJsonElement(changeParentFolderDTO),
+                        payload = Json.encodeToJsonElement(
+                            changeParentFolderDTO.copy(
+                                eventTimestamp = eventTimestamp
+                            )
+                        ),
                     )
                 )
             }
@@ -197,25 +225,30 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
         }
     }
 
-    override suspend fun updateFolderName(updateFolderNameDTO: UpdateFolderNameDTO): Result<Message> {
+    override suspend fun updateFolderName(updateFolderNameDTO: UpdateFolderNameDTO): Result<TimeStampBasedResponse> {
         val folderId = updateFolderNameDTO.folderId
         val newFolderName = updateFolderNameDTO.newFolderName
         return try {
+            val eventTimestamp = Instant.now().epochSecond
             transaction {
                 FoldersTable.update(where = { FoldersTable.id.eq(folderId) }) {
-                    it[lastModified] = Instant.now().epochSecond
+                    it[lastModified] = eventTimestamp
                     it[folderName] = newFolderName
                 }
                 PanelFoldersTable.update(where = {
                     PanelFoldersTable.folderId.eq(folderId)
                 }) {
+                    it[lastModified] = eventTimestamp
                     it[folderName] = newFolderName
                 }
             }.let {
                 Result.Success(
-                    response = "Number of rows affected by the update = $it", webSocketEvent = WebSocketEvent(
+                    response = TimeStampBasedResponse(
+                        eventTimestamp = eventTimestamp,
+                        message = "Number of rows affected by the update = $it"
+                    ), webSocketEvent = WebSocketEvent(
                         operation = FolderRoute.UPDATE_FOLDER_NAME.name,
-                        payload = Json.encodeToJsonElement(updateFolderNameDTO),
+                        payload = Json.encodeToJsonElement(updateFolderNameDTO.copy(eventTimestamp = eventTimestamp)),
                     )
                 )
             }
@@ -224,20 +257,24 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
         }
     }
 
-    override suspend fun updateFolderNote(updateFolderNoteDTO: UpdateFolderNoteDTO): Result<Message> {
+    override suspend fun updateFolderNote(updateFolderNoteDTO: UpdateFolderNoteDTO): Result<TimeStampBasedResponse> {
         val folderId = updateFolderNoteDTO.folderId
         val newNote = updateFolderNoteDTO.newNote
         return try {
+            val eventTimestamp = Instant.now().epochSecond
             transaction {
                 FoldersTable.update(where = { FoldersTable.id.eq(folderId) }) {
-                    it[lastModified] = Instant.now().epochSecond
+                    it[lastModified] = eventTimestamp
                     it[note] = newNote
                 }
             }.let {
                 Result.Success(
-                    response = "Number of rows affected by the update = $it", webSocketEvent = WebSocketEvent(
+                    response = TimeStampBasedResponse(
+                        message = "Number of rows affected by the update = $it",
+                        eventTimestamp = eventTimestamp
+                    ), webSocketEvent = WebSocketEvent(
                         operation = FolderRoute.UPDATE_FOLDER_NOTE.name,
-                        payload = Json.encodeToJsonElement(updateFolderNoteDTO),
+                        payload = Json.encodeToJsonElement(updateFolderNoteDTO.copy(eventTimestamp = eventTimestamp)),
                     )
                 )
             }
@@ -246,18 +283,22 @@ class FoldersImplementation(private val linksRepository: LinksRepository) : Fold
         }
     }
 
-    override suspend fun deleteFolderNote(idBasedDTO: IDBasedDTO): Result<Message> {
+    override suspend fun deleteFolderNote(idBasedDTO: IDBasedDTO): Result<TimeStampBasedResponse> {
         return try {
+            val eventTimestamp = Instant.now().epochSecond
             transaction {
                 FoldersTable.update(where = { FoldersTable.id.eq(idBasedDTO.id) }) {
                     it[note] = ""
-                    it[lastModified] = Instant.now().epochSecond
+                    it[lastModified] = eventTimestamp
                 }
             }.let {
                 Result.Success(
-                    response = "Number of rows affected by the update = $it", webSocketEvent = WebSocketEvent(
+                    response = TimeStampBasedResponse(
+                        eventTimestamp = eventTimestamp,
+                        message = "Number of rows affected by the update = $it"
+                    ), webSocketEvent = WebSocketEvent(
                         operation = FolderRoute.DELETE_FOLDER_NOTE.name,
-                        payload = Json.encodeToJsonElement(idBasedDTO),
+                        payload = Json.encodeToJsonElement(idBasedDTO.copy(eventTimestamp = eventTimestamp)),
                     )
                 )
             }

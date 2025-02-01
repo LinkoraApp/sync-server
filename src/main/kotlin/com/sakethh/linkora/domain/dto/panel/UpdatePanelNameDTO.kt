@@ -6,5 +6,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class UpdatePanelNameDTO(
     val newName: String, val panelId: Long,
-    val correlation: Correlation
+    val correlation: Correlation,
+    val eventTimestamp: Long
 )

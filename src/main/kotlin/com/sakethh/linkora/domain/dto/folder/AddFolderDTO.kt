@@ -9,5 +9,6 @@ data class AddFolderDTO(
     val note: String,
     val parentFolderId: Long?,
     val isArchived: Boolean,
-    val correlation: Correlation
+    val correlation: Correlation,
+    val eventTimestamp: Long
 )

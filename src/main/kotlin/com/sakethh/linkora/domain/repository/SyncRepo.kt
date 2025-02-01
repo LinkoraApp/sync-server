@@ -4,6 +4,6 @@ import com.sakethh.linkora.domain.dto.AllTablesDTO
 import com.sakethh.linkora.domain.dto.Tombstone
 
 interface SyncRepo {
-    suspend fun getTombstonesAfter(timestamp: Long): List<Tombstone>
-    suspend fun getUpdatesAfter(timestamp: Long): AllTablesDTO
+    suspend fun getTombstonesAfter(eventTimestamp: Long): List<Tombstone>
+    suspend fun getUpdatesAfter(eventTimestamp: Long): AllTablesDTO
 }

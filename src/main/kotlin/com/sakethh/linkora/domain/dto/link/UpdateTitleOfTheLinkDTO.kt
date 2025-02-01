@@ -7,5 +7,6 @@ import kotlinx.serialization.Serializable
 data class UpdateTitleOfTheLinkDTO(
     val linkId: Long,
     val newTitleOfTheLink: String,
-    val correlation: Correlation
+    val correlation: Correlation,
+    val eventTimestamp: Long
 )
