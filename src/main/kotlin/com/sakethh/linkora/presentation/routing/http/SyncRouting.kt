@@ -17,6 +17,7 @@ fun Application.syncRouting(syncRepo: SyncRepo) {
                 try {
                     call.respond(syncRepo.getTombstonesAfter(eventTimestamp))
                 } catch (e: Exception) {
+                    e.printStackTrace()
                     call.respond(e.message.toString())
                 }
             }
@@ -26,6 +27,7 @@ fun Application.syncRouting(syncRepo: SyncRepo) {
                 try {
                     call.respond(syncRepo.getUpdatesAfter(eventTimestamp))
                 } catch (e: Exception) {
+                    e.printStackTrace()
                     call.respond(e.message.toString())
                 }
             }
@@ -38,6 +40,7 @@ private suspend fun RoutingContext.getTimeStampFromParam(): Long? {
         this.call.parameters["eventTimestamp"]?.toLong()
             ?: throw IllegalArgumentException("Expected a valid eventTimestamp value, but received null.")
     } catch (e: Exception) {
+        e.printStackTrace()
         call.respond(message = e.message.toString(), status = HttpStatusCode.BadRequest)
         null
     }
