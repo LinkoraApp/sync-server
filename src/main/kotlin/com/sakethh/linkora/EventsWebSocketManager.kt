@@ -7,7 +7,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.util.concurrent.ConcurrentHashMap
 
-object WebSocketManager {
+object EventsWebSocketManager {
     private val writeChannels = ConcurrentHashMap<String, DefaultWebSocketServerSession>()
     private val json = Json {
         prettyPrint = true

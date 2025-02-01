@@ -118,5 +118,5 @@ fun Application.module() {
         timeout = 15.seconds
         maxFrameSize = Long.MAX_VALUE
     }
-    eventsWebSocket()
+    configureEventsWebSocket()
 }

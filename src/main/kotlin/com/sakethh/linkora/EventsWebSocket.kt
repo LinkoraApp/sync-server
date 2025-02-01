@@ -1,7 +1,7 @@
 package com.sakethh.linkora
 
-import com.sakethh.linkora.WebSocketManager.closeWriteChannel
-import com.sakethh.linkora.WebSocketManager.initializeWriteChannel
+import com.sakethh.linkora.EventsWebSocketManager.closeWriteChannel
+import com.sakethh.linkora.EventsWebSocketManager.initializeWriteChannel
 import com.sakethh.linkora.domain.dto.Correlation
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -10,7 +10,7 @@ import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.serialization.json.Json
 
-fun Application.eventsWebSocket() {
+fun Application.configureEventsWebSocket() {
     routing {
         authenticate(Security.BEARER.name) {
             webSocket(path = "/events") {
