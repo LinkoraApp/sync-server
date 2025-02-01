@@ -79,9 +79,15 @@ object ServerConfiguration {
             ServerConfig(
                 databaseUrl = "jdbc:" + System.getenv(SysEnvKey.LINKORA_DATABASE_URL.name),
                 databaseUser = System.getenv(SysEnvKey.LINKORA_DATABASE_USER.name),
-                databasePassword = System.getenv(SysEnvKey.LINKORA_DATABASE_PASSWORD.name),
-                hostAddress = "0.0.0.0",
-                serverPort = 8080,
+                databasePassword = System.getenv(SysEnvKey.LINKORA_DATABASE_PASSWORD.name), hostAddress = try {
+                    System.getenv(SysEnvKey.LINKORA_HOST_ADDRESS.name)
+                } catch (_: Exception) {
+                    "0.0.0.0"
+                }, serverPort = try {
+                    System.getenv(SysEnvKey.LINKORA_SERVER_PORT.name).toInt()
+                } catch (_: Exception) {
+                    8080
+                },
                 serverAuthToken = System.getenv(SysEnvKey.LINKORA_SERVER_AUTH_TOKEN.name)
             )
         } else {
