@@ -8,5 +8,5 @@ data class PanelDTO(
     val panelId:Long,
     val panelName:String,
     val correlation: Correlation,
-    val eventTimeStamp: Long
+    val eventTimestamp: Long
 )

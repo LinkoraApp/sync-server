@@ -46,7 +46,7 @@ class PanelsRepoImpl : PanelsRepository {
                                 panelId = it,
                                 panelName = addANewPanelDTO.panelName,
                                 correlation = addANewPanelDTO.correlation,
-                                eventTimeStamp = eventTimestamp
+                                eventTimestamp = eventTimestamp
                             )
                         )
                     )
@@ -85,7 +85,8 @@ class PanelsRepoImpl : PanelsRepository {
                                 panelPosition = addANewPanelFolderDTO.panelPosition,
                                 folderName = addANewPanelFolderDTO.folderName,
                                 connectedPanelId = addANewPanelFolderDTO.connectedPanelId,
-                                correlation = addANewPanelFolderDTO.correlation
+                                correlation = addANewPanelFolderDTO.correlation,
+                                eventTimestamp = eventTimestamp
                             )
                         )
                     )
