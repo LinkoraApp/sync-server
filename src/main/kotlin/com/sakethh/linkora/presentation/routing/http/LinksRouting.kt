@@ -1,7 +1,6 @@
-package com.sakethh.linkora.routing
+package com.sakethh.linkora.presentation.routing.http
 
 import com.sakethh.linkora.Security
-import com.sakethh.linkora.domain.Link
 import com.sakethh.linkora.domain.dto.IDBasedDTO
 import com.sakethh.linkora.domain.dto.link.*
 import com.sakethh.linkora.domain.repository.LinksRepository

@@ -1,8 +1,9 @@
-package com.sakethh.linkora
+package com.sakethh.linkora.data
 
+import com.sakethh.linkora.ServerConfiguration
 import com.sakethh.linkora.domain.model.ServerConfig
 import com.sakethh.linkora.domain.tables.*
-import com.sakethh.linkora.utils.hostedOnRemote
+import com.sakethh.linkora.utils.useSysEnvValues
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -54,7 +55,7 @@ fun configureDatabase() {
             }
         } else if (e.message?.contains("Database driver not found for") == true || e.message?.contains("Access denied") == true) {
             println(e.message)
-            if (hostedOnRemote()) {
+            if (useSysEnvValues()) {
                 println("\nManually causing the crash since the correct values aren't provided through environment variables.")
                 throw e
             }

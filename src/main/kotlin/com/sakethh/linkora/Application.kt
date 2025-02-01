@@ -1,8 +1,11 @@
 package com.sakethh.linkora
 
+import com.sakethh.linkora.data.configureDatabase
 import com.sakethh.linkora.domain.model.ServerConfig
+import com.sakethh.linkora.presentation.routing.websocket.configureEventsWebSocket
+import com.sakethh.linkora.presentation.routing.configureRouting
 import com.sakethh.linkora.utils.SysEnvKey
-import com.sakethh.linkora.utils.hostedOnRemote
+import com.sakethh.linkora.utils.useSysEnvValues
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
@@ -75,12 +78,13 @@ object ServerConfiguration {
     }
 
     fun readConfig(): ServerConfig {
-        return if (hostedOnRemote()) {
+        return if (useSysEnvValues()) {
             ServerConfig(
                 databaseUrl = "jdbc:" + System.getenv(SysEnvKey.LINKORA_DATABASE_URL.name),
                 databaseUser = System.getenv(SysEnvKey.LINKORA_DATABASE_USER.name),
                 databasePassword = System.getenv(SysEnvKey.LINKORA_DATABASE_PASSWORD.name), hostAddress = try {
-                    System.getenv(SysEnvKey.LINKORA_HOST_ADDRESS.name)
+                    // manually throw the exception as `getenv` may return null, and no conversion is happening here to auto-throw
+                    System.getenv(SysEnvKey.LINKORA_HOST_ADDRESS.name) ?: throw NullPointerException()
                 } catch (_: Exception) {
                     "0.0.0.0"
                 }, serverPort = try {

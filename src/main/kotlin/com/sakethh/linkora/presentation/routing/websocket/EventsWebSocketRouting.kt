@@ -1,7 +1,8 @@
-package com.sakethh.linkora
+package com.sakethh.linkora.presentation.routing.websocket
 
-import com.sakethh.linkora.EventsWebSocketManager.closeWriteChannel
-import com.sakethh.linkora.EventsWebSocketManager.initializeWriteChannel
+import com.sakethh.linkora.data.socket.manager.EventsWebSocketManager.closeWriteChannel
+import com.sakethh.linkora.data.socket.manager.EventsWebSocketManager.initializeWriteChannel
+import com.sakethh.linkora.Security
 import com.sakethh.linkora.domain.dto.Correlation
 import io.ktor.server.application.*
 import io.ktor.server.auth.*

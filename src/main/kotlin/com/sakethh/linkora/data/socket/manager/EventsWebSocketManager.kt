@@ -1,4 +1,4 @@
-package com.sakethh.linkora
+package com.sakethh.linkora.data.socket.manager
 
 import com.sakethh.linkora.domain.model.WebSocketEvent
 import io.ktor.server.websocket.*

@@ -1,6 +1,6 @@
 package com.sakethh.linkora.utils
 
-import com.sakethh.linkora.EventsWebSocketManager
+import com.sakethh.linkora.data.socket.manager.EventsWebSocketManager
 import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*

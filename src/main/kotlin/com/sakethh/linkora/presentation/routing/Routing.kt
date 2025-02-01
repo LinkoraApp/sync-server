@@ -1,5 +1,6 @@
-package com.sakethh.linkora
+package com.sakethh.linkora.presentation.routing
 
+import com.sakethh.linkora.Security
 import com.sakethh.linkora.data.repository.FoldersImplementation
 import com.sakethh.linkora.data.repository.LinksImplementation
 import com.sakethh.linkora.data.repository.PanelsRepoImpl
@@ -9,10 +10,10 @@ import com.sakethh.linkora.domain.repository.LinksRepository
 import com.sakethh.linkora.domain.repository.PanelsRepository
 import com.sakethh.linkora.domain.repository.SyncRepo
 import com.sakethh.linkora.domain.routes.SyncRoute
-import com.sakethh.linkora.routing.foldersRouting
-import com.sakethh.linkora.routing.linksRouting
-import com.sakethh.linkora.routing.panelsRouting
-import com.sakethh.linkora.routing.syncRouting
+import com.sakethh.linkora.presentation.routing.http.foldersRouting
+import com.sakethh.linkora.presentation.routing.http.linksRouting
+import com.sakethh.linkora.presentation.routing.http.panelsRouting
+import com.sakethh.linkora.presentation.routing.http.syncRouting
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
