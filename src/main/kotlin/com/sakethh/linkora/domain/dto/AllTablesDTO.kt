@@ -1,9 +1,9 @@
 package com.sakethh.linkora.domain.dto
 
-import com.sakethh.linkora.domain.Folder
-import com.sakethh.linkora.domain.Link
-import com.sakethh.linkora.domain.Panel
-import com.sakethh.linkora.domain.PanelFolder
+import com.sakethh.linkora.domain.model.Folder
+import com.sakethh.linkora.domain.model.Link
+import com.sakethh.linkora.domain.model.Panel
+import com.sakethh.linkora.domain.model.PanelFolder
 import kotlinx.serialization.Serializable
 
 @Serializable

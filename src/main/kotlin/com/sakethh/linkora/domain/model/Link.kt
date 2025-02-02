@@ -1,5 +1,7 @@
-package com.sakethh.linkora.domain
+package com.sakethh.linkora.domain.model
 
+import com.sakethh.linkora.domain.LinkType
+import com.sakethh.linkora.domain.MediaType
 import kotlinx.serialization.Serializable
 
 @Serializable

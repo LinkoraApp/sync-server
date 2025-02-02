@@ -31,6 +31,18 @@ fun Application.syncRouting(syncRepo: SyncRepo) {
                     call.respond(e.message.toString())
                 }
             }
+
+            get(SyncRoute.DELETE_EVERYTHING.name) {
+                syncRepo.deleteEverything().onSuccess {
+                    call.respond(status = HttpStatusCode.OK, message = HttpStatusCode.OK.description)
+                }.onFailure {
+                    call.respond(
+                        status = HttpStatusCode.InternalServerError,
+                        message = HttpStatusCode.InternalServerError.description
+                    )
+                    it.printStackTrace()
+                }
+            }
         }
     }
 }

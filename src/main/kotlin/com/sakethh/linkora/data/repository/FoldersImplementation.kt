@@ -1,6 +1,6 @@
 package com.sakethh.linkora.data.repository
 
-import com.sakethh.linkora.domain.Folder
+import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.dto.IDBasedDTO
 import com.sakethh.linkora.domain.dto.NewItemResponseDTO
 import com.sakethh.linkora.domain.dto.TimeStampBasedResponse

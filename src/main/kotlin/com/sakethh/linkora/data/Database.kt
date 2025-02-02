@@ -75,7 +75,7 @@ fun configureDatabase() {
 }
 
 private fun createRequiredTables() {
-    SchemaUtils.create(
-        FoldersTable, LinksTable, TombstoneTable, PanelsTable, PanelFoldersTable
-    )
+    SchemaUtils.create(*linkoraTables())
 }
+
+fun linkoraTables() = arrayOf(FoldersTable, LinksTable, TombstoneTable, PanelsTable, PanelFoldersTable)

@@ -1,14 +1,21 @@
 package com.sakethh.linkora.data.repository
 
-import com.sakethh.linkora.domain.*
+import com.sakethh.linkora.data.linkoraTables
+import com.sakethh.linkora.domain.LinkType
+import com.sakethh.linkora.domain.MediaType
 import com.sakethh.linkora.domain.dto.AllTablesDTO
 import com.sakethh.linkora.domain.dto.Tombstone
+import com.sakethh.linkora.domain.model.Folder
+import com.sakethh.linkora.domain.model.Link
+import com.sakethh.linkora.domain.model.Panel
+import com.sakethh.linkora.domain.model.PanelFolder
 import com.sakethh.linkora.domain.repository.SyncRepo
 import com.sakethh.linkora.domain.tables.*
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.json.Json
+import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 
@@ -105,5 +112,17 @@ class SyncRepoImpl : SyncRepo {
             panels = updatedPanels.toList(),
             panelFolders = updatedPanelFolders.toList()
         )
+    }
+
+    override suspend fun deleteEverything(): Result<Unit> {
+        return try {
+            transaction {
+                SchemaUtils.drop(*linkoraTables())
+            }
+            Result.success(Unit)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Result.failure(e)
+        }
     }
 }
