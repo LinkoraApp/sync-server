@@ -15,7 +15,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.json.Json
-import org.jetbrains.exposed.sql.SchemaUtils
+import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 
@@ -117,7 +117,9 @@ class SyncRepoImpl : SyncRepo {
     override suspend fun deleteEverything(): Result<Unit> {
         return try {
             transaction {
-                SchemaUtils.drop(*linkoraTables())
+                linkoraTables().forEach {
+                    it.deleteAll()
+                }
             }
             Result.success(Unit)
         } catch (e: Exception) {
