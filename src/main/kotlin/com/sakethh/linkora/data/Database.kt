@@ -26,7 +26,10 @@ fun configureDatabase() {
         }
         println("Linkora database is operational and accessible.")
     } catch (e: Exception) {
-        database.connector().close()
+
+        if (e.message != "Unknown database 'linkora'") {
+            database.connector().close()
+        }
 
         if (e.message.toString().contains("requires autoCommit to be enabled")) {
             println("Enabling `autoCommit` as the database connected to requires it.")
