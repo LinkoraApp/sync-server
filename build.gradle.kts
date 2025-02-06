@@ -19,7 +19,7 @@ application {
 
 ktor {
     fatJar {
-        archiveFileName.set("linkoraServer.jar")
+        archiveFileName.set("linkoraSyncServer.jar")
     }
 }
 
