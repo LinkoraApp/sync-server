@@ -1,5 +1,6 @@
 package com.sakethh.linkora.data.repository
 
+import com.sakethh.linkora.domain.LWWConflictException
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.dto.IDBasedDTO
 import com.sakethh.linkora.domain.dto.NewItemResponseDTO
@@ -23,6 +24,17 @@ import org.jetbrains.exposed.sql.update
 import java.time.Instant
 
 class LinksImplementation : LinksRepository {
+    private fun checkForLWWConflictAndThrow(id: Long, timeStamp: Long) {
+        transaction {
+            LinksTable.select(LinksTable.lastModified).where {
+                LinksTable.id.eq(id)
+            }.let {
+                if (it.single()[LinksTable.lastModified] > timeStamp) {
+                    throw LWWConflictException()
+                }
+            }
+        }
+    }
     override suspend fun createANewLink(addLinkDTO: AddLinkDTO): Result<NewItemResponseDTO> {
         return try {
             val eventTimestamp = Instant.now().epochSecond
@@ -105,6 +117,10 @@ class LinksImplementation : LinksRepository {
 
     override suspend fun updateLinkedFolderIdOfALink(updateLinkedFolderIDDto: UpdateLinkedFolderIDDto): Result<TimeStampBasedResponse> {
         return try {
+            checkForLWWConflictAndThrow(
+                id = updateLinkedFolderIDDto.linkId,
+                timeStamp = updateLinkedFolderIDDto.eventTimestamp
+            )
             val eventTimestamp = Instant.now().epochSecond
             transaction {
                 LinksTable.update(where = {
@@ -132,6 +148,10 @@ class LinksImplementation : LinksRepository {
 
     override suspend fun updateTitleOfTheLink(updateTitleOfTheLinkDTO: UpdateTitleOfTheLinkDTO): Result<TimeStampBasedResponse> {
         return try {
+            checkForLWWConflictAndThrow(
+                id = updateTitleOfTheLinkDTO.linkId,
+                timeStamp = updateTitleOfTheLinkDTO.eventTimestamp
+            )
             val eventTimestamp = Instant.now().epochSecond
             transaction {
                 LinksTable.update(where = {
@@ -158,6 +178,10 @@ class LinksImplementation : LinksRepository {
 
     override suspend fun updateNote(updateNoteOfALinkDTO: UpdateNoteOfALinkDTO): Result<TimeStampBasedResponse> {
         return try {
+            checkForLWWConflictAndThrow(
+                id = updateNoteOfALinkDTO.linkId,
+                timeStamp = updateNoteOfALinkDTO.eventTimestamp
+            )
             val eventTimestamp = Instant.now().epochSecond
             transaction {
                 LinksTable.update(where = {
@@ -210,6 +234,10 @@ class LinksImplementation : LinksRepository {
 
     override suspend fun archiveALink(idBasedDTO: IDBasedDTO): Result<TimeStampBasedResponse> {
         return try {
+            checkForLWWConflictAndThrow(
+                id = idBasedDTO.id,
+                timeStamp = idBasedDTO.eventTimestamp
+            )
             val eventTimestamp = Instant.now().epochSecond
             transaction {
                 LinksTable.update(where = {
@@ -235,6 +263,10 @@ class LinksImplementation : LinksRepository {
 
     override suspend fun unArchiveALink(idBasedDTO: IDBasedDTO): Result<TimeStampBasedResponse> {
         return try {
+            checkForLWWConflictAndThrow(
+                id = idBasedDTO.id,
+                timeStamp = idBasedDTO.eventTimestamp
+            )
             val eventTimestamp = Instant.now().epochSecond
             transaction {
                 LinksTable.update(where = {
@@ -261,6 +293,10 @@ class LinksImplementation : LinksRepository {
 
     override suspend fun markALinkAsImp(idBasedDTO: IDBasedDTO): Result<TimeStampBasedResponse> {
         return try {
+            checkForLWWConflictAndThrow(
+                id = idBasedDTO.id,
+                timeStamp = idBasedDTO.eventTimestamp
+            )
             val eventTimestamp = Instant.now().epochSecond
             transaction {
                 LinksTable.update(where = {
@@ -286,6 +322,10 @@ class LinksImplementation : LinksRepository {
 
     override suspend fun markALinkAsNonImp(idBasedDTO: IDBasedDTO): Result<TimeStampBasedResponse> {
         return try {
+            checkForLWWConflictAndThrow(
+                id = idBasedDTO.id,
+                timeStamp = idBasedDTO.eventTimestamp
+            )
             val eventTimestamp = Instant.now().epochSecond
             transaction {
                 LinksTable.update(where = {
@@ -311,6 +351,10 @@ class LinksImplementation : LinksRepository {
 
     override suspend fun updateLink(linkDTO: LinkDTO): Result<TimeStampBasedResponse> {
         return try {
+            checkForLWWConflictAndThrow(
+                id = linkDTO.id,
+                timeStamp = linkDTO.eventTimestamp
+            )
             val eventTimestamp = Instant.now().epochSecond
             transaction {
                 LinksTable.update(where = {

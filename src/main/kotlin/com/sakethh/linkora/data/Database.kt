@@ -20,7 +20,7 @@ fun configureDatabase() {
     try {
         database = connectToADatabase(serverConfig)
         transaction {
-            println("Connected to the database at ${this.db.url}")
+            println("Connected to the database at ${this.db.url.substringAfter("jdbc:")}")
             SchemaUtils.createDatabase("linkora")
             createRequiredTables()
         }

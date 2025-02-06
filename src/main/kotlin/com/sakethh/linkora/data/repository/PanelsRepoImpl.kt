@@ -1,5 +1,6 @@
 package com.sakethh.linkora.data.repository
 
+import com.sakethh.linkora.domain.LWWConflictException
 import com.sakethh.linkora.domain.dto.IDBasedDTO
 import com.sakethh.linkora.domain.dto.NewItemResponseDTO
 import com.sakethh.linkora.domain.dto.TimeStampBasedResponse
@@ -23,6 +24,18 @@ import org.jetbrains.exposed.sql.update
 import java.time.Instant
 
 class PanelsRepoImpl : PanelsRepository {
+    private fun checkForPanelsLWWConflictAndThrow(id: Long, timeStamp: Long) {
+        transaction {
+            PanelsTable.select(PanelsTable.lastModified).where {
+                PanelsTable.id.eq(id)
+            }.let {
+                if (it.single()[PanelsTable.lastModified] > timeStamp) {
+                    throw LWWConflictException()
+                }
+            }
+        }
+    }
+
     override suspend fun addANewPanel(addANewPanelDTO: AddANewPanelDTO): Result<NewItemResponseDTO> {
         return try {
             val eventTimestamp = Instant.now().epochSecond
@@ -130,6 +143,7 @@ class PanelsRepoImpl : PanelsRepository {
 
     override suspend fun updateAPanelName(updatePanelNameDTO: UpdatePanelNameDTO): Result<TimeStampBasedResponse> {
         return try {
+            checkForPanelsLWWConflictAndThrow(updatePanelNameDTO.panelId, updatePanelNameDTO.eventTimestamp)
             val eventTimestamp = Instant.now().epochSecond
             transaction {
                 PanelsTable.update(where = {

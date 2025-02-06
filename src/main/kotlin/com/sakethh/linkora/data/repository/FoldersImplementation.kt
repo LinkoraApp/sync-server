@@ -1,10 +1,11 @@
 package com.sakethh.linkora.data.repository
 
-import com.sakethh.linkora.domain.model.Folder
+import com.sakethh.linkora.domain.LWWConflictException
 import com.sakethh.linkora.domain.dto.IDBasedDTO
 import com.sakethh.linkora.domain.dto.NewItemResponseDTO
 import com.sakethh.linkora.domain.dto.TimeStampBasedResponse
 import com.sakethh.linkora.domain.dto.folder.*
+import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.WebSocketEvent
 import com.sakethh.linkora.domain.repository.FoldersRepository
 import com.sakethh.linkora.domain.routes.FolderRoute
@@ -21,6 +22,19 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.Instant
 
 class FoldersImplementation : FoldersRepository {
+
+    private fun checkForLWWConflictAndThrow(id: Long, timeStamp: Long) {
+        transaction {
+            FoldersTable.select(FoldersTable.lastModified).where {
+                FoldersTable.id.eq(id)
+            }.let {
+                if (it.single()[FoldersTable.lastModified] > timeStamp) {
+                    throw LWWConflictException()
+                }
+            }
+        }
+    }
+
     override suspend fun createFolder(addFolderDTO: AddFolderDTO): Result<NewItemResponseDTO> {
         return try {
             val eventTimestamp = Instant.now().epochSecond
@@ -148,6 +162,7 @@ class FoldersImplementation : FoldersRepository {
     override suspend fun markAsArchive(idBasedDTO: IDBasedDTO): Result<TimeStampBasedResponse> {
         val folderId = idBasedDTO.id
         return try {
+            checkForLWWConflictAndThrow(id = idBasedDTO.id, timeStamp = idBasedDTO.eventTimestamp)
             val eventTimestamp = Instant.now().epochSecond
             transaction {
                 FoldersTable.update(where = { FoldersTable.id.eq(folderId) }) {
@@ -173,6 +188,7 @@ class FoldersImplementation : FoldersRepository {
     override suspend fun markAsRegularFolder(idBasedDTO: IDBasedDTO): Result<TimeStampBasedResponse> {
         val folderId = idBasedDTO.id
         return try {
+            checkForLWWConflictAndThrow(id = idBasedDTO.id, timeStamp = idBasedDTO.eventTimestamp)
             val eventTimestamp = Instant.now().epochSecond
             transaction {
                 FoldersTable.update(where = { FoldersTable.id.eq(folderId) }) {
@@ -199,6 +215,7 @@ class FoldersImplementation : FoldersRepository {
         val folderId = changeParentFolderDTO.folderId
         val newParentFolderId = changeParentFolderDTO.newParentFolderId
         return try {
+            checkForLWWConflictAndThrow(id = changeParentFolderDTO.folderId, timeStamp = changeParentFolderDTO.eventTimestamp)
             val eventTimestamp = Instant.now().epochSecond
             transaction {
                 FoldersTable.update(where = { FoldersTable.id.eq(folderId) }) {
@@ -229,6 +246,7 @@ class FoldersImplementation : FoldersRepository {
         val folderId = updateFolderNameDTO.folderId
         val newFolderName = updateFolderNameDTO.newFolderName
         return try {
+            checkForLWWConflictAndThrow(id = updateFolderNameDTO.folderId, timeStamp = updateFolderNameDTO.eventTimestamp)
             val eventTimestamp = Instant.now().epochSecond
             transaction {
                 FoldersTable.update(where = { FoldersTable.id.eq(folderId) }) {
@@ -261,6 +279,7 @@ class FoldersImplementation : FoldersRepository {
         val folderId = updateFolderNoteDTO.folderId
         val newNote = updateFolderNoteDTO.newNote
         return try {
+            checkForLWWConflictAndThrow(id = updateFolderNoteDTO.folderId, timeStamp = updateFolderNoteDTO.eventTimestamp)
             val eventTimestamp = Instant.now().epochSecond
             transaction {
                 FoldersTable.update(where = { FoldersTable.id.eq(folderId) }) {
