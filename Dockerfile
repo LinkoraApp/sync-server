@@ -17,5 +17,5 @@ RUN gradle buildFatJar --no-daemon
 FROM amazoncorretto:22 AS runtime
 EXPOSE 8080
 RUN mkdir /app
-COPY --from=build /home/gradle/src/build/libs/*.jar /app/linkoraServer.jar
-ENTRYPOINT ["java","-jar","/app/linkoraServer.jar"]
+COPY --from=build /home/gradle/src/build/libs/*.jar /app/linkoraSyncServer.jar
+ENTRYPOINT ["java","-jar","/app/linkoraSyncServer.jar"]
