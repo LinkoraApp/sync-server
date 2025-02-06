@@ -57,7 +57,8 @@ class SyncRepoImpl : SyncRepo {
                             idOfLinkedFolder = it[LinksTable.idOfLinkedFolder],
                             userAgent = it[LinksTable.userAgent],
                             markedAsImportant = it[LinksTable.markedAsImportant],
-                            mediaType = MediaType.valueOf(it[LinksTable.mediaType])
+                            mediaType = MediaType.valueOf(it[LinksTable.mediaType]),
+                            eventTimestamp = it[LinksTable.lastModified]
                         )
                     )
                 }
@@ -68,7 +69,11 @@ class SyncRepoImpl : SyncRepo {
                     PanelsTable.lastModified.greater(eventTimestamp)
                 }.toList().forEach {
                     updatedPanels.add(
-                        Panel(panelId = it[PanelsTable.id].value, panelName = it[PanelsTable.panelName])
+                        Panel(
+                            panelId = it[PanelsTable.id].value,
+                            panelName = it[PanelsTable.panelName],
+                            eventTimestamp = it[PanelsTable.lastModified]
+                        )
                     )
                 }
             }
@@ -83,7 +88,8 @@ class SyncRepoImpl : SyncRepo {
                             folderId = it[PanelFoldersTable.folderId],
                             panelPosition = it[PanelFoldersTable.panelPosition],
                             folderName = it[PanelFoldersTable.folderName],
-                            connectedPanelId = it[PanelFoldersTable.connectedPanelId]
+                            connectedPanelId = it[PanelFoldersTable.connectedPanelId],
+                            eventTimestamp = it[PanelFoldersTable.lastModified]
                         )
                     )
                 }
@@ -99,7 +105,8 @@ class SyncRepoImpl : SyncRepo {
                             name = it[FoldersTable.folderName],
                             note = it[FoldersTable.note],
                             parentFolderId = it[FoldersTable.parentFolderID],
-                            isArchived = it[FoldersTable.isFolderArchived]
+                            isArchived = it[FoldersTable.isFolderArchived],
+                            eventTimestamp = it[FoldersTable.lastModified]
                         )
                     )
                 }

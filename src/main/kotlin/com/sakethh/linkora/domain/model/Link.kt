@@ -16,5 +16,6 @@ data class Link(
     val idOfLinkedFolder: Long?,
     val userAgent: String?,
     val markedAsImportant: Boolean,
-    val mediaType: MediaType
+    val mediaType: MediaType,
+    val eventTimestamp:Long
 )

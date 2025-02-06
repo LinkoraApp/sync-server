@@ -126,7 +126,8 @@ class FoldersImplementation : FoldersRepository {
                         name = it[FoldersTable.folderName],
                         note = it[FoldersTable.note],
                         parentFolderId = it[FoldersTable.parentFolderID],
-                        isArchived = it[FoldersTable.isFolderArchived]
+                        isArchived = it[FoldersTable.isFolderArchived],
+                        eventTimestamp = it[FoldersTable.lastModified]
                     )
                 }
             }.let {
@@ -148,7 +149,8 @@ class FoldersImplementation : FoldersRepository {
                         name = it[FoldersTable.folderName],
                         note = it[FoldersTable.note],
                         parentFolderId = it[FoldersTable.parentFolderID],
-                        isArchived = it[FoldersTable.isFolderArchived]
+                        isArchived = it[FoldersTable.isFolderArchived],
+                        eventTimestamp = it[FoldersTable.lastModified]
                     )
                 }
             }.let {

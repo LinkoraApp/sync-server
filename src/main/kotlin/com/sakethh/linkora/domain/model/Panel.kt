@@ -6,4 +6,5 @@ import kotlinx.serialization.Serializable
 data class Panel(
     val panelId: Long,
     val panelName: String,
+    val eventTimestamp:Long
 )

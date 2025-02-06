@@ -8,5 +8,6 @@ data class Folder(
     val name: String,
     val note: String,
     val parentFolderId: Long?,
-    val isArchived: Boolean
+    val isArchived: Boolean,
+    val eventTimestamp:Long
 )
