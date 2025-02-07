@@ -102,10 +102,16 @@ This ensures the server runs as expected and avoids potential issues.
 
 ##### 3.1.2 Using Docker:
 
+Docker Pull Command:
+
+```
+docker pull sakethpathike/linkora-sync-server
+```
+
 You can set these variables directly in the Docker Desktop GUI before running the image or pass them using the `-e` flag:
 
 ```
-docker run -e LINKORA_SERVER_USE_ENV_VAL="true" -e LINKORA_DATABASE_URL="mysql://your-db-url" -e LINKORA_DATABASE_USER="your-db-user" -e LINKORA_DATABASE_PASSWORD="your-db-password" -e LINKORA_SERVER_AUTH_TOKEN="your-auth-token" linkora-server
+docker run -e LINKORA_SERVER_USE_ENV_VAL="true" -e LINKORA_DATABASE_URL="mysql://your-db-url" -e LINKORA_DATABASE_USER="your-db-user" -e LINKORA_DATABASE_PASSWORD="your-db-password" -e LINKORA_SERVER_AUTH_TOKEN="your-auth-token" sakethpathike/linkora-sync-server
 ```
 
 Replace `your-db-url`, `your-db-user`, `your-db-password`, and `your-auth-token` with your actual database and
