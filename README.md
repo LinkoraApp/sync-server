@@ -63,9 +63,7 @@ will be prompted to provide the required values, which will be saved locally.
 When hosting on remote services or using Docker, environment variables are recommended. The following variables must be
 set:
 
-- `LINKORA_SERVER_USE_ENV_VAL`: Set this to `true` to indicate the server is running on a remote service. This must
-  always
-  be `true` when using environment variables.
+- `LINKORA_SERVER_USE_ENV_VAL`: Set this to `true` to enable the use of environment variables. This must always be `true` when using environment variables.
 - `LINKORA_DATABASE_URL`: The database URL (without username or password).
 - `LINKORA_DATABASE_USER`: The username for your database.
 - `LINKORA_DATABASE_PASSWORD`: The password for your database.
@@ -104,7 +102,7 @@ This ensures the server runs as expected and avoids potential issues.
 
 ##### 3.1.2 Using Docker:
 
-When running Docker on your local machine, pass the required environment variables using the `-e` flag:
+You can set these variables directly in the Docker Desktop GUI before running the image or pass them using the `-e` flag:
 
 ```
 docker run -e LINKORA_SERVER_USE_ENV_VAL="true" -e LINKORA_DATABASE_URL="mysql://your-db-url" -e LINKORA_DATABASE_USER="your-db-user" -e LINKORA_DATABASE_PASSWORD="your-db-password" -e LINKORA_SERVER_AUTH_TOKEN="your-auth-token" linkora-server
