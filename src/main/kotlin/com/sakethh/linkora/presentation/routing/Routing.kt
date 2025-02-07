@@ -9,7 +9,6 @@ import com.sakethh.linkora.domain.repository.FoldersRepository
 import com.sakethh.linkora.domain.repository.LinksRepository
 import com.sakethh.linkora.domain.repository.PanelsRepository
 import com.sakethh.linkora.domain.repository.SyncRepo
-import com.sakethh.linkora.domain.routes.SyncRoute
 import com.sakethh.linkora.presentation.routing.http.foldersRouting
 import com.sakethh.linkora.presentation.routing.http.linksRouting
 import com.sakethh.linkora.presentation.routing.http.panelsRouting
@@ -22,12 +21,8 @@ import io.ktor.server.routing.*
 
 fun Application.configureRouting() {
     routing {
-        get("/") {
-            call.respond(message = HttpStatusCode.OK, status = HttpStatusCode.OK)
-        }
-
         authenticate(Security.BEARER.name) {
-            get(SyncRoute.TEST_BEARER.name) {
+            get("/") {
                 call.respond(message = HttpStatusCode.OK, status = HttpStatusCode.OK)
             }
         }

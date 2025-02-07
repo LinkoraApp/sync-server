@@ -16,7 +16,7 @@ private fun connectToADatabase(serverConfig: ServerConfig): Database {
 
 fun configureDatabase() {
     val serverConfig = ServerConfiguration.readConfig()
-    lateinit var database: Database
+    var database: Database? = null
     try {
         database = connectToADatabase(serverConfig)
         transaction {
@@ -28,7 +28,7 @@ fun configureDatabase() {
     } catch (e: Exception) {
 
         if (e.message != "Unknown database 'linkora'") {
-            database.connector().close()
+            database?.connector?.invoke()?.close()
         }
 
         if (e.message.toString().contains("requires autoCommit to be enabled")) {
