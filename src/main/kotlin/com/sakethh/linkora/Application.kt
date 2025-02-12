@@ -4,6 +4,7 @@ import com.sakethh.linkora.data.configureDatabase
 import com.sakethh.linkora.data.repository.MarkdownManagerRepoImpl
 import com.sakethh.linkora.domain.model.ServerConfig
 import com.sakethh.linkora.domain.repository.MarkdownManagerRepo
+import com.sakethh.linkora.domain.routes.SyncRoute
 import com.sakethh.linkora.presentation.routing.configureRouting
 import com.sakethh.linkora.presentation.routing.websocket.configureEventsWebSocket
 import com.sakethh.linkora.utils.SysEnvKey
@@ -118,12 +119,20 @@ fun Application.module() {
     configureDatabase()
     configureSecurity()
     configureSerialization()
-    val mdManagerRepo: MarkdownManagerRepo = MarkdownManagerRepoImpl()
-    configureRouting(serverConfig = ServerConfiguration.readConfig(), markdownManagerRepo = mdManagerRepo)
+    val mdManagerRepo : MarkdownManagerRepo = MarkdownManagerRepoImpl()
+    val serverConfig =ServerConfiguration.readConfig()
+    configureRouting(serverConfig = serverConfig, markdownManagerRepo = mdManagerRepo)
     install(WebSockets) {
         pingPeriod = 15.seconds
         timeout = 15.seconds
         maxFrameSize = Long.MAX_VALUE
     }
     configureEventsWebSocket()
+    val currentOS = System.getProperty("os.name").lowercase()
+    val serverConfiguredPage = serverConfig.hostAddress+ ":"+ serverConfig.serverPort + "/"+ SyncRoute.SERVER_IS_CONFIGURED.name
+    when {
+        currentOS.contains("win") -> Runtime.getRuntime().exec("rundll32 url.dll,FileProtocolHandler $serverConfiguredPage")
+        currentOS.contains("mac") -> Runtime.getRuntime().exec("open $serverConfiguredPage")
+        currentOS.contains("nix") || currentOS.contains("nux") -> Runtime.getRuntime().exec("xdg-open $serverConfiguredPage")
+    }
 }

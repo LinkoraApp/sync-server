@@ -2,7 +2,7 @@ It seems you've correctly configured the sync server.
 
 Before anything, check out this video where I explained how to connect the app and the server. That should clear up most things.
 
-This server is only meant to communicate with the **Linkora** apps that are available on both **Android** and **Desktop**. You can't use this server with them as there's no frontend client on web yet. Well, you can if you set up your own thing from scratch that connects to this server and does what it's supposed to do.
+This server is meant to communicate only with the **[Linkora](https://github.com/LinkoraApp/Linkora)** apps, available on **Android** and **Desktop**. There's no web-based frontend yet, so you can’t control anything through a web interface. That said, if you’re willing to build your own custom solution from scratch that connects to this server and does what it needs to, then it’s totally possible.
 
 ## Important Notes
 
@@ -34,8 +34,10 @@ This server is only meant to communicate with the **Linkora** apps that are avai
 
 ### **Blank Pages on Other Routes**
 - If you're seeing blank pages for other routes, that's completely normal since there's no UI with this server except for this page.
+- Except for this route, every other route is secured by an auth token. Access is only granted if the client provides the correct auth token that you’ve set. Without it, they won’t be able to access anything.
 
 ## Troubleshooting & Additional Help
 - If something isn’t covered here, check out the **YouTube video** where I explained how to connect the app and the server.
-- Also, go through **GitHub issues**; you might find the solution there.
-- If not, **create an issue on GitHub**, and I'll fix it when I get some time.
+- Also, go through **[GitHub issues](https://github.com/LinkoraApp/sync-server/issues)**; you might find the solution there.
+- If not, **[create an issue on GitHub](https://github.com/LinkoraApp/sync-server/issues/new)**, and I'll fix it when I get some time.
+- You can also [join the Discord](https://discord.gg/ZDBXNtv8MD) if you want. It’s there for questions, updates, or just to hang out.
