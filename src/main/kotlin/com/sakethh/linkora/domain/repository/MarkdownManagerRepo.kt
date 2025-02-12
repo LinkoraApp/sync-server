@@ -4,5 +4,6 @@ import com.sakethh.linkora.domain.PlaceHolder
 import com.sakethh.linkora.domain.PlaceHolderValue
 
 interface MarkdownManagerRepo {
-    fun getRawHtmlBasedOnMD(fileLocation: String, placeHolder: Pair<PlaceHolder, PlaceHolderValue>): String
+    fun getRawHtmlBasedOnMDFile(fileLocation: String, placeHolder: Pair<PlaceHolder, PlaceHolderValue>): String
+    fun getRawHtmlBasedOnRawMD(rawMD:String): String
 }

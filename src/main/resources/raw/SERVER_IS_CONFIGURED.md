@@ -1,4 +1,4 @@
-It seems you've correctly configured the sync server.
+It seems you've correctly configured the sync-server.
 
 Before anything, check out this video where I explained how to connect the app and the server. That should clear up most things.
 

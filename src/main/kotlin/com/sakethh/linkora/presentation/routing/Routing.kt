@@ -1,5 +1,6 @@
 package com.sakethh.linkora.presentation.routing
 
+import com.sakethh.linkora.Constants
 import com.sakethh.linkora.Security
 import com.sakethh.linkora.data.repository.FoldersImplementation
 import com.sakethh.linkora.data.repository.LinksImplementation
@@ -45,7 +46,7 @@ fun Application.configureRouting(serverConfig: ServerConfig, markdownManagerRepo
                 } else {
                     ""
                 }
-            val requiredHtml = markdownManagerRepo.getRawHtmlBasedOnMD(
+            val requiredHtml = markdownManagerRepo.getRawHtmlBasedOnRawMD("The sync-server version is ${Constants.SERVER_VERSION}.\n")+markdownManagerRepo.getRawHtmlBasedOnMDFile(
                 fileLocation = "/raw/SERVER_IS_CONFIGURED.md", placeHolder = "#{PLACEHOLDER_1}" to placeHolderValue
             )
             call.respondText(contentType = ContentType.Text.Html, text = requiredHtml)
