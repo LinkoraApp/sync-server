@@ -1,0 +1,41 @@
+It seems you've correctly configured the sync server.
+
+Before anything, check out this video where I explained how to connect the app and the server. That should clear up most things.
+
+This server is only meant to communicate with the **Linkora** apps that are available on both **Android** and **Desktop**. You can't use this server with them as there's no frontend client on web yet. Well, you can if you set up your own thing from scratch that connects to this server and does what it's supposed to do.
+
+## Important Notes
+
+#{PLACEHOLDER_1}
+
+### **HTTPS Support**
+- If you're **hosting locally**, you **can't connect** via **HTTPS** right now.
+- HTTPS requires a **trusted certificate** from a recognized Certificate Authority (CA), which isn’t typically applicable for local setups.
+- The other way is to manually generate a self-signed certificate and configure it, which may be added in future versions.
+- If you're **hosting on a cloud service**, you can use HTTPS by setting up an SSL certificate through your provider.
+
+### **Database & Data Syncing**
+- Apps have their **own databases**.
+- This server is **only meant to store your data** in the local system that you're currently running on.
+- If, for some reason, data gets deleted (maybe uninstalled or whatever), you can **connect to this server**, and the app will **pull everything** from the database that’s currently on your machine to its local database.
+- **i.e.,**
+    - The app has its **own database**.
+    - This server is now **connected to a database**.
+    - Linkora **app and server sync data** between the app and the database.
+
+### **Deletion Behavior**
+- If something gets **deleted from the Linkora app(s)** while you have a server saved on clients, even if the server is **not up**, it will be **deleted as soon as the server is up** and you open the Linkora app.
+- **It's gone, that’s it. You can't undo this.**
+- (*I should probably add a trash mechanism instead of deleting permanently, but for now, this can't be undone.*)
+
+### **LWW (Last-Write-Wins) Implementation**
+- This server follows **LWW (Last-Write-Wins)**.
+- Even if your clients have a saved connection, if the **server is offline**, the **most recently edited data** (from any client) will be updated in the database on your machine once the server is back online and the client apps reconnect.
+
+### **Blank Pages on Other Routes**
+- If you're seeing blank pages for other routes, that's completely normal since there's no UI with this server except for this page.
+
+## Troubleshooting & Additional Help
+- If something isn’t covered here, check out the **YouTube video** where I explained how to connect the app and the server.
+- Also, go through **GitHub issues**; you might find the solution there.
+- If not, **create an issue on GitHub**, and I'll fix it when I get some time.

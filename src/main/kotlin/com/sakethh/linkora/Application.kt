@@ -1,9 +1,11 @@
 package com.sakethh.linkora
 
 import com.sakethh.linkora.data.configureDatabase
+import com.sakethh.linkora.data.repository.MarkdownManagerRepoImpl
 import com.sakethh.linkora.domain.model.ServerConfig
-import com.sakethh.linkora.presentation.routing.websocket.configureEventsWebSocket
+import com.sakethh.linkora.domain.repository.MarkdownManagerRepo
 import com.sakethh.linkora.presentation.routing.configureRouting
+import com.sakethh.linkora.presentation.routing.websocket.configureEventsWebSocket
 import com.sakethh.linkora.utils.SysEnvKey
 import com.sakethh.linkora.utils.useSysEnvValues
 import io.ktor.server.application.*
@@ -116,7 +118,8 @@ fun Application.module() {
     configureDatabase()
     configureSecurity()
     configureSerialization()
-    configureRouting()
+    val mdManagerRepo: MarkdownManagerRepo = MarkdownManagerRepoImpl()
+    configureRouting(serverConfig = ServerConfiguration.readConfig(), markdownManagerRepo = mdManagerRepo)
     install(WebSockets) {
         pingPeriod = 15.seconds
         timeout = 15.seconds

@@ -27,7 +27,7 @@ fun configureDatabase() {
         println("Linkora database is operational and accessible.")
     } catch (e: Exception) {
 
-        if (e.message != "Unknown database 'linkora'") {
+        if (e.message.toString().contains("Unknown database").not()) {
             database?.connector?.invoke()?.close()
         }
 
@@ -39,7 +39,7 @@ fun configureDatabase() {
             }
             return
         }
-        if (e.message == "Unknown database 'linkora'") {
+        if (e.message.toString().contains("Unknown database")) {
             println("Linkora database does not exist; proceeding with creation.")
             Database.connect(
                 url = serverConfig.databaseUrl.substringBefore("/linkora"),

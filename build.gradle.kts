@@ -49,6 +49,8 @@ dependencies {
     implementation("com.oracle.database.jdbc:ojdbc8:12.2.0.1")
     implementation("org.postgresql:postgresql:42.7.5")
     implementation("com.microsoft.sqlserver:mssql-jdbc:9.4.1.jre8")
+
+    implementation("org.jetbrains:markdown:0.7.3")
 }
 
 tasks.named<JavaExec>("run") {
