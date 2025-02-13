@@ -1,7 +1,5 @@
 It seems you've correctly configured the sync-server.
 
-Before anything, check out this video where I explained how to connect the app and the server. That should clear up most things.
-
 This server is meant to communicate only with the **[Linkora](https://github.com/LinkoraApp/Linkora)** apps, available on **Android** and **Desktop**. There's no web-based frontend yet, so you can’t control anything through a web interface. That said, if you’re willing to build your own custom solution from scratch that connects to this server and does what it needs to, then it’s totally possible.
 
 ## Important Notes
@@ -37,7 +35,13 @@ This server is meant to communicate only with the **[Linkora](https://github.com
 - Except for this route, every other route is secured by an auth token. Access is only granted if the client provides the correct auth token that you’ve set. Without it, they won’t be able to access anything.
 
 ## Troubleshooting & Additional Help
-- If something isn’t covered here, check out the **YouTube video** where I explained how to connect the app and the server.
-- Also, go through **[GitHub issues](https://github.com/LinkoraApp/sync-server/issues)**; you might find the solution there.
+- If something isn’t covered here, go through **[GitHub issues](https://github.com/LinkoraApp/sync-server/issues)**; you might find the solution there.
 - If not, **[create an issue on GitHub](https://github.com/LinkoraApp/sync-server/issues/new)**, and I'll fix it when I get some time.
 - You can also [join the Discord](https://discord.gg/ZDBXNtv8MD) if you want. It’s there for questions, updates, or just to hang out.
+
+---
+#### Workflow of Linkora, which should make it easier to understand how everything works:
+
+<a href="https://i.ibb.co/QFTF9qWD/linkora-outline.png" onclick="window.open(this.href, '_blank'); return false;">
+  <img alt="linkora-outline.png" src="https://i.ibb.co/QFTF9qWD/linkora-outline.png" style="max-width: 100%; height: auto;">
+</a>
