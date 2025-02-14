@@ -145,6 +145,39 @@ authentication details.
   - For local hosting with Docker, use the provided `docker run` command with environment variables.
   - For remote hosting, use the environment variable service provided by your cloud hosting provider.
 
+### Systemd setup
+
+Create a service file in /etc/systemd/system and enable it to run at startup.
+Config & JAR files are in the same folder path.
+Add the below to the file (change to your values as necessary) and name the file as "linkora.service)
+
+```javascript
+[Unit]
+Description=linkora service
+After=network.target
+
+[Service]
+SuccessExitStatus=143
+User=root
+Group=root
+Type=simple
+EnvironmentFile=PATH_TO_CONFIG/linkoraConfig.json
+WorkingDirectory=PATH_TO_JAR_FILE
+ExecStart=/usr/bin/java -jar linkoraSyncServer.jar
+ExecStop=/bin/kill -15 $MAINPID
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Once saved, reload the daemon & start the service:
+
+```javascript
+systemctl daemon-reload
+systemctl start linkora.service
+systemctl enable linkora.service
+```
+
 ### Join the Community
 
 [![Join us on Discord](https://discord.com/api/guilds/1214971383352664104/widget.png?style=banner2)](https://discord.gg/ZDBXNtv8MD)
