@@ -147,9 +147,9 @@ authentication details.
 
 ### Systemd setup
 
-Create a service file in /etc/systemd/system and enable it to run at startup.
+Create a service file in `/etc/systemd/system` and enable it to run at startup.
 Config & JAR files are in the same folder path.
-Add the below to the file (change to your values as necessary) and name the file as "linkora.service)
+Add the below to your file (change values as per your setup) and name the file as `linkora.service`.
 
 ```javascript
 [Unit]
