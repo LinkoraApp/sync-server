@@ -47,10 +47,26 @@ will be prompted to provide the required values, which will be saved locally.
 ```
 
 - `databaseUrl`: The database URL (without username or password).
-- `databaseUser`: The username for your database.
-- `databasePassword`: The password for your database.
-- `hostAddress`: The host address of the server. If not provided, defaults to `0.0.0.0`.
-- `serverPort`: The port number on which the server runs. If not provided, defaults to `8080`.
+  - `databaseUrl` should always start with the name of the database you're using:
+    - PGSQL (or) PostgreSQL :
+      ```
+      postgresql://someAddress:port/linkora
+      ``` 
+    - MySQL :
+      ```
+      mysql://someAddress:port/linkora
+      ``` 
+    - SQLite :
+      ```
+      sqlite:path-to-db
+      ``` 
+      `path-to-db` should look something like `sqlite:/home/saketh/Documents/sqlite/databaseFileName`
+- `databaseUser`: The username of the database you want to connect to.
+  - If you are using SQLite, leave this blank or press Enter when the setup prompts for it.
+- `databasePassword`: The password of the database you want to connect to.
+  - If you are using SQLite, leave this blank or press Enter when the setup prompts for it.
+- `hostAddress`: The host address of the server. If not provided, it defaults to the `IPv4` of the network currently connected to. When connecting from Linkora apps, you should pass this address instead of `localhost`.
+- `serverPort`: The port number on which the server runs. If not provided, defaults to `45454`.
 - `serverAuthToken`: A secure token used to authenticate requests from the Linkora app. Treat this like a password and
   keep it confidential.
 
@@ -65,13 +81,15 @@ set:
 
 - `LINKORA_SERVER_USE_ENV_VAL`: Set this to `true` to enable the use of environment variables. This must always be `true` when using environment variables.
 - `LINKORA_DATABASE_URL`: The database URL (without username or password).
-- `LINKORA_DATABASE_USER`: The username for your database.
-- `LINKORA_DATABASE_PASSWORD`: The password for your database.
+- `LINKORA_DATABASE_USER`: The username of the database you want to connect to.
+  - If you are using SQLite, leave this blank.
+- `LINKORA_DATABASE_PASSWORD`: The password of the database you want to connect to.
+  - If you are using SQLite, leave this blank.
 - `LINKORA_SERVER_AUTH_TOKEN`: A secure token used to authenticate requests from the Linkora app. Treat this like a
   password and
   keep it confidential.
-- `LINKORA_HOST_ADDRESS`: The host address of the server. If not provided, defaults to `0.0.0.0`.
-- `LINKORA_SERVER_PORT`: The port number on which the server runs. If not provided, defaults to `8080`.
+- `LINKORA_HOST_ADDRESS`: The host address of the server. If not provided, it defaults to the `IPv4` of the network currently connected to. When connecting from Linkora apps, you should pass this address instead of `localhost`.
+- `LINKORA_SERVER_PORT`: The port number on which the server runs. If not provided, defaults to `45454`.
 
 ### 3. Hosting Options
 
@@ -144,6 +162,12 @@ authentication details.
   - For local hosting with JAR, `linkoraConfig.json` is recommended.
   - For local hosting with Docker, use the provided `docker run` command with environment variables.
   - For remote hosting, use the environment variable service provided by your cloud hosting provider.
+
+#### Workflow of Linkora, which should make it easier to understand how everything works:
+
+<a href="https://github.com/user-attachments/assets/bb2d9b7e-92c4-41ed-82d3-ad821cc65638" onclick="window.open(this.href, '_blank'); return false;">
+  <img alt="linkora-outline.png" src="https://github.com/user-attachments/assets/bb2d9b7e-92c4-41ed-82d3-ad821cc65638" style="max-width: 100%; height: auto;">
+</a>
 
 ### Join the Community
 

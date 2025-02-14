@@ -1,4 +1,4 @@
-It seems you've correctly configured the sync-server.
+It seems you've configured the sync-server correctly; to check if it's running, browse to this endpoint or refresh—if the page loads again, the server is up; ensure the connected database is also running.
 
 This server is meant to communicate only with the **[Linkora](https://github.com/LinkoraApp/Linkora)** apps, available on **Android** and **Desktop**. There's no web-based frontend yet, so you can’t control anything through a web interface. That said, if you’re willing to build your own custom solution from scratch that connects to this server and does what it needs to, then it’s totally possible.
 
