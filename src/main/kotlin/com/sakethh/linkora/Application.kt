@@ -15,6 +15,9 @@ import io.ktor.server.netty.*
 import io.ktor.server.websocket.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.awt.Desktop
+import java.net.InetAddress
+import java.net.URI
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
@@ -89,11 +92,11 @@ object ServerConfiguration {
                     // manually throw the exception as `getenv` may return null, and no conversion is happening here to auto-throw
                     System.getenv(SysEnvKey.LINKORA_HOST_ADDRESS.name) ?: throw NullPointerException()
                 } catch (_: Exception) {
-                    "0.0.0.0"
+                    InetAddress.getLocalHost().hostAddress
                 }, serverPort = try {
                     System.getenv(SysEnvKey.LINKORA_SERVER_PORT.name).toInt()
                 } catch (_: Exception) {
-                    8080
+                    45454
                 },
                 serverAuthToken = System.getenv(SysEnvKey.LINKORA_SERVER_AUTH_TOKEN.name)
             )
@@ -128,11 +131,9 @@ fun Application.module() {
         maxFrameSize = Long.MAX_VALUE
     }
     configureEventsWebSocket()
-    val currentOS = System.getProperty("os.name").lowercase()
-    val serverConfiguredPage = serverConfig.hostAddress+ ":"+ serverConfig.serverPort + "/"+ SyncRoute.SERVER_IS_CONFIGURED.name
-    when {
-        currentOS.contains("win") -> Runtime.getRuntime().exec("rundll32 url.dll,FileProtocolHandler $serverConfiguredPage")
-        currentOS.contains("mac") -> Runtime.getRuntime().exec("open $serverConfiguredPage")
-        currentOS.contains("nix") || currentOS.contains("nux") -> Runtime.getRuntime().exec("xdg-open $serverConfiguredPage")
+    val serverConfiguredPage =
+        "http://" + serverConfig.hostAddress + ":" + serverConfig.serverPort + "/" + SyncRoute.SERVER_IS_CONFIGURED.name
+    if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+        Desktop.getDesktop().browse(URI(serverConfiguredPage))
     }
 }

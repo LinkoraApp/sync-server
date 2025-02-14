@@ -1,5 +1,6 @@
 package com.sakethh.linkora.presentation.routing
 
+import com.sakethh.linkora.Constants
 import com.sakethh.linkora.Security
 import com.sakethh.linkora.data.repository.FoldersImplementation
 import com.sakethh.linkora.data.repository.LinksImplementation
@@ -19,6 +20,7 @@ import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import org.jetbrains.exposed.sql.Database
 import java.net.InetAddress
 
 fun Application.configureRouting(serverConfig: ServerConfig, markdownManagerRepo: MarkdownManagerRepo) {
@@ -45,7 +47,7 @@ fun Application.configureRouting(serverConfig: ServerConfig, markdownManagerRepo
                 } else {
                     ""
                 }
-            val requiredHtml = markdownManagerRepo.getRawHtmlBasedOnMD(
+            val requiredHtml = markdownManagerRepo.getRawHtmlBasedOnRawMD("The sync-server version is **${Constants.SERVER_VERSION}**.\n\nYou are currently connected to the **${Database.getDialectName(serverConfig.databaseUrl)}** database, which will be **used by the server to store data**.")+markdownManagerRepo.getRawHtmlBasedOnMDFile(
                 fileLocation = "/raw/SERVER_IS_CONFIGURED.md", placeHolder = "#{PLACEHOLDER_1}" to placeHolderValue
             )
             call.respondText(contentType = ContentType.Text.Html, text = requiredHtml)
