@@ -200,7 +200,7 @@ class PanelsRepoImpl : PanelsRepository {
         }
     }
 
-    override suspend fun deleteAFolderFromAPanel(deleteAPanelFromAFolderDTO: DeleteAPanelFromAFolderDTO): Result<TimeStampBasedResponse> {
+    override suspend fun deleteAFolderFromAPanel(deleteAPanelFromAFolderDTO: DeleteAFolderFromAPanelDTO): Result<TimeStampBasedResponse> {
         return try {
             val eventTimestamp = Instant.now().epochSecond
             transaction {
