@@ -64,6 +64,10 @@ fun Application.linksRouting(linksRepository: LinksRepository) {
             post<LinkDTO>(LinkRoute.UPDATE_LINK.name) {
                 respondWithResult(linksRepository.updateLink(it))
             }
+
+            post<DeleteDuplicateLinksDTO>(LinkRoute.DELETE_DUPLICATE_LINKS.name) {
+                respondWithResult(linksRepository.deleteDuplicateLinks(it))
+            }
         }
     }
 }

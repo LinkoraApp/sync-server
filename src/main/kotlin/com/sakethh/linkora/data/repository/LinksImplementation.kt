@@ -15,12 +15,10 @@ import com.sakethh.linkora.utils.Result
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.insertAndGetId
+import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.update
 import java.time.Instant
 
 class LinksImplementation : LinksRepository {
@@ -381,6 +379,29 @@ class LinksImplementation : LinksRepository {
                 webSocketEvent = WebSocketEvent(
                     operation = LinkRoute.UPDATE_LINK.name,
                     payload = Json.encodeToJsonElement(linkDTO.copy(eventTimestamp = eventTimestamp))
+                )
+            )
+        } catch (e: Exception) {
+            Result.Failure(e)
+        }
+    }
+
+    override suspend fun deleteDuplicateLinks(deleteDuplicateLinksDTO: DeleteDuplicateLinksDTO): Result<TimeStampBasedResponse> {
+        return try {
+            val eventTimestamp = Instant.now().epochSecond
+            transaction {
+                this.exec(
+                    "DELETE FROM links_table WHERE id IN (${
+                        deleteDuplicateLinksDTO.linkIds.toString().substringBefore("]").substringAfter("[").trim()
+                    })"
+                )
+            }
+            Result.Success(
+                response = TimeStampBasedResponse(
+                    eventTimestamp = eventTimestamp, message = "Deleted Duplicate links."
+                ), webSocketEvent = WebSocketEvent(
+                    operation = LinkRoute.DELETE_DUPLICATE_LINKS.name,
+                    payload = Json.encodeToJsonElement(deleteDuplicateLinksDTO.copy(eventTimestamp = eventTimestamp))
                 )
             )
         } catch (e: Exception) {

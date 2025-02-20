@@ -13,5 +13,6 @@ enum class LinkRoute {
     UNARCHIVE_LINK,
     MARK_AS_IMP,
     UNMARK_AS_IMP,
-    UPDATE_LINK
+    UPDATE_LINK,
+    DELETE_DUPLICATE_LINKS
 }

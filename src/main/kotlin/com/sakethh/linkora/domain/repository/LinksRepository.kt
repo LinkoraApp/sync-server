@@ -18,4 +18,5 @@ interface LinksRepository {
     suspend fun markALinkAsImp(idBasedDTO: IDBasedDTO): Result<TimeStampBasedResponse>
     suspend fun markALinkAsNonImp(idBasedDTO: IDBasedDTO): Result<TimeStampBasedResponse>
     suspend fun updateLink(linkDTO: LinkDTO): Result<TimeStampBasedResponse>
+    suspend fun deleteDuplicateLinks(deleteDuplicateLinksDTO: DeleteDuplicateLinksDTO): Result<TimeStampBasedResponse>
 }
