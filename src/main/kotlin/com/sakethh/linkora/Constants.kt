@@ -1,5 +1,5 @@
 package com.sakethh.linkora
 
 object Constants {
-    const val SERVER_VERSION = "0.0.3"
+    const val SERVER_VERSION = "0.0.4"
 }

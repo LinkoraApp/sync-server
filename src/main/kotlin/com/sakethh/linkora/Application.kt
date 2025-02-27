@@ -133,7 +133,9 @@ fun Application.module() {
     configureEventsWebSocket()
     val serverConfiguredPage =
         "http://" + serverConfig.hostAddress + ":" + serverConfig.serverPort + "/" + SyncRoute.SERVER_IS_CONFIGURED.name
-    if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+    if (useSysEnvValues().not() && Desktop.isDesktopSupported() && Desktop.getDesktop()
+            .isSupported(Desktop.Action.BROWSE)
+    ) {
         Desktop.getDesktop().browse(URI(serverConfiguredPage))
     }
 }

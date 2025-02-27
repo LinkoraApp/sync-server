@@ -213,32 +213,30 @@ class FoldersImplementation : FoldersRepository {
         }
     }
 
-    override suspend fun changeParentFolder(changeParentFolderDTO: ChangeParentFolderDTO): Result<TimeStampBasedResponse> {
-        val folderId = changeParentFolderDTO.folderId
-        val newParentFolderId = changeParentFolderDTO.newParentFolderId
+    override suspend fun moveFolders(moveFoldersDTO: MoveFoldersDTO): Result<TimeStampBasedResponse> {
         return try {
-            checkForLWWConflictAndThrow(id = changeParentFolderDTO.folderId, timeStamp = changeParentFolderDTO.eventTimestamp)
+            checkForLWWConflictAndThrow(id = moveFoldersDTO.folderIds.last(), timeStamp = moveFoldersDTO.eventTimestamp)
             val eventTimestamp = Instant.now().epochSecond
+            var rowsUpdated = 0
             transaction {
-                FoldersTable.update(where = { FoldersTable.id.eq(folderId) }) {
+                rowsUpdated += FoldersTable.update(where = { FoldersTable.id.inList(moveFoldersDTO.folderIds) }) {
                     it[lastModified] = eventTimestamp
-                    it[parentFolderID] = newParentFolderId
+                    it[parentFolderID] = moveFoldersDTO.newParentFolderId
                 }
-            }.let {
-                Result.Success(
+            }
+            Result.Success(
                     response = TimeStampBasedResponse(
-                        message = "Number of rows affected by the update = $it",
+                        message = "Number of rows affected by the update = $rowsUpdated",
                         eventTimestamp = eventTimestamp
                     ), webSocketEvent = WebSocketEvent(
-                        operation = FolderRoute.CHANGE_PARENT_FOLDER.name,
+                    operation = FolderRoute.MOVE_FOLDERS.name,
                         payload = Json.encodeToJsonElement(
-                            changeParentFolderDTO.copy(
+                            moveFoldersDTO.copy(
                                 eventTimestamp = eventTimestamp
                             )
                         ),
                     )
                 )
-            }
         } catch (e: Exception) {
             Result.Failure(e)
         }

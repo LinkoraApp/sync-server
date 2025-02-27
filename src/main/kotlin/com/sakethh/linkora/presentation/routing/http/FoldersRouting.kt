@@ -3,7 +3,7 @@ package com.sakethh.linkora.presentation.routing.http
 import com.sakethh.linkora.Security
 import com.sakethh.linkora.domain.dto.IDBasedDTO
 import com.sakethh.linkora.domain.dto.folder.AddFolderDTO
-import com.sakethh.linkora.domain.dto.folder.ChangeParentFolderDTO
+import com.sakethh.linkora.domain.dto.folder.MoveFoldersDTO
 import com.sakethh.linkora.domain.dto.folder.UpdateFolderNameDTO
 import com.sakethh.linkora.domain.dto.folder.UpdateFolderNoteDTO
 import com.sakethh.linkora.domain.repository.FoldersRepository
@@ -41,9 +41,9 @@ fun Application.foldersRouting(foldersRepository: FoldersRepository) {
                 respondWithResult(foldersRepository.markAsRegularFolder(it))
             }
 
-            post<ChangeParentFolderDTO>(FolderRoute.CHANGE_PARENT_FOLDER.name) {
+            post<MoveFoldersDTO>(FolderRoute.MOVE_FOLDERS.name) {
                 respondWithResult(
-                    foldersRepository.changeParentFolder(it)
+                    foldersRepository.moveFolders(it)
                 )
             }
 
