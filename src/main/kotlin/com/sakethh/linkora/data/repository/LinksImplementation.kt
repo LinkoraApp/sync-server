@@ -16,6 +16,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insertAndGetId
@@ -392,11 +393,9 @@ class LinksImplementation : LinksRepository {
         return try {
             val eventTimestamp = Instant.now().epochSecond
             transaction {
-                this.exec(
-                    "DELETE FROM links_table WHERE id IN (${
-                        deleteDuplicateLinksDTO.linkIds.toString().substringBefore("]").substringAfter("[").trim()
-                    })"
-                )
+                LinksTable.deleteWhere {
+                    LinksTable.id.inList(deleteDuplicateLinksDTO.linkIds)
+                }
                 TombStoneHelper.insert(
                     payload = Json.encodeToString(deleteDuplicateLinksDTO),
                     operation = LinkRoute.DELETE_DUPLICATE_LINKS.name,
