@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class MoveLinksDTO(
     val linkIds: List<Long>,
-    val parentFolderId: Long,
+    val parentFolderId: Long?,
     val linkType: LinkType,
     val correlation: Correlation,
     val eventTimestamp: Long
