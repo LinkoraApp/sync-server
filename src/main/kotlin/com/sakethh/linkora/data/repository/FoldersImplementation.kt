@@ -325,4 +325,34 @@ class FoldersImplementation : FoldersRepository {
             Result.Failure(e)
         }
     }
+
+    override suspend fun markSelectedFoldersAsRoot(markSelectedFoldersAsRootDTO: MarkSelectedFoldersAsRootDTO): Result<TimeStampBasedResponse> {
+        return try {
+            checkForLWWConflictAndThrow(
+                id = markSelectedFoldersAsRootDTO.folderIds.last(),
+                timeStamp = markSelectedFoldersAsRootDTO.eventTimestamp
+            )
+            val eventTimeStamp = Instant.now().epochSecond
+            transaction {
+                FoldersTable.update(where = {
+                    FoldersTable.id.inList(markSelectedFoldersAsRootDTO.folderIds)
+                }) {
+                    it[lastModified] = eventTimeStamp
+                    it[parentFolderID] = null
+                }
+            }.let {
+                Result.Success(
+                    response = TimeStampBasedResponse(
+                        eventTimestamp = eventTimeStamp,
+                        message = "Marked $it folders as root."
+                    ), webSocketEvent = WebSocketEvent(
+                        operation = FolderRoute.MARK_FOLDERS_AS_ROOT.name,
+                        payload = Json.encodeToJsonElement(markSelectedFoldersAsRootDTO.copy(eventTimestamp = eventTimeStamp))
+                    )
+                )
+            }
+        } catch (e: Exception) {
+            Result.Failure(e)
+        }
+    }
 }

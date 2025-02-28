@@ -2,10 +2,7 @@ package com.sakethh.linkora.presentation.routing.http
 
 import com.sakethh.linkora.Security
 import com.sakethh.linkora.domain.dto.IDBasedDTO
-import com.sakethh.linkora.domain.dto.folder.AddFolderDTO
-import com.sakethh.linkora.domain.dto.folder.MoveFoldersDTO
-import com.sakethh.linkora.domain.dto.folder.UpdateFolderNameDTO
-import com.sakethh.linkora.domain.dto.folder.UpdateFolderNoteDTO
+import com.sakethh.linkora.domain.dto.folder.*
 import com.sakethh.linkora.domain.repository.FoldersRepository
 import com.sakethh.linkora.domain.routes.FolderRoute
 import com.sakethh.linkora.utils.respondWithResult
@@ -59,6 +56,10 @@ fun Application.foldersRouting(foldersRepository: FoldersRepository) {
 
             post<IDBasedDTO>(FolderRoute.DELETE_FOLDER_NOTE.name) {
                 respondWithResult(foldersRepository.deleteFolderNote(it))
+            }
+
+            post<MarkSelectedFoldersAsRootDTO>(FolderRoute.MARK_FOLDERS_AS_ROOT.name) {
+                respondWithResult(foldersRepository.markSelectedFoldersAsRoot(it))
             }
         }
     }

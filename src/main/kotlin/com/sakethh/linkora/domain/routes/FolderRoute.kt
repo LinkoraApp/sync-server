@@ -11,5 +11,5 @@ enum class FolderRoute {
     UPDATE_FOLDER_NOTE,
     DELETE_FOLDER_NOTE,
     MOVE_FOLDERS,
-    COPY_FOLDERS
+    MARK_FOLDERS_AS_ROOT
 }

@@ -3,10 +3,7 @@ package com.sakethh.linkora.domain.repository
 import com.sakethh.linkora.domain.dto.IDBasedDTO
 import com.sakethh.linkora.domain.dto.NewItemResponseDTO
 import com.sakethh.linkora.domain.dto.TimeStampBasedResponse
-import com.sakethh.linkora.domain.dto.folder.AddFolderDTO
-import com.sakethh.linkora.domain.dto.folder.MoveFoldersDTO
-import com.sakethh.linkora.domain.dto.folder.UpdateFolderNameDTO
-import com.sakethh.linkora.domain.dto.folder.UpdateFolderNoteDTO
+import com.sakethh.linkora.domain.dto.folder.*
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.utils.Result
 
@@ -22,4 +19,5 @@ interface FoldersRepository {
 
     suspend fun updateFolderNote(updateFolderNoteDTO: UpdateFolderNoteDTO): Result<TimeStampBasedResponse>
     suspend fun deleteFolderNote(idBasedDTO: IDBasedDTO): Result<TimeStampBasedResponse>
+    suspend fun markSelectedFoldersAsRoot(markSelectedFoldersAsRootDTO: MarkSelectedFoldersAsRootDTO): Result<TimeStampBasedResponse>
 }
