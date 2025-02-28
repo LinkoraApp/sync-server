@@ -414,4 +414,30 @@ class LinksImplementation : LinksRepository {
             Result.Failure(e)
         }
     }
+
+    override suspend fun moveLinks(moveLinksDTO: MoveLinksDTO): Result<TimeStampBasedResponse> {
+        return try {
+            checkForLWWConflictAndThrow(id = moveLinksDTO.linkIds.last(), timeStamp = moveLinksDTO.eventTimestamp)
+            val eventTimeStamp = Instant.now().epochSecond
+            transaction {
+                LinksTable.update(where = {
+                    LinksTable.id.inList(moveLinksDTO.linkIds)
+                }) {
+                    it[lastModified] = eventTimeStamp
+                    it[idOfLinkedFolder] = moveLinksDTO.parentFolderId
+                    it[linkType] = moveLinksDTO.linkType.name
+                }
+            }.let {
+                Result.Success(
+                    response = TimeStampBasedResponse(message = "Updated $it rows.", eventTimestamp = eventTimeStamp),
+                    webSocketEvent = WebSocketEvent(
+                        operation = LinkRoute.MOVE_LINKS.name,
+                        payload = Json.encodeToJsonElement(moveLinksDTO.copy(eventTimestamp = eventTimeStamp))
+                    )
+                )
+            }
+        } catch (e: Exception) {
+            Result.Failure(e)
+        }
+    }
 }
