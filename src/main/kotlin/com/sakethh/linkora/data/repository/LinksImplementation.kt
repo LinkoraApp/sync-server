@@ -40,6 +40,11 @@ class LinksImplementation : LinksRepository {
         return try {
             val eventTimestamp = Instant.now().epochSecond
             transaction {
+                if (addLinkDTO.linkType == LinkType.HISTORY_LINK) {
+                    LinksTable.deleteWhere {
+                        url.eq(addLinkDTO.url).and(linkType.eq(LinkType.HISTORY_LINK.name))
+                    }
+                }
                 LinksTable.insertAndGetId { link ->
                     link[lastModified] = eventTimestamp
                     link[linkType] = addLinkDTO.linkType.name
