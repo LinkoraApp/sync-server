@@ -10,18 +10,16 @@ import com.sakethh.linkora.domain.model.WebSocketEvent
 import com.sakethh.linkora.domain.repository.LinksRepository
 import com.sakethh.linkora.domain.routes.LinkRoute
 import com.sakethh.linkora.domain.tables.LinksTable
+import com.sakethh.linkora.domain.tables.TombstoneTable
 import com.sakethh.linkora.domain.tables.helper.TombStoneHelper
 import com.sakethh.linkora.utils.Result
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.insertAndGetId
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.update
 import java.time.Instant
 
 class LinksImplementation : LinksRepository {
@@ -41,8 +39,26 @@ class LinksImplementation : LinksRepository {
             val eventTimestamp = Instant.now().epochSecond
             transaction {
                 if (addLinkDTO.linkType == LinkType.HISTORY_LINK) {
-                    LinksTable.deleteWhere {
-                        url.eq(addLinkDTO.url).and(linkType.eq(LinkType.HISTORY_LINK.name))
+                    LinksTable.url.eq(addLinkDTO.url).and(LinksTable.linkType.eq(LinkType.HISTORY_LINK.name))
+                        .let { query ->
+                            LinksTable.selectAll().where {
+                                query
+                            }.toList().let { resultRows ->
+                                TombstoneTable.batchInsert(resultRows) {
+                                    it[TombstoneTable.deletedAt] = eventTimestamp
+                                    it[TombstoneTable.operation] = LinkRoute.DELETE_A_LINK.name
+                                    it[TombstoneTable.payload] = Json.encodeToString(
+                                        IDBasedDTO(
+                                            id = it[LinksTable.id].value,
+                                            correlation = addLinkDTO.correlation,
+                                            eventTimestamp = eventTimestamp
+                                        )
+                                    )
+                                }
+                            }
+                            LinksTable.deleteWhere {
+                                query
+                            }
                     }
                 }
                 LinksTable.insertAndGetId { link ->
