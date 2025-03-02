@@ -11,7 +11,7 @@ import com.sakethh.linkora.domain.routes.PanelRoute
 import com.sakethh.linkora.domain.tables.PanelFoldersTable
 import com.sakethh.linkora.domain.tables.PanelsTable
 import com.sakethh.linkora.domain.tables.helper.TombStoneHelper
-import com.sakethh.linkora.utils.Result
+import com.sakethh.linkora.domain.Result
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement

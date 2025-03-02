@@ -1,4 +1,4 @@
-package com.sakethh.linkora.utils
+package com.sakethh.linkora.domain
 
 import com.sakethh.linkora.domain.model.WebSocketEvent
 import io.ktor.http.*

@@ -5,7 +5,7 @@ import com.sakethh.linkora.domain.dto.NewItemResponseDTO
 import com.sakethh.linkora.domain.dto.TimeStampBasedResponse
 import com.sakethh.linkora.domain.dto.folder.*
 import com.sakethh.linkora.domain.model.Folder
-import com.sakethh.linkora.utils.Result
+import com.sakethh.linkora.domain.Result
 
 interface FoldersRepository {
     suspend fun createFolder(addFolderDTO: AddFolderDTO): Result<NewItemResponseDTO>

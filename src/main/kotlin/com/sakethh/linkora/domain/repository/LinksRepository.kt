@@ -1,10 +1,10 @@
 package com.sakethh.linkora.domain.repository
 
+import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.dto.IDBasedDTO
 import com.sakethh.linkora.domain.dto.NewItemResponseDTO
 import com.sakethh.linkora.domain.dto.TimeStampBasedResponse
 import com.sakethh.linkora.domain.dto.link.*
-import com.sakethh.linkora.utils.Result
 
 interface LinksRepository {
     suspend fun createANewLink(addLinkDTO: AddLinkDTO): Result<NewItemResponseDTO>

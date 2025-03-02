@@ -2,6 +2,7 @@ package com.sakethh.linkora.data.repository
 
 import com.sakethh.linkora.domain.LWWConflictException
 import com.sakethh.linkora.domain.LinkType
+import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.dto.IDBasedDTO
 import com.sakethh.linkora.domain.dto.NewItemResponseDTO
 import com.sakethh.linkora.domain.dto.TimeStampBasedResponse
@@ -10,9 +11,9 @@ import com.sakethh.linkora.domain.model.WebSocketEvent
 import com.sakethh.linkora.domain.repository.LinksRepository
 import com.sakethh.linkora.domain.routes.LinkRoute
 import com.sakethh.linkora.domain.tables.LinksTable
+import com.sakethh.linkora.domain.tables.LinksTable.lastModified
 import com.sakethh.linkora.domain.tables.TombstoneTable
 import com.sakethh.linkora.domain.tables.helper.TombStoneHelper
-import com.sakethh.linkora.utils.Result
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
@@ -25,10 +26,10 @@ import java.time.Instant
 class LinksImplementation : LinksRepository {
     private fun checkForLWWConflictAndThrow(id: Long, timeStamp: Long) {
         transaction {
-            LinksTable.select(LinksTable.lastModified).where {
+            LinksTable.select(lastModified).where {
                 LinksTable.id.eq(id)
             }.let {
-                if (it.single()[LinksTable.lastModified] > timeStamp) {
+                if (it.single()[lastModified] > timeStamp) {
                     throw LWWConflictException()
                 }
             }
@@ -40,9 +41,9 @@ class LinksImplementation : LinksRepository {
             transaction {
                 if (addLinkDTO.linkType == LinkType.HISTORY_LINK) {
                     LinksTable.url.eq(addLinkDTO.url).and(LinksTable.linkType.eq(LinkType.HISTORY_LINK.name))
-                        .let { query ->
+                        .let { condition ->
                             LinksTable.selectAll().where {
-                                query
+                                condition
                             }.toList().let { resultRows ->
                                 TombstoneTable.batchInsert(resultRows) {
                                     it[TombstoneTable.deletedAt] = eventTimestamp
@@ -57,7 +58,7 @@ class LinksImplementation : LinksRepository {
                                 }
                             }
                             LinksTable.deleteWhere {
-                                query
+                                condition
                             }
                     }
                 }
