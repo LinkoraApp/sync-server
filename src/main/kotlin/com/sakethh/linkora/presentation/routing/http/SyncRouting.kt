@@ -2,7 +2,7 @@ package com.sakethh.linkora.presentation.routing.http
 
 import com.sakethh.linkora.Security
 import com.sakethh.linkora.domain.repository.SyncRepo
-import com.sakethh.linkora.domain.routes.SyncRoute
+import com.sakethh.linkora.domain.Route
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -12,7 +12,7 @@ import io.ktor.server.routing.*
 fun Application.syncRouting(syncRepo: SyncRepo) {
     routing {
         authenticate(Security.BEARER.name) {
-            get(SyncRoute.GET_TOMBSTONES.name) {
+            get(Route.Sync.GET_TOMBSTONES.name) {
                 val eventTimestamp = getTimeStampFromParam() ?: return@get
                 try {
                     call.respond(syncRepo.getTombstonesAfter(eventTimestamp))
@@ -22,7 +22,7 @@ fun Application.syncRouting(syncRepo: SyncRepo) {
                 }
             }
 
-            get(SyncRoute.GET_UPDATES.name) {
+            get(Route.Sync.GET_UPDATES.name) {
                 val eventTimestamp = getTimeStampFromParam() ?: return@get
                 try {
                     call.respond(syncRepo.getUpdatesAfter(eventTimestamp))
@@ -32,7 +32,7 @@ fun Application.syncRouting(syncRepo: SyncRepo) {
                 }
             }
 
-            get(SyncRoute.DELETE_EVERYTHING.name) {
+            get(Route.Sync.DELETE_EVERYTHING.name) {
                 syncRepo.deleteEverything().onSuccess {
                     call.respond(status = HttpStatusCode.OK, message = HttpStatusCode.OK.description)
                 }.onFailure {

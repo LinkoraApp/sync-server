@@ -2,9 +2,9 @@ package com.sakethh.linkora
 
 import com.sakethh.linkora.data.configureDatabase
 import com.sakethh.linkora.data.repository.MarkdownManagerRepoImpl
+import com.sakethh.linkora.domain.Route
 import com.sakethh.linkora.domain.model.ServerConfig
 import com.sakethh.linkora.domain.repository.MarkdownManagerRepo
-import com.sakethh.linkora.domain.routes.SyncRoute
 import com.sakethh.linkora.presentation.routing.configureRouting
 import com.sakethh.linkora.presentation.routing.websocket.configureEventsWebSocket
 import com.sakethh.linkora.utils.SysEnvKey
@@ -12,6 +12,7 @@ import com.sakethh.linkora.utils.useSysEnvValues
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -132,7 +133,7 @@ fun Application.module() {
     }
     configureEventsWebSocket()
     val serverConfiguredPage =
-        "http://" + serverConfig.hostAddress + ":" + serverConfig.serverPort + "/" + SyncRoute.SERVER_IS_CONFIGURED.name
+        "http://" + serverConfig.hostAddress + ":" + serverConfig.serverPort + "/" + Route.Sync.SERVER_IS_CONFIGURED.name
     if (useSysEnvValues().not() && Desktop.isDesktopSupported() && Desktop.getDesktop()
             .isSupported(Desktop.Action.BROWSE)
     ) {

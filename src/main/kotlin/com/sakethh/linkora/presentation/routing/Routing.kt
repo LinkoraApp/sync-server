@@ -8,7 +8,6 @@ import com.sakethh.linkora.data.repository.PanelsRepoImpl
 import com.sakethh.linkora.data.repository.SyncRepoImpl
 import com.sakethh.linkora.domain.model.ServerConfig
 import com.sakethh.linkora.domain.repository.*
-import com.sakethh.linkora.domain.routes.SyncRoute
 import com.sakethh.linkora.presentation.routing.http.foldersRouting
 import com.sakethh.linkora.presentation.routing.http.linksRouting
 import com.sakethh.linkora.presentation.routing.http.panelsRouting
@@ -22,6 +21,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.jetbrains.exposed.sql.Database
 import java.net.InetAddress
+import com.sakethh.linkora.domain.Route
 
 fun Application.configureRouting(serverConfig: ServerConfig, markdownManagerRepo: MarkdownManagerRepo) {
     routing {
@@ -29,11 +29,11 @@ fun Application.configureRouting(serverConfig: ServerConfig, markdownManagerRepo
             get("/") {
                 call.respond(message = HttpStatusCode.OK, status = HttpStatusCode.OK)
             }
-            get(SyncRoute.TEST_BEARER.name) {
+            get(Route.Sync.TEST_BEARER.name) {
                 call.respond(message = HttpStatusCode.OK, status = HttpStatusCode.OK)
             }
         }
-        get(SyncRoute.SERVER_IS_CONFIGURED.name) {
+        get(Route.Sync.SERVER_IS_CONFIGURED.name) {
             val placeHolderValue =
                 if ((useSysEnvValues().not() && serverConfig.hostAddress != InetAddress.getLocalHost().hostAddress) || (useSysEnvValues() && System.getenv(
                         SysEnvKey.LINKORA_HOST_ADDRESS.name

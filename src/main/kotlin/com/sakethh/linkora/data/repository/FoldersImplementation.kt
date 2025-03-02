@@ -8,11 +8,11 @@ import com.sakethh.linkora.domain.dto.folder.*
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.WebSocketEvent
 import com.sakethh.linkora.domain.repository.FoldersRepository
-import com.sakethh.linkora.domain.routes.FolderRoute
 import com.sakethh.linkora.domain.tables.FoldersTable
 import com.sakethh.linkora.domain.tables.PanelFoldersTable
 import com.sakethh.linkora.domain.tables.helper.TombStoneHelper
 import com.sakethh.linkora.domain.Result
+import com.sakethh.linkora.domain.Route
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
@@ -57,7 +57,7 @@ class FoldersImplementation : FoldersRepository {
                         correlation = addFolderDTO.correlation
                     ),
                     webSocketEvent = WebSocketEvent(
-                        operation = FolderRoute.CREATE_FOLDER.name, payload = Json.encodeToJsonElement(
+                        operation = Route.Folder.CREATE_FOLDER.name, payload = Json.encodeToJsonElement(
                             FolderDTO(
                                 id = it,
                                 name = addFolderDTO.name,
@@ -86,7 +86,7 @@ class FoldersImplementation : FoldersRepository {
                 }
                 TombStoneHelper.insert(
                     payload = Json.encodeToString(idBasedDTO.copy(eventTimestamp = eventTimestamp)),
-                    operation = FolderRoute.DELETE_FOLDER.name,
+                    operation = Route.Folder.DELETE_FOLDER.name,
                     eventTimestamp
                 )
             }
@@ -106,7 +106,7 @@ class FoldersImplementation : FoldersRepository {
                     message = "Folder and its contents have been successfully deleted.",
                     eventTimestamp = eventTimestamp
                 ), webSocketEvent = WebSocketEvent(
-                    operation = FolderRoute.DELETE_FOLDER.name,
+                    operation = Route.Folder.DELETE_FOLDER.name,
                     payload = Json.encodeToJsonElement(idBasedDTO.copy(eventTimestamp = eventTimestamp)),
                 )
             )
@@ -177,7 +177,7 @@ class FoldersImplementation : FoldersRepository {
                         eventTimestamp = eventTimestamp,
                         message = "Number of rows affected by the update = $it"
                     ), webSocketEvent = WebSocketEvent(
-                        operation = FolderRoute.MARK_FOLDER_AS_ARCHIVE.name,
+                        operation = Route.Folder.MARK_FOLDER_AS_ARCHIVE.name,
                         payload = Json.encodeToJsonElement(idBasedDTO.copy(eventTimestamp = eventTimestamp)),
                     )
                 )
@@ -203,7 +203,7 @@ class FoldersImplementation : FoldersRepository {
                         eventTimestamp = eventTimestamp,
                         message = "Number of rows affected by the update = $it"
                     ), webSocketEvent = WebSocketEvent(
-                        operation = FolderRoute.MARK_AS_REGULAR_FOLDER.name,
+                        operation = Route.Folder.MARK_AS_REGULAR_FOLDER.name,
                         payload = Json.encodeToJsonElement(idBasedDTO.copy(eventTimestamp = eventTimestamp)),
                     )
                 )
@@ -229,7 +229,7 @@ class FoldersImplementation : FoldersRepository {
                         message = "Number of rows affected by the update = $rowsUpdated",
                         eventTimestamp = eventTimestamp
                     ), webSocketEvent = WebSocketEvent(
-                    operation = FolderRoute.MOVE_FOLDERS.name,
+                    operation = Route.Folder.MOVE_FOLDERS.name,
                         payload = Json.encodeToJsonElement(
                             moveFoldersDTO.copy(
                                 eventTimestamp = eventTimestamp
@@ -265,7 +265,7 @@ class FoldersImplementation : FoldersRepository {
                         eventTimestamp = eventTimestamp,
                         message = "Number of rows affected by the update = $it"
                     ), webSocketEvent = WebSocketEvent(
-                        operation = FolderRoute.UPDATE_FOLDER_NAME.name,
+                        operation = Route.Folder.UPDATE_FOLDER_NAME.name,
                         payload = Json.encodeToJsonElement(updateFolderNameDTO.copy(eventTimestamp = eventTimestamp)),
                     )
                 )
@@ -292,7 +292,7 @@ class FoldersImplementation : FoldersRepository {
                         message = "Number of rows affected by the update = $it",
                         eventTimestamp = eventTimestamp
                     ), webSocketEvent = WebSocketEvent(
-                        operation = FolderRoute.UPDATE_FOLDER_NOTE.name,
+                        operation = Route.Folder.UPDATE_FOLDER_NOTE.name,
                         payload = Json.encodeToJsonElement(updateFolderNoteDTO.copy(eventTimestamp = eventTimestamp)),
                     )
                 )
@@ -316,7 +316,7 @@ class FoldersImplementation : FoldersRepository {
                         eventTimestamp = eventTimestamp,
                         message = "Number of rows affected by the update = $it"
                     ), webSocketEvent = WebSocketEvent(
-                        operation = FolderRoute.DELETE_FOLDER_NOTE.name,
+                        operation = Route.Folder.DELETE_FOLDER_NOTE.name,
                         payload = Json.encodeToJsonElement(idBasedDTO.copy(eventTimestamp = eventTimestamp)),
                     )
                 )
@@ -346,7 +346,7 @@ class FoldersImplementation : FoldersRepository {
                         eventTimestamp = eventTimeStamp,
                         message = "Marked $it folders as root."
                     ), webSocketEvent = WebSocketEvent(
-                        operation = FolderRoute.MARK_FOLDERS_AS_ROOT.name,
+                        operation = Route.Folder.MARK_FOLDERS_AS_ROOT.name,
                         payload = Json.encodeToJsonElement(markSelectedFoldersAsRootDTO.copy(eventTimestamp = eventTimeStamp))
                     )
                 )

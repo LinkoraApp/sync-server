@@ -7,11 +7,11 @@ import com.sakethh.linkora.domain.dto.TimeStampBasedResponse
 import com.sakethh.linkora.domain.dto.panel.*
 import com.sakethh.linkora.domain.model.WebSocketEvent
 import com.sakethh.linkora.domain.repository.PanelsRepository
-import com.sakethh.linkora.domain.routes.PanelRoute
 import com.sakethh.linkora.domain.tables.PanelFoldersTable
 import com.sakethh.linkora.domain.tables.PanelsTable
 import com.sakethh.linkora.domain.tables.helper.TombStoneHelper
 import com.sakethh.linkora.domain.Result
+import com.sakethh.linkora.domain.Route
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
@@ -54,7 +54,7 @@ class PanelsRepoImpl : PanelsRepository {
                         id = it,
                         correlation = addANewPanelDTO.correlation,
                     ), webSocketEvent = WebSocketEvent(
-                        operation = PanelRoute.ADD_A_NEW_PANEL.name, payload = Json.encodeToJsonElement(
+                        operation = Route.Panel.ADD_A_NEW_PANEL.name, payload = Json.encodeToJsonElement(
                             PanelDTO(
                                 panelId = it,
                                 panelName = addANewPanelDTO.panelName,
@@ -91,7 +91,7 @@ class PanelsRepoImpl : PanelsRepository {
                         id = it,
                         correlation = addANewPanelFolderDTO.correlation,
                     ), webSocketEvent = WebSocketEvent(
-                        operation = PanelRoute.ADD_A_NEW_FOLDER_IN_A_PANEL.name, payload = Json.encodeToJsonElement(
+                        operation = Route.Panel.ADD_A_NEW_FOLDER_IN_A_PANEL.name, payload = Json.encodeToJsonElement(
                             PanelFolderDTO(
                                 id = it,
                                 folderId = addANewPanelFolderDTO.folderId,
@@ -122,7 +122,7 @@ class PanelsRepoImpl : PanelsRepository {
                 }
                 TombStoneHelper.insert(
                     payload = Json.encodeToString(idBasedDTO),
-                    operation = PanelRoute.DELETE_A_PANEL.name,
+                    operation = Route.Panel.DELETE_A_PANEL.name,
                     eventTimestamp
                 )
             }
@@ -132,7 +132,7 @@ class PanelsRepoImpl : PanelsRepository {
                     eventTimestamp = eventTimestamp
                 ),
                 webSocketEvent = WebSocketEvent(
-                    operation = PanelRoute.DELETE_A_PANEL.name,
+                    operation = Route.Panel.DELETE_A_PANEL.name,
                     payload = Json.encodeToJsonElement(idBasedDTO.copy(eventTimestamp = eventTimestamp))
                 )
             )
@@ -159,7 +159,7 @@ class PanelsRepoImpl : PanelsRepository {
                     message = "Updated panel name to ${updatePanelNameDTO.newName} (id : ${updatePanelNameDTO.panelId})."
                 ),
                 webSocketEvent = WebSocketEvent(
-                    operation = PanelRoute.UPDATE_A_PANEL_NAME.name,
+                    operation = Route.Panel.UPDATE_A_PANEL_NAME.name,
                     payload = Json.encodeToJsonElement(updatePanelNameDTO.copy(eventTimestamp = eventTimestamp))
                 )
             )
@@ -177,7 +177,7 @@ class PanelsRepoImpl : PanelsRepository {
                 }
                 TombStoneHelper.insert(
                     payload = Json.encodeToString(idBasedDTO.copy(eventTimestamp = eventTimestamp)),
-                    operation = PanelRoute.DELETE_A_FOLDER_FROM_ALL_PANELS.name,
+                    operation = Route.Panel.DELETE_A_FOLDER_FROM_ALL_PANELS.name,
                     eventTimestamp
                 )
             }
@@ -187,7 +187,7 @@ class PanelsRepoImpl : PanelsRepository {
                     message = "Deleted folder from all panel folders where id = ${idBasedDTO.id}."
                 ),
                 webSocketEvent = WebSocketEvent(
-                    operation = PanelRoute.DELETE_A_FOLDER_FROM_ALL_PANELS.name,
+                    operation = Route.Panel.DELETE_A_FOLDER_FROM_ALL_PANELS.name,
                     payload = Json.encodeToJsonElement(
                         idBasedDTO.copy(
                             eventTimestamp = eventTimestamp
@@ -209,7 +209,7 @@ class PanelsRepoImpl : PanelsRepository {
                 }
                 TombStoneHelper.insert(
                     payload = Json.encodeToString(deleteAPanelFromAFolderDTO.copy(eventTimestamp = eventTimestamp)),
-                    operation = PanelRoute.DELETE_A_FOLDER_FROM_A_PANEL.name,
+                    operation = Route.Panel.DELETE_A_FOLDER_FROM_A_PANEL.name,
                     eventTimestamp
                 )
             }
@@ -219,7 +219,7 @@ class PanelsRepoImpl : PanelsRepository {
                     message = "Deleted the folder with id ${deleteAPanelFromAFolderDTO.folderID} from a panel with id ${deleteAPanelFromAFolderDTO.panelId}."
                 ),
                 webSocketEvent = WebSocketEvent(
-                    operation = PanelRoute.DELETE_A_FOLDER_FROM_A_PANEL.name,
+                    operation = Route.Panel.DELETE_A_FOLDER_FROM_A_PANEL.name,
                     payload = Json.encodeToJsonElement(deleteAPanelFromAFolderDTO.copy(eventTimestamp = eventTimestamp))
                 )
             )
@@ -238,7 +238,7 @@ class PanelsRepoImpl : PanelsRepository {
                 TombStoneHelper.insert(
                     deletedAt = eventTimestamp,
                     payload = Json.encodeToString(idBasedDTO.copy(eventTimestamp = eventTimestamp)),
-                    operation = PanelRoute.DELETE_ALL_FOLDERS_FROM_A_PANEL.name
+                    operation = Route.Panel.DELETE_ALL_FOLDERS_FROM_A_PANEL.name
                 )
             }
             Result.Success(
@@ -247,7 +247,7 @@ class PanelsRepoImpl : PanelsRepository {
                     eventTimestamp = eventTimestamp
                 ),
                 webSocketEvent = WebSocketEvent(
-                    operation = PanelRoute.DELETE_ALL_FOLDERS_FROM_A_PANEL.name,
+                    operation = Route.Panel.DELETE_ALL_FOLDERS_FROM_A_PANEL.name,
                     payload = Json.encodeToJsonElement(idBasedDTO.copy(eventTimestamp = eventTimestamp))
                 )
             )

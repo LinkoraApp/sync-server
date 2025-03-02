@@ -3,13 +3,13 @@ package com.sakethh.linkora.data.repository
 import com.sakethh.linkora.domain.LWWConflictException
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Result
+import com.sakethh.linkora.domain.Route
 import com.sakethh.linkora.domain.dto.IDBasedDTO
 import com.sakethh.linkora.domain.dto.NewItemResponseDTO
 import com.sakethh.linkora.domain.dto.TimeStampBasedResponse
 import com.sakethh.linkora.domain.dto.link.*
 import com.sakethh.linkora.domain.model.WebSocketEvent
 import com.sakethh.linkora.domain.repository.LinksRepository
-import com.sakethh.linkora.domain.routes.LinkRoute
 import com.sakethh.linkora.domain.tables.LinksTable
 import com.sakethh.linkora.domain.tables.LinksTable.lastModified
 import com.sakethh.linkora.domain.tables.TombstoneTable
@@ -47,7 +47,7 @@ class LinksImplementation : LinksRepository {
                             }.toList().let { resultRows ->
                                 TombstoneTable.batchInsert(resultRows) {
                                     it[TombstoneTable.deletedAt] = eventTimestamp
-                                    it[TombstoneTable.operation] = LinkRoute.DELETE_A_LINK.name
+                                    it[TombstoneTable.operation] = Route.Link.DELETE_A_LINK.name
                                     it[TombstoneTable.payload] = Json.encodeToString(
                                         IDBasedDTO(
                                             id = it[LinksTable.id].value,
@@ -85,7 +85,7 @@ class LinksImplementation : LinksRepository {
                         id = idOfNewlyAddedLink,
                         correlation = addLinkDTO.correlation
                     ), webSocketEvent = WebSocketEvent(
-                        operation = LinkRoute.CREATE_A_NEW_LINK.name, payload = Json.encodeToJsonElement(
+                        operation = Route.Link.CREATE_A_NEW_LINK.name, payload = Json.encodeToJsonElement(
                             LinkDTO(
                                 id = idOfNewlyAddedLink,
                                 linkType = addLinkDTO.linkType,
@@ -117,7 +117,7 @@ class LinksImplementation : LinksRepository {
             transaction {
                 TombStoneHelper.insert(
                     payload = Json.encodeToString(idBasedDTO),
-                    operation = LinkRoute.DELETE_A_LINK.name,
+                    operation = Route.Link.DELETE_A_LINK.name,
                     deletedAt = eventTimestamp
                 )
                 LinksTable.deleteWhere {
@@ -129,7 +129,7 @@ class LinksImplementation : LinksRepository {
                     eventTimestamp = eventTimestamp,
                     message = "Link deleted successfully."
                 ), webSocketEvent = WebSocketEvent(
-                    operation = LinkRoute.DELETE_A_LINK.name,
+                    operation = Route.Link.DELETE_A_LINK.name,
                     payload = Json.encodeToJsonElement(idBasedDTO.copy(eventTimestamp = eventTimestamp)),
                 )
             )
@@ -160,7 +160,7 @@ class LinksImplementation : LinksRepository {
                     eventTimestamp = eventTimestamp,
                     message = "idOfLinkedFolder Updated Successfully."
                 ), webSocketEvent = WebSocketEvent(
-                    operation = LinkRoute.UPDATE_LINKED_FOLDER_ID.name,
+                    operation = Route.Link.UPDATE_LINKED_FOLDER_ID.name,
                     payload = Json.encodeToJsonElement(updateLinkedFolderIDDto.copy(eventTimestamp = eventTimestamp)),
                 )
             )
@@ -190,7 +190,7 @@ class LinksImplementation : LinksRepository {
                     message = "Title was updated successfully.",
                     eventTimestamp = eventTimestamp
                 ), webSocketEvent = WebSocketEvent(
-                    operation = LinkRoute.UPDATE_LINK_TITLE.name,
+                    operation = Route.Link.UPDATE_LINK_TITLE.name,
                     payload = Json.encodeToJsonElement(updateTitleOfTheLinkDTO.copy(eventTimestamp = eventTimestamp)),
                 )
             )
@@ -219,7 +219,7 @@ class LinksImplementation : LinksRepository {
                     message = "Note was updated successfully.",
                     eventTimestamp = eventTimestamp
                 ), webSocketEvent = WebSocketEvent(
-                    operation = LinkRoute.UPDATE_LINK_NOTE.name,
+                    operation = Route.Link.UPDATE_LINK_NOTE.name,
                     payload = Json.encodeToJsonElement(updateNoteOfALinkDTO.copy(eventTimestamp = eventTimestamp)),
                 )
             )
@@ -246,7 +246,7 @@ class LinksImplementation : LinksRepository {
                     message = "User agent was updated successfully.",
                     eventTimestamp = eventTimestamp
                 ), webSocketEvent = WebSocketEvent(
-                    operation = LinkRoute.UPDATE_USER_AGENT.name,
+                    operation = Route.Link.UPDATE_USER_AGENT.name,
                     payload = Json.encodeToJsonElement(updateLinkUserAgentDTO.copy(eventTimestamp = eventTimestamp)),
                 )
             )
@@ -275,7 +275,7 @@ class LinksImplementation : LinksRepository {
                     message = "Archived link with id : ${idBasedDTO.id} successfully",
                     eventTimestamp = eventTimestamp
                 ), webSocketEvent = WebSocketEvent(
-                    operation = LinkRoute.ARCHIVE_LINK.name,
+                    operation = Route.Link.ARCHIVE_LINK.name,
                     payload = Json.encodeToJsonElement(idBasedDTO.copy(eventTimestamp = eventTimestamp))
                 )
             )
@@ -305,7 +305,7 @@ class LinksImplementation : LinksRepository {
                     message = "Unarchived link with id : ${idBasedDTO.id} successfully as ${LinkType.SAVED_LINK.name}"
                 ),
                 webSocketEvent = WebSocketEvent(
-                    operation = LinkRoute.UNARCHIVE_LINK.name,
+                    operation = Route.Link.UNARCHIVE_LINK.name,
                     payload = Json.encodeToJsonElement(idBasedDTO.copy(eventTimestamp = eventTimestamp))
                 )
             )
@@ -334,7 +334,7 @@ class LinksImplementation : LinksRepository {
                     message = "Marked link with id : ${idBasedDTO.id} as Important.",
                     eventTimestamp = eventTimestamp
                 ), webSocketEvent = WebSocketEvent(
-                    operation = LinkRoute.MARK_AS_IMP.name,
+                    operation = Route.Link.MARK_AS_IMP.name,
                     payload = Json.encodeToJsonElement(idBasedDTO.copy(eventTimestamp = eventTimestamp))
                 )
             )
@@ -363,7 +363,7 @@ class LinksImplementation : LinksRepository {
                     message = "Marked link with id : ${idBasedDTO.id} as Non-Important.",
                     eventTimestamp = eventTimestamp
                 ), webSocketEvent = WebSocketEvent(
-                    operation = LinkRoute.UNMARK_AS_IMP.name,
+                    operation = Route.Link.UNMARK_AS_IMP.name,
                     payload = Json.encodeToJsonElement(idBasedDTO.copy(eventTimestamp = eventTimestamp))
                 )
             )
@@ -402,7 +402,7 @@ class LinksImplementation : LinksRepository {
                     message = "Updated the link (id : ${linkDTO.id}) successfully."
                 ),
                 webSocketEvent = WebSocketEvent(
-                    operation = LinkRoute.UPDATE_LINK.name,
+                    operation = Route.Link.UPDATE_LINK.name,
                     payload = Json.encodeToJsonElement(linkDTO.copy(eventTimestamp = eventTimestamp))
                 )
             )
@@ -420,7 +420,7 @@ class LinksImplementation : LinksRepository {
                 }
                 TombStoneHelper.insert(
                     payload = Json.encodeToString(deleteDuplicateLinksDTO),
-                    operation = LinkRoute.DELETE_DUPLICATE_LINKS.name,
+                    operation = Route.Link.DELETE_DUPLICATE_LINKS.name,
                     deletedAt = eventTimestamp
                 )
             }
@@ -428,7 +428,7 @@ class LinksImplementation : LinksRepository {
                 response = TimeStampBasedResponse(
                     eventTimestamp = eventTimestamp, message = "Deleted Duplicate links."
                 ), webSocketEvent = WebSocketEvent(
-                    operation = LinkRoute.DELETE_DUPLICATE_LINKS.name,
+                    operation = Route.Link.DELETE_DUPLICATE_LINKS.name,
                     payload = Json.encodeToJsonElement(deleteDuplicateLinksDTO.copy(eventTimestamp = eventTimestamp))
                 )
             )
@@ -453,7 +453,7 @@ class LinksImplementation : LinksRepository {
                 Result.Success(
                     response = TimeStampBasedResponse(message = "Updated $it rows.", eventTimestamp = eventTimeStamp),
                     webSocketEvent = WebSocketEvent(
-                        operation = LinkRoute.MOVE_LINKS.name,
+                        operation = Route.Link.MOVE_LINKS.name,
                         payload = Json.encodeToJsonElement(moveLinksDTO.copy(eventTimestamp = eventTimeStamp))
                     )
                 )
