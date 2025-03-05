@@ -48,10 +48,10 @@ fun Application.configureRouting(serverConfig: ServerConfig, markdownManagerRepo
         }
     }
     val linksRepository: LinksRepository = LinksImplementation()
-    val foldersRepository: FoldersRepository = FoldersImplementation()
     val panelsRepository: PanelsRepository = PanelsRepoImpl()
+    val foldersRepository: FoldersRepository = FoldersImplementation(panelsRepository)
     val tombstoneRouting: SyncRepo = SyncRepoImpl()
-    val multiActionRepo: MultiActionRepo = MultiActionRepoImpl()
+    val multiActionRepo: MultiActionRepo = MultiActionRepoImpl(foldersRepository)
     foldersRouting(foldersRepository)
     linksRouting(linksRepository)
     panelsRouting(panelsRepository)

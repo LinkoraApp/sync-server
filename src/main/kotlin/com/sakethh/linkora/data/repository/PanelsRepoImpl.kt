@@ -110,7 +110,7 @@ class PanelsRepoImpl : PanelsRepository {
                     connectedPanelId.eq(idBasedDTO.id)
                 }
                 TombStoneHelper.insert(
-                    payload = Json.encodeToString(idBasedDTO),
+                    payload = Json.encodeToString(idBasedDTO.copy(eventTimestamp = eventTimestamp)),
                     operation = Route.Panel.DELETE_A_PANEL.name,
                     eventTimestamp
                 )

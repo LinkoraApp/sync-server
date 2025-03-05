@@ -105,7 +105,7 @@ class LinksImplementation : LinksRepository {
             val eventTimestamp = Instant.now().epochSecond
             transaction {
                 TombStoneHelper.insert(
-                    payload = Json.encodeToString(idBasedDTO),
+                    payload = Json.encodeToString(idBasedDTO.copy(eventTimestamp = eventTimestamp)),
                     operation = Route.Link.DELETE_A_LINK.name,
                     deletedAt = eventTimestamp
                 )

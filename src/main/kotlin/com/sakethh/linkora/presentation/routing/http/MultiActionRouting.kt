@@ -1,6 +1,7 @@
 package com.sakethh.linkora.presentation.routing.http
 
 import com.sakethh.linkora.Security
+import com.sakethh.linkora.domain.DeleteMultipleItemsDTO
 import com.sakethh.linkora.domain.Route
 import com.sakethh.linkora.domain.dto.ArchiveMultipleItemsDTO
 import com.sakethh.linkora.domain.repository.MultiActionRepo
@@ -14,6 +15,9 @@ fun Application.multiActionRouting(multiActionRepo: MultiActionRepo) {
         authenticate(Security.BEARER.name) {
             post<ArchiveMultipleItemsDTO>(Route.MultiAction.ARCHIVE_MULTIPLE_ITEMS.name) {
                 respondWithResult(multiActionRepo.archiveMultipleItems(it))
+            }
+            post<DeleteMultipleItemsDTO>(Route.MultiAction.DELETE_MULTIPLE_ITEMS.name) {
+                respondWithResult(multiActionRepo.deleteMultipleItems(it))
             }
         }
     }
