@@ -9,7 +9,10 @@ import com.sakethh.linkora.domain.dto.folder.*
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.WebSocketEvent
 import com.sakethh.linkora.domain.repository.FoldersRepository
+import com.sakethh.linkora.domain.repository.LinksRepository
+import com.sakethh.linkora.domain.repository.PanelsRepository
 import com.sakethh.linkora.domain.tables.FoldersTable
+import com.sakethh.linkora.domain.tables.LinksTable
 import com.sakethh.linkora.domain.tables.PanelFoldersTable
 import com.sakethh.linkora.domain.tables.helper.TombStoneHelper
 import com.sakethh.linkora.utils.checkForLWWConflictAndThrow
@@ -21,7 +24,7 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.Instant
 
-class FoldersImplementation : FoldersRepository {
+class FoldersImplementation(private val panelsRepository: PanelsRepository) : FoldersRepository {
 
     override suspend fun createFolder(addFolderDTO: AddFolderDTO): Result<NewItemResponseDTO> {
         return try {
@@ -65,19 +68,8 @@ class FoldersImplementation : FoldersRepository {
     }
 
     override suspend fun deleteFolder(idBasedDTO: IDBasedDTO): Result<TimeStampBasedResponse> {
-        val folderId = idBasedDTO.id
         return try {
             val eventTimestamp = Instant.now().epochSecond
-            transaction {
-                FoldersTable.deleteWhere {
-                    FoldersTable.id.eq(folderId)
-                }
-                TombStoneHelper.insert(
-                    payload = Json.encodeToString(idBasedDTO.copy(eventTimestamp = eventTimestamp)),
-                    operation = Route.Folder.DELETE_FOLDER.name,
-                    eventTimestamp
-                )
-            }
             when (val childFolders = getChildFolders(idBasedDTO)) {
                 is Result.Failure -> {
                     throw childFolders.exception
@@ -85,9 +77,37 @@ class FoldersImplementation : FoldersRepository {
 
                 is Result.Success -> {
                     childFolders.response.map { it.id }.forEach { childFolderId ->
+                        panelsRepository.deleteAFolderFromAllPanels(
+                            IDBasedDTO(
+                                id = childFolderId,
+                                correlation = idBasedDTO.correlation,
+                                eventTimestamp = idBasedDTO.eventTimestamp
+                            )
+                        )
+                        transaction {
+                            FoldersTable.deleteWhere {
+                                FoldersTable.id.eq(childFolderId)
+                            }
+                            LinksTable.deleteWhere {
+                                idOfLinkedFolder.eq(childFolderId)
+                            }
+                        }
                         deleteFolder(idBasedDTO.copy(id = childFolderId, eventTimestamp = eventTimestamp))
                     }
                 }
+            }
+            transaction {
+                FoldersTable.deleteWhere {
+                    FoldersTable.id.eq(idBasedDTO.id)
+                }
+                LinksTable.deleteWhere {
+                    idOfLinkedFolder.eq(idBasedDTO.id)
+                }
+                TombStoneHelper.insert(
+                    payload = Json.encodeToString(idBasedDTO.copy(eventTimestamp = eventTimestamp)),
+                    operation = Route.Folder.DELETE_FOLDER.name,
+                    eventTimestamp
+                )
             }
             Result.Success(
                 response = TimeStampBasedResponse(
