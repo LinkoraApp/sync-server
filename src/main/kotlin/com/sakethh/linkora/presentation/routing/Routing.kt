@@ -2,16 +2,11 @@ package com.sakethh.linkora.presentation.routing
 
 import com.sakethh.linkora.Constants
 import com.sakethh.linkora.Security
-import com.sakethh.linkora.data.repository.FoldersImplementation
-import com.sakethh.linkora.data.repository.LinksImplementation
-import com.sakethh.linkora.data.repository.PanelsRepoImpl
-import com.sakethh.linkora.data.repository.SyncRepoImpl
+import com.sakethh.linkora.data.repository.*
+import com.sakethh.linkora.domain.Route
 import com.sakethh.linkora.domain.model.ServerConfig
 import com.sakethh.linkora.domain.repository.*
-import com.sakethh.linkora.presentation.routing.http.foldersRouting
-import com.sakethh.linkora.presentation.routing.http.linksRouting
-import com.sakethh.linkora.presentation.routing.http.panelsRouting
-import com.sakethh.linkora.presentation.routing.http.syncRouting
+import com.sakethh.linkora.presentation.routing.http.*
 import com.sakethh.linkora.utils.SysEnvKey
 import com.sakethh.linkora.utils.useSysEnvValues
 import io.ktor.http.*
@@ -21,7 +16,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.jetbrains.exposed.sql.Database
 import java.net.InetAddress
-import com.sakethh.linkora.domain.Route
 
 fun Application.configureRouting(serverConfig: ServerConfig, markdownManagerRepo: MarkdownManagerRepo) {
     routing {
@@ -57,8 +51,10 @@ fun Application.configureRouting(serverConfig: ServerConfig, markdownManagerRepo
     val foldersRepository: FoldersRepository = FoldersImplementation()
     val panelsRepository: PanelsRepository = PanelsRepoImpl()
     val tombstoneRouting: SyncRepo = SyncRepoImpl()
+    val multiActionRepo: MultiActionRepo = MultiActionRepoImpl()
     foldersRouting(foldersRepository)
     linksRouting(linksRepository)
     panelsRouting(panelsRepository)
     syncRouting(tombstoneRouting)
+    multiActionRouting(multiActionRepo)
 }

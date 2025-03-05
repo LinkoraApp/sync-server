@@ -68,9 +68,6 @@ fun Application.linksRouting(linksRepository: LinksRepository) {
             post<DeleteDuplicateLinksDTO>(Route.Link.DELETE_DUPLICATE_LINKS.name) {
                 respondWithResult(linksRepository.deleteDuplicateLinks(it))
             }
-            post<MoveLinksDTO>(Route.Link.MOVE_LINKS.name) {
-                respondWithResult(linksRepository.moveLinks(it))
-            }
         }
     }
 }

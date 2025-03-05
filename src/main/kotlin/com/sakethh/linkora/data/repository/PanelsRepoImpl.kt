@@ -1,6 +1,7 @@
 package com.sakethh.linkora.data.repository
 
-import com.sakethh.linkora.domain.LWWConflictException
+import com.sakethh.linkora.domain.Result
+import com.sakethh.linkora.domain.Route
 import com.sakethh.linkora.domain.dto.IDBasedDTO
 import com.sakethh.linkora.domain.dto.NewItemResponseDTO
 import com.sakethh.linkora.domain.dto.TimeStampBasedResponse
@@ -10,8 +11,7 @@ import com.sakethh.linkora.domain.repository.PanelsRepository
 import com.sakethh.linkora.domain.tables.PanelFoldersTable
 import com.sakethh.linkora.domain.tables.PanelsTable
 import com.sakethh.linkora.domain.tables.helper.TombStoneHelper
-import com.sakethh.linkora.domain.Result
-import com.sakethh.linkora.domain.Route
+import com.sakethh.linkora.utils.checkForLWWConflictAndThrow
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
@@ -24,17 +24,6 @@ import org.jetbrains.exposed.sql.update
 import java.time.Instant
 
 class PanelsRepoImpl : PanelsRepository {
-    private fun checkForPanelsLWWConflictAndThrow(id: Long, timeStamp: Long) {
-        transaction {
-            PanelsTable.select(PanelsTable.lastModified).where {
-                PanelsTable.id.eq(id)
-            }.let {
-                if (it.single()[PanelsTable.lastModified] > timeStamp) {
-                    throw LWWConflictException()
-                }
-            }
-        }
-    }
 
     override suspend fun addANewPanel(addANewPanelDTO: AddANewPanelDTO): Result<NewItemResponseDTO> {
         return try {
@@ -143,7 +132,11 @@ class PanelsRepoImpl : PanelsRepository {
 
     override suspend fun updateAPanelName(updatePanelNameDTO: UpdatePanelNameDTO): Result<TimeStampBasedResponse> {
         return try {
-            checkForPanelsLWWConflictAndThrow(updatePanelNameDTO.panelId, updatePanelNameDTO.eventTimestamp)
+            PanelsTable.checkForLWWConflictAndThrow(
+                updatePanelNameDTO.panelId,
+                updatePanelNameDTO.eventTimestamp,
+                lastModifiedColumn = PanelsTable.lastModified
+            )
             val eventTimestamp = Instant.now().epochSecond
             transaction {
                 PanelsTable.update(where = {

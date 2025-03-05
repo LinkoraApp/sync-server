@@ -16,4 +16,8 @@ sealed interface Route {
     enum class Sync : Route {
         TEST_BEARER, GET_UPDATES, GET_TOMBSTONES, DELETE_EVERYTHING, SERVER_IS_CONFIGURED
     }
+
+    enum class MultiAction : Route {
+        ARCHIVE_MULTIPLE_ITEMS, DELETE_MULTIPLE_ITEMS
+    }
 }
