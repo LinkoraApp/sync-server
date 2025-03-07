@@ -8,8 +8,7 @@ import com.sakethh.linkora.domain.dto.ArchiveMultipleItemsDTO
 import com.sakethh.linkora.domain.dto.IDBasedDTO
 import com.sakethh.linkora.domain.dto.TimeStampBasedResponse
 import com.sakethh.linkora.domain.model.WebSocketEvent
-import com.sakethh.linkora.domain.repository.FoldersRepository
-import com.sakethh.linkora.domain.repository.LinksRepository
+import com.sakethh.linkora.domain.repository.FoldersRepo
 import com.sakethh.linkora.domain.repository.MultiActionRepo
 import com.sakethh.linkora.domain.tables.FoldersTable
 import com.sakethh.linkora.domain.tables.LinksTable
@@ -28,7 +27,7 @@ import org.jetbrains.exposed.sql.update
 import java.time.Instant
 
 class MultiActionRepoImpl(
-    private val foldersRepository: FoldersRepository
+    private val foldersRepo: FoldersRepo
 ) : MultiActionRepo {
     override suspend fun archiveMultipleItems(archiveMultipleItemsDTO: ArchiveMultipleItemsDTO): Result<TimeStampBasedResponse> {
         return try {
@@ -85,7 +84,7 @@ class MultiActionRepoImpl(
         val eventTimestamp = Instant.now().epochSecond
         return try {
             deleteMultipleItemsDTO.folderIds.forEach {
-                foldersRepository.deleteFolder(
+                foldersRepo.deleteFolder(
                     IDBasedDTO(
                         id = it,
                         correlation = deleteMultipleItemsDTO.correlation,

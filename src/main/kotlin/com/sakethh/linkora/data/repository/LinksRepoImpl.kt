@@ -8,7 +8,7 @@ import com.sakethh.linkora.domain.dto.NewItemResponseDTO
 import com.sakethh.linkora.domain.dto.TimeStampBasedResponse
 import com.sakethh.linkora.domain.dto.link.*
 import com.sakethh.linkora.domain.model.WebSocketEvent
-import com.sakethh.linkora.domain.repository.LinksRepository
+import com.sakethh.linkora.domain.repository.LinksRepo
 import com.sakethh.linkora.domain.tables.LinksTable
 import com.sakethh.linkora.domain.tables.LinksTable.lastModified
 import com.sakethh.linkora.domain.tables.TombstoneTable
@@ -23,7 +23,7 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.Instant
 
-class LinksImplementation : LinksRepository {
+class LinksRepoImpl : LinksRepo {
     override suspend fun createANewLink(addLinkDTO: AddLinkDTO): Result<NewItemResponseDTO> {
         return try {
             val eventTimestamp = Instant.now().epochSecond

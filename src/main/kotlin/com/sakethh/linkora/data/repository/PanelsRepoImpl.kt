@@ -7,7 +7,7 @@ import com.sakethh.linkora.domain.dto.NewItemResponseDTO
 import com.sakethh.linkora.domain.dto.TimeStampBasedResponse
 import com.sakethh.linkora.domain.dto.panel.*
 import com.sakethh.linkora.domain.model.WebSocketEvent
-import com.sakethh.linkora.domain.repository.PanelsRepository
+import com.sakethh.linkora.domain.repository.PanelsRepo
 import com.sakethh.linkora.domain.tables.PanelFoldersTable
 import com.sakethh.linkora.domain.tables.PanelsTable
 import com.sakethh.linkora.domain.tables.helper.TombStoneHelper
@@ -23,7 +23,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 import java.time.Instant
 
-class PanelsRepoImpl : PanelsRepository {
+class PanelsRepoImpl : PanelsRepo {
 
     override suspend fun addANewPanel(addANewPanelDTO: AddANewPanelDTO): Result<NewItemResponseDTO> {
         return try {

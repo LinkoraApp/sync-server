@@ -9,7 +9,7 @@ import com.sakethh.linkora.domain.dto.panel.DeleteAFolderFromAPanelDTO
 import com.sakethh.linkora.domain.dto.panel.UpdatePanelNameDTO
 import com.sakethh.linkora.domain.Result
 
-interface PanelsRepository {
+interface PanelsRepo {
     suspend fun addANewPanel(addANewPanelDTO: AddANewPanelDTO): Result<NewItemResponseDTO>
     suspend fun addANewFolderInAPanel(addANewPanelFolderDTO: AddANewPanelFolderDTO): Result<NewItemResponseDTO>
     suspend fun deleteAPanel(idBasedDTO: IDBasedDTO): Result<TimeStampBasedResponse>

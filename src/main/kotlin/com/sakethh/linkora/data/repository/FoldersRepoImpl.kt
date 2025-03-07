@@ -8,9 +8,8 @@ import com.sakethh.linkora.domain.dto.TimeStampBasedResponse
 import com.sakethh.linkora.domain.dto.folder.*
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.model.WebSocketEvent
-import com.sakethh.linkora.domain.repository.FoldersRepository
-import com.sakethh.linkora.domain.repository.LinksRepository
-import com.sakethh.linkora.domain.repository.PanelsRepository
+import com.sakethh.linkora.domain.repository.FoldersRepo
+import com.sakethh.linkora.domain.repository.PanelsRepo
 import com.sakethh.linkora.domain.tables.FoldersTable
 import com.sakethh.linkora.domain.tables.LinksTable
 import com.sakethh.linkora.domain.tables.PanelFoldersTable
@@ -24,7 +23,7 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.Instant
 
-class FoldersImplementation(private val panelsRepository: PanelsRepository) : FoldersRepository {
+class FoldersRepoImpl(private val panelsRepo: PanelsRepo) : FoldersRepo {
 
     override suspend fun createFolder(addFolderDTO: AddFolderDTO): Result<NewItemResponseDTO> {
         return try {
@@ -77,7 +76,7 @@ class FoldersImplementation(private val panelsRepository: PanelsRepository) : Fo
 
                 is Result.Success -> {
                     childFolders.response.map { it.id }.forEach { childFolderId ->
-                        panelsRepository.deleteAFolderFromAllPanels(
+                        panelsRepo.deleteAFolderFromAllPanels(
                             IDBasedDTO(
                                 id = childFolderId,
                                 correlation = idBasedDTO.correlation,

@@ -6,7 +6,7 @@ import com.sakethh.linkora.domain.dto.NewItemResponseDTO
 import com.sakethh.linkora.domain.dto.TimeStampBasedResponse
 import com.sakethh.linkora.domain.dto.link.*
 
-interface LinksRepository {
+interface LinksRepo {
     suspend fun createANewLink(addLinkDTO: AddLinkDTO): Result<NewItemResponseDTO>
     suspend fun deleteALink(idBasedDTO: IDBasedDTO): Result<TimeStampBasedResponse>
     suspend fun updateLinkedFolderIdOfALink(updateLinkedFolderIDDto: UpdateLinkedFolderIDDto): Result<TimeStampBasedResponse>

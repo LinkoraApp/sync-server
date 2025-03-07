@@ -47,14 +47,14 @@ fun Application.configureRouting(serverConfig: ServerConfig, markdownManagerRepo
             call.respondText(contentType = ContentType.Text.Html, text = requiredHtml)
         }
     }
-    val linksRepository: LinksRepository = LinksImplementation()
-    val panelsRepository: PanelsRepository = PanelsRepoImpl()
-    val foldersRepository: FoldersRepository = FoldersImplementation(panelsRepository)
-    val tombstoneRouting: SyncRepo = SyncRepoImpl()
-    val multiActionRepo: MultiActionRepo = MultiActionRepoImpl(foldersRepository)
-    foldersRouting(foldersRepository)
-    linksRouting(linksRepository)
-    panelsRouting(panelsRepository)
-    syncRouting(tombstoneRouting)
+    val linksRepo: LinksRepo = LinksRepoImpl()
+    val panelsRepo: PanelsRepo = PanelsRepoImpl()
+    val foldersRepo: FoldersRepo = FoldersRepoImpl(panelsRepo)
+    val syncRepo: SyncRepo = SyncRepoImpl()
+    val multiActionRepo: MultiActionRepo = MultiActionRepoImpl(foldersRepo)
+    foldersRouting(foldersRepo)
+    linksRouting(linksRepo)
+    panelsRouting(panelsRepo)
+    syncRouting(syncRepo)
     multiActionRouting(multiActionRepo)
 }

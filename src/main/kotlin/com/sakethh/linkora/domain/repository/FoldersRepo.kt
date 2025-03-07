@@ -7,7 +7,7 @@ import com.sakethh.linkora.domain.dto.folder.*
 import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.Result
 
-interface FoldersRepository {
+interface FoldersRepo {
     suspend fun createFolder(addFolderDTO: AddFolderDTO): Result<NewItemResponseDTO>
     suspend fun deleteFolder(idBasedDTO: IDBasedDTO): Result<TimeStampBasedResponse>
     suspend fun getChildFolders(idBasedDTO: IDBasedDTO): Result<List<Folder>>
