@@ -6,6 +6,7 @@ import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.Route
 import com.sakethh.linkora.domain.dto.ArchiveMultipleItemsDTO
 import com.sakethh.linkora.domain.dto.IDBasedDTO
+import com.sakethh.linkora.domain.dto.MoveItemsDTO
 import com.sakethh.linkora.domain.dto.TimeStampBasedResponse
 import com.sakethh.linkora.domain.model.WebSocketEvent
 import com.sakethh.linkora.domain.repository.FoldersRepo
@@ -109,6 +110,54 @@ class MultiActionRepoImpl(
                 ), webSocketEvent = WebSocketEvent(
                     operation = Route.MultiAction.DELETE_MULTIPLE_ITEMS.name,
                     payload = Json.encodeToJsonElement(deleteMultipleItemsDTO.copy(eventTimestamp = eventTimestamp))
+                )
+            )
+        } catch (e: Exception) {
+            Result.Failure(e)
+        }
+    }
+
+    override suspend fun moveMultipleItems(moveItemsDTO: MoveItemsDTO): Result<TimeStampBasedResponse> {
+        return try {
+            if (moveItemsDTO.folderIds.isNotEmpty()) {
+                FoldersTable.checkForLWWConflictAndThrow(
+                    id = moveItemsDTO.folderIds.last(),
+                    timeStamp = moveItemsDTO.eventTimestamp,
+                    lastModifiedColumn = FoldersTable.lastModified
+                )
+            }
+            if (moveItemsDTO.linkIds.isNotEmpty()) {
+                LinksTable.checkForLWWConflictAndThrow(
+                    id = moveItemsDTO.linkIds.last(),
+                    timeStamp = moveItemsDTO.eventTimestamp,
+                    lastModifiedColumn = LinksTable.lastModified
+                )
+            }
+            val eventTimestamp = Instant.now().epochSecond
+            var rowsUpdated = 0
+            transaction {
+                rowsUpdated += LinksTable.update(where = {
+                    LinksTable.id.inList(moveItemsDTO.linkIds)
+                }) {
+                    it[lastModified] = eventTimestamp
+                    it[idOfLinkedFolder] = moveItemsDTO.newParentFolderId
+                    it[linkType] = moveItemsDTO.linkType.name
+                }
+                rowsUpdated += FoldersTable.update(where = { FoldersTable.id.inList(moveItemsDTO.folderIds) }) {
+                    it[lastModified] = eventTimestamp
+                    it[parentFolderID] = moveItemsDTO.newParentFolderId
+                }
+            }
+            Result.Success(
+                response = TimeStampBasedResponse(
+                    message = "Number of rows affected by the update = $rowsUpdated", eventTimestamp = eventTimestamp
+                ), webSocketEvent = WebSocketEvent(
+                    operation = Route.MultiAction.MOVE_EXISTING_ITEMS.name,
+                    payload = Json.encodeToJsonElement(
+                        moveItemsDTO.copy(
+                            eventTimestamp = eventTimestamp
+                        )
+                    ),
                 )
             )
         } catch (e: Exception) {

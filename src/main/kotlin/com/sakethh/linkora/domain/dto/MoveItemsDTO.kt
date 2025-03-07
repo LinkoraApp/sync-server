@@ -1,14 +1,14 @@
-package com.sakethh.linkora.domain.dto.link
+package com.sakethh.linkora.domain.dto
 
 import com.sakethh.linkora.domain.LinkType
-import com.sakethh.linkora.domain.dto.Correlation
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class MoveLinksDTO(
+data class MoveItemsDTO(
+    val folderIds: List<Long>,
     val linkIds: List<Long>,
-    val parentFolderId: Long?,
     val linkType: LinkType,
+    val newParentFolderId: Long,
     val correlation: Correlation,
     val eventTimestamp: Long
 )

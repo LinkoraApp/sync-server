@@ -3,6 +3,7 @@ package com.sakethh.linkora.data.repository
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.Route
 import com.sakethh.linkora.domain.dto.IDBasedDTO
+import com.sakethh.linkora.domain.dto.MoveItemsDTO
 import com.sakethh.linkora.domain.dto.NewItemResponseDTO
 import com.sakethh.linkora.domain.dto.TimeStampBasedResponse
 import com.sakethh.linkora.domain.dto.folder.*
@@ -223,39 +224,6 @@ class FoldersRepoImpl(private val panelsRepo: PanelsRepo) : FoldersRepo {
                     )
                 )
             }
-        } catch (e: Exception) {
-            Result.Failure(e)
-        }
-    }
-
-    override suspend fun moveFolders(moveFoldersDTO: MoveFoldersDTO): Result<TimeStampBasedResponse> {
-        return try {
-            FoldersTable.checkForLWWConflictAndThrow(
-                id = moveFoldersDTO.folderIds.last(),
-                timeStamp = moveFoldersDTO.eventTimestamp,
-                lastModifiedColumn = FoldersTable.lastModified
-            )
-            val eventTimestamp = Instant.now().epochSecond
-            var rowsUpdated = 0
-            transaction {
-                rowsUpdated += FoldersTable.update(where = { FoldersTable.id.inList(moveFoldersDTO.folderIds) }) {
-                    it[lastModified] = eventTimestamp
-                    it[parentFolderID] = moveFoldersDTO.newParentFolderId
-                }
-            }
-            Result.Success(
-                    response = TimeStampBasedResponse(
-                        message = "Number of rows affected by the update = $rowsUpdated",
-                        eventTimestamp = eventTimestamp
-                    ), webSocketEvent = WebSocketEvent(
-                    operation = Route.Folder.MOVE_FOLDERS.name,
-                        payload = Json.encodeToJsonElement(
-                            moveFoldersDTO.copy(
-                                eventTimestamp = eventTimestamp
-                            )
-                        ),
-                    )
-                )
         } catch (e: Exception) {
             Result.Failure(e)
         }
