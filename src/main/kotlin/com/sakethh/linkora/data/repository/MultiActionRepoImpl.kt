@@ -18,11 +18,9 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.update
 import java.time.Instant
 
 class MultiActionRepoImpl(
@@ -167,7 +165,7 @@ class MultiActionRepoImpl(
         return try {
             val eventTimestamp = Instant.now().epochSecond
             lateinit var linkIds: List<Long>
-
+            println("Remote Links : ${copyItemsDTO.linkIds.values}")
             // copy the links based on `copyItemsDTO.linkIds`
             transaction {
                 this.exec(
@@ -184,16 +182,63 @@ class MultiActionRepoImpl(
                 }.map { resultRow ->
                     resultRow[LinksTable.id].value
                 }.toList()
+
+
+                // initially, we'll insert the root folders
+                lateinit var rootFolderIds: List<Long>
+                FoldersTable.selectAll().where {
+                    FoldersTable.id.inList(copyItemsDTO.folders.map { it.currentFolder.remoteId })
+                }.toList().let { sourceRootFolders ->
+                    sourceRootFolders.forEach {
+                        println(it[FoldersTable.folderName] + ", " + it[FoldersTable.note] + ", " + it[FoldersTable.lastModified])
+                    }
+                    val eventTimestamp = Instant.now().epochSecond
+                    println("Index:")
+                    rootFolderIds = FoldersTable.batchInsert(sourceRootFolders) {
+                        this[FoldersTable.folderName] = it[FoldersTable.folderName]
+                        this[FoldersTable.lastModified] = eventTimestamp
+                        this[FoldersTable.note] = it[FoldersTable.note]
+                        this[FoldersTable.parentFolderID] = copyItemsDTO.newParentFolderId
+                        this[FoldersTable.isFolderArchived] = it[FoldersTable.isFolderArchived]
+                    }.toList().map { it[FoldersTable.id].value }
+                }
+
+
+                fun insertChildFolders(parentFolderId: Long, childFolders: List<CopyFolderDTO>) {
+                    FoldersTable.selectAll().where {
+                        FoldersTable.id.inList(childFolders.map { it.currentFolder.remoteId })
+                    }.toList().let { sourceRootFolders ->
+                        val eventTimestamp = Instant.now().epochSecond
+                        FoldersTable.batchInsert(sourceRootFolders) {
+                            this[FoldersTable.folderName] = it[FoldersTable.folderName]
+                            this[FoldersTable.lastModified] = eventTimestamp
+                            this[FoldersTable.note] = it[FoldersTable.note]
+                            this[FoldersTable.parentFolderID] = parentFolderId
+                            this[FoldersTable.isFolderArchived] = it[FoldersTable.isFolderArchived]
+                        }.toList().forEachIndexed { resultRowIndex, resultRow ->
+                            insertChildFolders(
+                                resultRow[FoldersTable.id].value, childFolders[resultRowIndex].childFolders
+                            )
+                        }
+                    }
+                }
+                copyItemsDTO.folders.forEachIndexed { index, parentFolder ->
+                    insertChildFolders(
+                        rootFolderIds[index], parentFolder.childFolders
+                    )
+                }
+
+            }.let {
+                Result.Success(
+                    response = CopyItemsResponseDTO(
+                        folders = TODO(), linkIds = copyItemsDTO.linkIds.run {
+                            this.toList().mapIndexed { index, pair ->
+                                pair.first to linkIds[index]
+                            }.toMap()
+                        }, correlation = copyItemsDTO.correlation, eventTimestamp = eventTimestamp
+                    ), webSocketEvent = null
+                )
             }
-            Result.Success(
-                response = CopyItemsResponseDTO(
-                    folderIds = copyItemsDTO.folderIds, linkIds = copyItemsDTO.linkIds.run {
-                        this.toList().mapIndexed { index, pair ->
-                            pair.first to linkIds[index]
-                        }.toMap()
-                    }, correlation = copyItemsDTO.correlation, eventTimestamp = eventTimestamp
-                ), webSocketEvent = null
-            )
         } catch (e: Exception) {
             Result.Failure(e)
         }
