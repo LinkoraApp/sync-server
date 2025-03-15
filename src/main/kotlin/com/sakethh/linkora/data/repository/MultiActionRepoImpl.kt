@@ -12,15 +12,19 @@ import com.sakethh.linkora.domain.tables.FoldersTable
 import com.sakethh.linkora.domain.tables.LinksTable
 import com.sakethh.linkora.domain.tables.helper.TombStoneHelper
 import com.sakethh.linkora.utils.checkForLWWConflictAndThrow
+import com.sakethh.linkora.utils.copy
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
-import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
+import org.jetbrains.exposed.sql.and
+import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
+import org.jetbrains.exposed.sql.update
 import java.time.Instant
 
 class MultiActionRepoImpl(
@@ -167,6 +171,7 @@ class MultiActionRepoImpl(
             lateinit var linkIds: List<Long>
             println("Remote Links : ${copyItemsDTO.linkIds.values}")
             // copy the links based on `copyItemsDTO.linkIds`
+            val copiedFolderResponse = mutableListOf<CopiedFolderResponse>()
             transaction {
                 this.exec(
                     """
@@ -184,54 +189,106 @@ class MultiActionRepoImpl(
                 }.toList()
 
 
+
                 // initially, we'll insert the root folders
-                lateinit var rootFolderIds: List<Long>
-                FoldersTable.selectAll().where {
+                lateinit var copiedRootFolderIds: List<Long>
+                val sourceRootFolders = FoldersTable.selectAll().where {
                     FoldersTable.id.inList(copyItemsDTO.folders.map { it.currentFolder.remoteId })
-                }.toList().let { sourceRootFolders ->
-                    sourceRootFolders.forEach {
-                        println(it[FoldersTable.folderName] + ", " + it[FoldersTable.note] + ", " + it[FoldersTable.lastModified])
+                }.toList()
+                val eventTimestamp = Instant.now().epochSecond
+
+                copiedRootFolderIds = FoldersTable.copy(
+                    source = sourceRootFolders,
+                    eventTimestamp = eventTimestamp,
+                    parentFolderId = copyItemsDTO.newParentFolderId
+                ).mapIndexed { index, resultRow ->
+                    resultRow[FoldersTable.id].value.run {
+                        copiedFolderResponse.add(
+                            CopiedFolderResponse(
+                                currentFolder = CurrentFolder(
+                                    localId = copyItemsDTO.folders[index].currentFolder.localId, remoteId = this
+                                ), links = emptyList()
+                            )
+                        )
+                        this
                     }
-                    val eventTimestamp = Instant.now().epochSecond
-                    println("Index:")
-                    rootFolderIds = FoldersTable.batchInsert(sourceRootFolders) {
-                        this[FoldersTable.folderName] = it[FoldersTable.folderName]
-                        this[FoldersTable.lastModified] = eventTimestamp
-                        this[FoldersTable.note] = it[FoldersTable.note]
-                        this[FoldersTable.parentFolderID] = copyItemsDTO.newParentFolderId
-                        this[FoldersTable.isFolderArchived] = it[FoldersTable.isFolderArchived]
-                    }.toList().map { it[FoldersTable.id].value }
                 }
 
+                // insert links of root folders
+                copyItemsDTO.folders.map { it.currentFolder.remoteId }.forEachIndexed { folderIndex, folderId ->
+                    val sourceLinksOfRootFolder = LinksTable.selectAll().where {
+                        LinksTable.idOfLinkedFolder.eq(folderId)
+                    }.toList()
+                    val eventTimestamp = Instant.now().epochSecond
+                    LinksTable.copy(
+                        source = sourceLinksOfRootFolder,
+                        eventTimestamp = eventTimestamp,
+                        parentFolderId = copiedRootFolderIds[folderIndex]
+                    ).mapIndexed { linkResultRowIndex, resultRow ->
+                        FolderLink(
+                            localId = copyItemsDTO.folders[folderIndex].links[linkResultRowIndex].localId,
+                            remoteId = resultRow[LinksTable.id].value
+                        )
+                    }.let {
+                        copiedFolderResponse[folderIndex] = copiedFolderResponse[folderIndex].copy(
+                            links = it
+                        )
+                    }
+                }
 
-                fun insertChildFolders(parentFolderId: Long, childFolders: List<CopyFolderDTO>) {
-                    FoldersTable.selectAll().where {
+                fun insertChildFolders(
+                    parentFolderId: Long,
+                    childFolders: List<CopyFolderDTO>,
+                ) {
+                    val sourceFolders = FoldersTable.selectAll().where {
                         FoldersTable.id.inList(childFolders.map { it.currentFolder.remoteId })
-                    }.toList().let { sourceRootFolders ->
-                        val eventTimestamp = Instant.now().epochSecond
-                        FoldersTable.batchInsert(sourceRootFolders) {
-                            this[FoldersTable.folderName] = it[FoldersTable.folderName]
-                            this[FoldersTable.lastModified] = eventTimestamp
-                            this[FoldersTable.note] = it[FoldersTable.note]
-                            this[FoldersTable.parentFolderID] = parentFolderId
-                            this[FoldersTable.isFolderArchived] = it[FoldersTable.isFolderArchived]
-                        }.toList().forEachIndexed { resultRowIndex, resultRow ->
+                    }.toList()
+                    val eventTimestamp = Instant.now().epochSecond
+                    FoldersTable.copy(source = sourceFolders, eventTimestamp, parentFolderId)
+                        .forEachIndexed { insertedFolderRowIndex, insertedFolderRow ->
+                            val newParentFolderId = insertedFolderRow[FoldersTable.id].value
+                            val sourceParentFolderId = sourceFolders[insertedFolderRowIndex][FoldersTable.id].value
+
+                            LinksTable.selectAll().where {
+                                LinksTable.idOfLinkedFolder.eq(sourceParentFolderId)
+                            }.let {
+                                LinksTable.copy(
+                                    source = it.toList(),
+                                    eventTimestamp = eventTimestamp,
+                                    parentFolderId = newParentFolderId
+                                ).mapIndexed { insertedLinkRowIndex, insertedLinkRow ->
+                                    FolderLink(
+                                        localId = childFolders[insertedFolderRowIndex].links[insertedLinkRowIndex].localId,
+                                        remoteId = insertedLinkRow[LinksTable.id].value
+                                    )
+                                }.let {
+                                    copiedFolderResponse.add(
+                                        CopiedFolderResponse(
+                                            currentFolder = CurrentFolder(
+                                                localId = childFolders[insertedFolderRowIndex].currentFolder.localId,
+                                                remoteId = newParentFolderId
+                                            ), links = it
+                                        )
+                                    )
+                                }
+                            }
                             insertChildFolders(
-                                resultRow[FoldersTable.id].value, childFolders[resultRowIndex].childFolders
+                                newParentFolderId, childFolders[insertedFolderRowIndex].childFolders
                             )
                         }
-                    }
                 }
+
+                // insert child folders
                 copyItemsDTO.folders.forEachIndexed { index, parentFolder ->
                     insertChildFolders(
-                        rootFolderIds[index], parentFolder.childFolders
+                        copiedRootFolderIds[index], parentFolder.childFolders
                     )
                 }
 
             }.let {
                 Result.Success(
                     response = CopyItemsResponseDTO(
-                        folders = TODO(), linkIds = copyItemsDTO.linkIds.run {
+                        folders = copiedFolderResponse.toList(), linkIds = copyItemsDTO.linkIds.run {
                             this.toList().mapIndexed { index, pair ->
                                 pair.first to linkIds[index]
                             }.toMap()
