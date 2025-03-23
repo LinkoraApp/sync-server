@@ -54,6 +54,7 @@ class MultiActionRepoImpl(
                         updatedRowsCount += LinksTable.update(where = {
                             LinksTable.id.inList(archiveMultipleItemsDTO.linkIds)
                         }) {
+                            it[lastModified] = eventTimestamp
                             it[linkType] = LinkType.ARCHIVE_LINK.name
                         }
                     }
@@ -62,6 +63,7 @@ class MultiActionRepoImpl(
                         updatedRowsCount += FoldersTable.update(where = {
                             FoldersTable.id.inList(archiveMultipleItemsDTO.folderIds)
                         }) {
+                            it[lastModified] = eventTimestamp
                             it[isFolderArchived] = true
                         }
                     }
