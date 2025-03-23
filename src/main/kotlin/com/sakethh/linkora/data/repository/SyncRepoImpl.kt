@@ -3,21 +3,23 @@ package com.sakethh.linkora.data.repository
 import com.sakethh.linkora.data.linkoraTables
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.MediaType
+import com.sakethh.linkora.domain.Result
+import com.sakethh.linkora.domain.Route
 import com.sakethh.linkora.domain.dto.AllTablesDTO
+import com.sakethh.linkora.domain.dto.DeleteEverythingDTO
 import com.sakethh.linkora.domain.dto.Tombstone
-import com.sakethh.linkora.domain.model.Folder
-import com.sakethh.linkora.domain.model.Link
-import com.sakethh.linkora.domain.model.Panel
-import com.sakethh.linkora.domain.model.PanelFolder
+import com.sakethh.linkora.domain.model.*
 import com.sakethh.linkora.domain.repository.SyncRepo
 import com.sakethh.linkora.domain.tables.*
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.encodeToJsonElement
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.time.Instant
 
 class SyncRepoImpl : SyncRepo {
     override suspend fun getTombstonesAfter(eventTimestamp: Long): List<Tombstone> {
@@ -121,17 +123,23 @@ class SyncRepoImpl : SyncRepo {
         )
     }
 
-    override suspend fun deleteEverything(): Result<Unit> {
+    override suspend fun deleteEverything(deleteEverythingDTO: DeleteEverythingDTO): Result<Unit> {
         return try {
+            val eventTimestamp = Instant.now().epochSecond
             transaction {
                 linkoraTables().forEach {
                     it.deleteAll()
                 }
             }
-            Result.success(Unit)
+            Result.Success(
+                response = Unit, webSocketEvent = WebSocketEvent(
+                    operation = Route.Sync.DELETE_EVERYTHING.name,
+                    payload = Json.encodeToJsonElement(deleteEverythingDTO.copy(eventTimestamp = eventTimestamp))
+                )
+            )
         } catch (e: Exception) {
             e.printStackTrace()
-            Result.failure(e)
+            Result.Failure(e)
         }
     }
 }

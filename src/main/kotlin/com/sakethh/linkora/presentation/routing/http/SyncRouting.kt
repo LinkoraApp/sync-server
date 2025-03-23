@@ -1,8 +1,10 @@
 package com.sakethh.linkora.presentation.routing.http
 
 import com.sakethh.linkora.Security
-import com.sakethh.linkora.domain.repository.SyncRepo
 import com.sakethh.linkora.domain.Route
+import com.sakethh.linkora.domain.dto.DeleteEverythingDTO
+import com.sakethh.linkora.domain.repository.SyncRepo
+import com.sakethh.linkora.utils.respondWithResult
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -32,16 +34,8 @@ fun Application.syncRouting(syncRepo: SyncRepo) {
                 }
             }
 
-            get(Route.Sync.DELETE_EVERYTHING.name) {
-                syncRepo.deleteEverything().onSuccess {
-                    call.respond(status = HttpStatusCode.OK, message = HttpStatusCode.OK.description)
-                }.onFailure {
-                    call.respond(
-                        status = HttpStatusCode.InternalServerError,
-                        message = HttpStatusCode.InternalServerError.description
-                    )
-                    it.printStackTrace()
-                }
+            post<DeleteEverythingDTO>(Route.Sync.DELETE_EVERYTHING.name) {
+                respondWithResult(syncRepo.deleteEverything(it))
             }
         }
     }
