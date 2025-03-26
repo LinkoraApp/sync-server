@@ -3,7 +3,6 @@ package com.sakethh.linkora.data.repository
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.Route
 import com.sakethh.linkora.domain.dto.IDBasedDTO
-import com.sakethh.linkora.domain.dto.MoveItemsDTO
 import com.sakethh.linkora.domain.dto.NewItemResponseDTO
 import com.sakethh.linkora.domain.dto.TimeStampBasedResponse
 import com.sakethh.linkora.domain.dto.folder.*

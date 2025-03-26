@@ -6,6 +6,7 @@ import com.sakethh.linkora.domain.Route
 import com.sakethh.linkora.domain.dto.ArchiveMultipleItemsDTO
 import com.sakethh.linkora.domain.dto.CopyItemsDTO
 import com.sakethh.linkora.domain.dto.MoveItemsDTO
+import com.sakethh.linkora.domain.dto.folder.MarkItemsRegularDTO
 import com.sakethh.linkora.domain.repository.MultiActionRepo
 import com.sakethh.linkora.utils.respondWithResult
 import io.ktor.server.application.*
@@ -26,6 +27,9 @@ fun Application.multiActionRouting(multiActionRepo: MultiActionRepo) {
             }
             post<CopyItemsDTO>(Route.MultiAction.COPY_EXISTING_ITEMS.name) {
                 respondWithResult(multiActionRepo.copyMultipleItems(it))
+            }
+            post<MarkItemsRegularDTO>(Route.MultiAction.UNARCHIVE_MULTIPLE_ITEMS.name) {
+                respondWithResult(multiActionRepo.markItemsAsRegular(it))
             }
         }
     }

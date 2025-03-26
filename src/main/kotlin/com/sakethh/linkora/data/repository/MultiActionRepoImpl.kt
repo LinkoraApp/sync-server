@@ -5,6 +5,7 @@ import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.Route
 import com.sakethh.linkora.domain.dto.*
+import com.sakethh.linkora.domain.dto.folder.MarkItemsRegularDTO
 import com.sakethh.linkora.domain.model.WebSocketEvent
 import com.sakethh.linkora.domain.repository.FoldersRepo
 import com.sakethh.linkora.domain.repository.MultiActionRepo
@@ -296,6 +297,51 @@ class MultiActionRepoImpl(
                             }.toMap()
                         }, correlation = copyItemsDTO.correlation, eventTimestamp = eventTimestamp
                     ), webSocketEvent = null
+                )
+            }
+        } catch (e: Exception) {
+            Result.Failure(e)
+        }
+    }
+
+    override suspend fun markItemsAsRegular(markItemsRegularDTO: MarkItemsRegularDTO): Result<TimeStampBasedResponse> {
+        return try {
+            val eventTimestamp = Instant.now().epochSecond
+            if (markItemsRegularDTO.foldersIds.isNotEmpty()) {
+                FoldersTable.checkForLWWConflictAndThrow(
+                    id = markItemsRegularDTO.foldersIds.random(),
+                    timeStamp = markItemsRegularDTO.eventTimestamp,
+                    lastModifiedColumn = FoldersTable.lastModified
+                )
+            }
+            if (markItemsRegularDTO.linkIds.isNotEmpty()) {
+                LinksTable.checkForLWWConflictAndThrow(
+                    id = markItemsRegularDTO.linkIds.random(),
+                    timeStamp = markItemsRegularDTO.eventTimestamp,
+                    lastModifiedColumn = LinksTable.lastModified
+                )
+            }
+            transaction {
+                FoldersTable.update(where = {
+                    FoldersTable.id.inList(markItemsRegularDTO.foldersIds)
+                }) {
+                    it[isFolderArchived] = false
+                    it[lastModified] = eventTimestamp
+                }
+                +LinksTable.update(where = {
+                    LinksTable.id.inList(markItemsRegularDTO.linkIds)
+                }) {
+                    it[linkType] = LinkType.SAVED_LINK.name
+                    it[lastModified] = eventTimestamp
+                }
+            }.let {
+                Result.Success(
+                    response = TimeStampBasedResponse(
+                        eventTimestamp = eventTimestamp, message = "Unarchived $it items."
+                    ), webSocketEvent = WebSocketEvent(
+                        operation = Route.MultiAction.UNARCHIVE_MULTIPLE_ITEMS.name,
+                        payload = Json.encodeToJsonElement(markItemsRegularDTO.copy(eventTimestamp = eventTimestamp))
+                    )
                 )
             }
         } catch (e: Exception) {
