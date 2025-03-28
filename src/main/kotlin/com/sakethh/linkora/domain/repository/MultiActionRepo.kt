@@ -10,5 +10,5 @@ interface MultiActionRepo {
     suspend fun markItemsAsRegular(markItemsRegularDTO: MarkItemsRegularDTO): Result<TimeStampBasedResponse>
     suspend fun deleteMultipleItems(deleteMultipleItemsDTO: DeleteMultipleItemsDTO): Result<TimeStampBasedResponse>
     suspend fun moveMultipleItems(moveItemsDTO: MoveItemsDTO): Result<TimeStampBasedResponse>
-    suspend fun copyMultipleItems(copyItemsDTO: CopyItemsDTO): Result<CopyItemsResponseDTO>
+    suspend fun copyMultipleItems(copyItemsDTO: CopyItemsDTO): Result<CopyItemsHTTPResponseDTO>
 }

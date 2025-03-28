@@ -168,7 +168,7 @@ class MultiActionRepoImpl(
         }
     }
 
-    override suspend fun copyMultipleItems(copyItemsDTO: CopyItemsDTO): Result<CopyItemsResponseDTO> {
+    override suspend fun copyMultipleItems(copyItemsDTO: CopyItemsDTO): Result<CopyItemsHTTPResponseDTO> {
         return try {
             val eventTimestamp = Instant.now().epochSecond
             lateinit var linkIds: List<Long>
@@ -290,13 +290,20 @@ class MultiActionRepoImpl(
 
             }.let {
                 Result.Success(
-                    response = CopyItemsResponseDTO(
+                    response = CopyItemsHTTPResponseDTO(
                         folders = copiedFolderResponse.toList(), linkIds = copyItemsDTO.linkIds.run {
                             this.toList().mapIndexed { index, pair ->
                                 pair.first to linkIds[index]
                             }.toMap()
                         }, correlation = copyItemsDTO.correlation, eventTimestamp = eventTimestamp
-                    ), webSocketEvent = null
+                    ), webSocketEvent = WebSocketEvent(
+                        operation = Route.MultiAction.COPY_EXISTING_ITEMS.name, payload = Json.encodeToJsonElement(
+                            CopyItemsSocketResponseDTO(
+                                eventTimestamp = eventTimestamp,
+                                correlation = copyItemsDTO.correlation
+                            )
+                        )
+                    )
                 )
             }
         } catch (e: Exception) {
