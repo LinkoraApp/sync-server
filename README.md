@@ -60,7 +60,7 @@ will be prompted to provide the required values, which will be saved locally.
       ```
       sqlite:path-to-db
       ``` 
-      `path-to-db` should look something like `sqlite:/home/saketh/Documents/sqlite/databaseFileName`
+      `path-to-db` should look something like `/home/saketh/Documents/sqlite/databaseFileName`
 - `databaseUser`: The username of the database you want to connect to.
   - If you are using SQLite, leave this blank or press Enter when the setup prompts for it.
 - `databasePassword`: The password of the database you want to connect to.
