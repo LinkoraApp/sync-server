@@ -31,6 +31,7 @@ dependencies {
     implementation("io.ktor:ktor-server-core-jvm")
     implementation("io.ktor:ktor-server-auth-jvm")
     implementation("io.ktor:ktor-server-content-negotiation-jvm")
+    implementation("io.ktor:ktor-client-content-negotiation-jvm")
     implementation("io.ktor:ktor-serialization-kotlinx-json-jvm")
     implementation("io.ktor:ktor-server-netty-jvm")
     implementation("io.ktor:ktor-server-websockets")
@@ -41,6 +42,7 @@ dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
     implementation("org.jetbrains.exposed:exposed-core:0.56.0")
     implementation("org.jetbrains.exposed:exposed-jdbc:0.56.0")
+    testImplementation("org.jetbrains.kotlin:kotlin-test:$kotlin_version")
 
     implementation("org.xerial:sqlite-jdbc:3.44.1.0")
     implementation("com.h2database:h2:2.2.224")
@@ -51,6 +53,7 @@ dependencies {
     implementation("com.microsoft.sqlserver:mssql-jdbc:9.4.1.jre8")
 
     implementation("org.jetbrains:markdown:0.7.3")
+
 }
 
 tasks.named<JavaExec>("run") {

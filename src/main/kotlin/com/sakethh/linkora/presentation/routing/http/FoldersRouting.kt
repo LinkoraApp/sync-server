@@ -3,8 +3,10 @@ package com.sakethh.linkora.presentation.routing.http
 import com.sakethh.linkora.Security
 import com.sakethh.linkora.domain.Route
 import com.sakethh.linkora.domain.dto.IDBasedDTO
-import com.sakethh.linkora.domain.dto.MoveItemsDTO
-import com.sakethh.linkora.domain.dto.folder.*
+import com.sakethh.linkora.domain.dto.folder.AddFolderDTO
+import com.sakethh.linkora.domain.dto.folder.MarkSelectedFoldersAsRootDTO
+import com.sakethh.linkora.domain.dto.folder.UpdateFolderNameDTO
+import com.sakethh.linkora.domain.dto.folder.UpdateFolderNoteDTO
 import com.sakethh.linkora.domain.repository.FoldersRepo
 import com.sakethh.linkora.utils.respondWithResult
 import io.ktor.server.application.*
@@ -54,6 +56,10 @@ fun Application.foldersRouting(foldersRepo: FoldersRepo) {
 
             post<MarkSelectedFoldersAsRootDTO>(Route.Folder.MARK_FOLDERS_AS_ROOT.name) {
                 respondWithResult(foldersRepo.markSelectedFoldersAsRoot(it))
+            }
+
+            get(Route.Folder.GET_ALL_FOLDERS.name) {
+                respondWithResult(foldersRepo.getAllFolders())
             }
         }
     }

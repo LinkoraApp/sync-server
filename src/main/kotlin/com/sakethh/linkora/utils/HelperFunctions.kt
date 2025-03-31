@@ -1,6 +1,7 @@
 package com.sakethh.linkora.utils
 
 import com.sakethh.linkora.domain.LWWConflictException
+import com.sakethh.linkora.domain.model.Folder
 import com.sakethh.linkora.domain.tables.FoldersTable
 import com.sakethh.linkora.domain.tables.LinksTable
 import org.jetbrains.exposed.dao.id.LongIdTable
@@ -61,4 +62,15 @@ fun LinksTable.copy(source: List<ResultRow>, eventTimestamp: Long, parentFolderI
         set(mediaType, it[mediaType])
         set(markedAsImportant, it[markedAsImportant])
     }
+}
+
+fun ResultRow.asFolder(): Folder {
+    return Folder(
+        id = this[FoldersTable.id].value,
+        name = this[FoldersTable.folderName],
+        note = this[FoldersTable.note],
+        parentFolderId = this[FoldersTable.parentFolderID],
+        isArchived = this[FoldersTable.isFolderArchived],
+        eventTimestamp = this[FoldersTable.lastModified]
+    )
 }

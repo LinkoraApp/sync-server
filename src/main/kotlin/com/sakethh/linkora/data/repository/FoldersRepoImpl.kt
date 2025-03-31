@@ -14,6 +14,7 @@ import com.sakethh.linkora.domain.tables.FoldersTable
 import com.sakethh.linkora.domain.tables.LinksTable
 import com.sakethh.linkora.domain.tables.PanelFoldersTable
 import com.sakethh.linkora.domain.tables.helper.TombStoneHelper
+import com.sakethh.linkora.utils.asFolder
 import com.sakethh.linkora.utils.checkForLWWConflictAndThrow
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -151,19 +152,27 @@ class FoldersRepoImpl(private val panelsRepo: PanelsRepo) : FoldersRepo {
                 FoldersTable.selectAll().where {
                     FoldersTable.parentFolderID.eq(null) and FoldersTable.isFolderArchived.eq(false)
                 }.toList().map {
-                    Folder(
-                        id = it[FoldersTable.id].value,
-                        name = it[FoldersTable.folderName],
-                        note = it[FoldersTable.note],
-                        parentFolderId = it[FoldersTable.parentFolderID],
-                        isArchived = it[FoldersTable.isFolderArchived],
-                        eventTimestamp = it[FoldersTable.lastModified]
-                    )
+                    it.asFolder()
                 }
             }.let {
                 Result.Success(response = it, webSocketEvent = null)
             }
         } catch (e: Exception) {
+            Result.Failure(e)
+        }
+    }
+
+    override suspend fun getAllFolders(): Result<List<Folder>> {
+        return try {
+            transaction {
+                FoldersTable.selectAll().toList().map {
+                    it.asFolder()
+                }
+            }.let {
+                Result.Success(response = it, webSocketEvent = null)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
             Result.Failure(e)
         }
     }
