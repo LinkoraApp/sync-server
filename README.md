@@ -197,6 +197,22 @@ systemctl daemon-reload
 systemctl start linkora.service
 systemctl enable linkora.service
 ```
+### Allow Port Through Firewall
+
+> Cannot reach the server from the Linkora app when the server is running on a local or remote machine.
+
+This is because the firewall blocks it. Make sure you have allowed the port on which the server is running by:
+```
+sudo firewall-cmd --add-port=PORT_NUMBER/tcp --permanent
+sudo firewall-cmd --reload
+```
+and check if the firewall now allows connecting to it by:
+```
+sudo firewall-cmd --list-ports
+```
+You should see a list of ports that the firewall allows for connections, including `PORT_NUMBER/tcp`. Here, `PORT_NUMBER` refers to the port number you've set via the server configuration (default is `45454`).
+
+----
 
 #### Workflow of Linkora, which should make it easier to understand how everything works:
 
