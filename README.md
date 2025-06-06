@@ -150,7 +150,7 @@ authentication details.
 - **Real-Time Updates**: Events on the server are sent to clients via socket, ensuring data is always up-to-date.
 - This server implements the LWW (Last-Write-Wins) mechanism, where the latest client update takes effect.
 
-To learn how the linkora app and this sync-server make syncing seamless, check out [this write-up](https://sakethpathike.github.io/posts/synchronization-in-linkora/).
+To learn how the linkora app and this sync-server make syncing seamless, check out [this write-up](https://sakethpathike.github.io/blog/synchronization-in-linkora).
 
 ### Important Notes
 
