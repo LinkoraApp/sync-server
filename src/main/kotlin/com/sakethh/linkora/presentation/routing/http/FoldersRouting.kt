@@ -1,6 +1,6 @@
 package com.sakethh.linkora.presentation.routing.http
 
-import com.sakethh.linkora.Security
+import com.sakethh.linkora.authenticate
 import com.sakethh.linkora.domain.Route
 import com.sakethh.linkora.domain.dto.IDBasedDTO
 import com.sakethh.linkora.domain.dto.MoveItemsDTO
@@ -8,12 +8,11 @@ import com.sakethh.linkora.domain.dto.folder.*
 import com.sakethh.linkora.domain.repository.FoldersRepo
 import com.sakethh.linkora.utils.respondWithResult
 import io.ktor.server.application.*
-import io.ktor.server.auth.*
 import io.ktor.server.routing.*
 
 fun Application.foldersRouting(foldersRepo: FoldersRepo) {
     routing {
-        authenticate(Security.BEARER.name) {
+        authenticate {
             post<AddFolderDTO>(Route.Folder.CREATE_FOLDER.name) { folderDTO ->
                 respondWithResult(foldersRepo.createFolder(folderDTO))
             }

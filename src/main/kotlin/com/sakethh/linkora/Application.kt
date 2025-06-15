@@ -12,7 +12,6 @@ import com.sakethh.linkora.utils.useSysEnvValues
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -121,7 +120,6 @@ object ServerConfiguration {
 fun Application.module() {
     println("The server version is ${Constants.SERVER_VERSION}")
     configureDatabase()
-    configureSecurity()
     configureSerialization()
     val mdManagerRepo : MarkdownManagerRepo = MarkdownManagerRepoImpl()
     val serverConfig =ServerConfiguration.readConfig()

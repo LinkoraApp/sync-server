@@ -1,7 +1,7 @@
 package com.sakethh.linkora.presentation.routing
 
 import com.sakethh.linkora.Constants
-import com.sakethh.linkora.Security
+import com.sakethh.linkora.authenticate
 import com.sakethh.linkora.data.repository.*
 import com.sakethh.linkora.domain.Route
 import com.sakethh.linkora.domain.model.ServerConfig
@@ -11,7 +11,6 @@ import com.sakethh.linkora.utils.SysEnvKey
 import com.sakethh.linkora.utils.useSysEnvValues
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import org.jetbrains.exposed.sql.Database
@@ -19,7 +18,7 @@ import java.net.InetAddress
 
 fun Application.configureRouting(serverConfig: ServerConfig, markdownManagerRepo: MarkdownManagerRepo) {
     routing {
-        authenticate(Security.BEARER.name) {
+        authenticate {
             get("/") {
                 call.respond(message = HttpStatusCode.OK, status = HttpStatusCode.OK)
             }
