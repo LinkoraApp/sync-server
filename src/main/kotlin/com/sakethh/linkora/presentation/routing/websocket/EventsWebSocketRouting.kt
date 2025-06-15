@@ -1,11 +1,10 @@
 package com.sakethh.linkora.presentation.routing.websocket
 
+import com.sakethh.linkora.authenticate
 import com.sakethh.linkora.data.socket.manager.EventsWebSocketManager.closeWriteChannel
 import com.sakethh.linkora.data.socket.manager.EventsWebSocketManager.initializeWriteChannel
-import com.sakethh.linkora.Security
 import com.sakethh.linkora.domain.dto.Correlation
 import io.ktor.server.application.*
-import io.ktor.server.auth.*
 import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
@@ -13,7 +12,7 @@ import kotlinx.serialization.json.Json
 
 fun Application.configureEventsWebSocket() {
     routing {
-        authenticate(Security.BEARER.name) {
+        authenticate {
             webSocket(path = "/events") {
                 val correlationParam = call.parameters["correlation"]
                 if (correlationParam == null) {
@@ -45,6 +44,7 @@ fun Application.configureEventsWebSocket() {
                     }
                 } catch (e: Exception) {
                     println("WebSocket error for \"${correlation.clientName}\": ${e.message}")
+                    e.printStackTrace()
                 } finally {
                     closeWriteChannel(correlationId)
                     println("WebSocket closed for \"${correlation.clientName}\".")

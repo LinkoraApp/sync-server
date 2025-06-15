@@ -1,19 +1,18 @@
 package com.sakethh.linkora.presentation.routing.http
 
-import com.sakethh.linkora.Security
+import com.sakethh.linkora.authenticate
 import com.sakethh.linkora.domain.Route
 import com.sakethh.linkora.domain.dto.DeleteEverythingDTO
 import com.sakethh.linkora.domain.repository.SyncRepo
 import com.sakethh.linkora.utils.respondWithResult
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
 fun Application.syncRouting(syncRepo: SyncRepo) {
     routing {
-        authenticate(Security.BEARER.name) {
+        authenticate {
             get(Route.Sync.GET_TOMBSTONES.name) {
                 val eventTimestamp = getTimeStampFromParam() ?: return@get
                 try {

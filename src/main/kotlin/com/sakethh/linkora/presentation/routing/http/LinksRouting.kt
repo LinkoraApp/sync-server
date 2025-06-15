@@ -1,18 +1,17 @@
 package com.sakethh.linkora.presentation.routing.http
 
-import com.sakethh.linkora.Security
+import com.sakethh.linkora.authenticate
 import com.sakethh.linkora.domain.Route
 import com.sakethh.linkora.domain.dto.IDBasedDTO
 import com.sakethh.linkora.domain.dto.link.*
 import com.sakethh.linkora.domain.repository.LinksRepo
 import com.sakethh.linkora.utils.respondWithResult
 import io.ktor.server.application.*
-import io.ktor.server.auth.*
 import io.ktor.server.routing.*
 
 fun Application.linksRouting(linksRepo: LinksRepo) {
     routing {
-        authenticate(Security.BEARER.name) {
+        authenticate {
             post<AddLinkDTO>(Route.Link.CREATE_A_NEW_LINK.name) {
                 respondWithResult(linksRepo.createANewLink(it))
             }

@@ -1,6 +1,7 @@
 package com.sakethh.linkora.presentation.routing.http
 
-import com.sakethh.linkora.Security
+import com.sakethh.linkora.authenticate
+import com.sakethh.linkora.domain.Route
 import com.sakethh.linkora.domain.dto.IDBasedDTO
 import com.sakethh.linkora.domain.dto.panel.AddANewPanelDTO
 import com.sakethh.linkora.domain.dto.panel.AddANewPanelFolderDTO
@@ -9,13 +10,11 @@ import com.sakethh.linkora.domain.dto.panel.UpdatePanelNameDTO
 import com.sakethh.linkora.domain.repository.PanelsRepo
 import com.sakethh.linkora.utils.respondWithResult
 import io.ktor.server.application.*
-import io.ktor.server.auth.*
 import io.ktor.server.routing.*
-import com.sakethh.linkora.domain.Route
 
 fun Application.panelsRouting(panelsRepo: PanelsRepo) {
     routing {
-        authenticate(Security.BEARER.name) {
+        authenticate {
             post<AddANewPanelDTO>(Route.Panel.ADD_A_NEW_PANEL.name) {
                 respondWithResult(panelsRepo.addANewPanel(it))
             }
