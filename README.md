@@ -60,7 +60,7 @@ will be prompted to provide the required values, which will be saved locally.
       ```
       sqlite:path-to-db
       ``` 
-      `path-to-db` should look something like `sqlite:/home/saketh/Documents/sqlite/databaseFileName`
+      `path-to-db` should look something like `/home/saketh/Documents/sqlite/databaseFileName`
 - `databaseUser`: The username of the database you want to connect to.
   - If you are using SQLite, leave this blank or press Enter when the setup prompts for it.
 - `databasePassword`: The password of the database you want to connect to.
@@ -150,7 +150,7 @@ authentication details.
 - **Real-Time Updates**: Events on the server are sent to clients via socket, ensuring data is always up-to-date.
 - This server implements the LWW (Last-Write-Wins) mechanism, where the latest client update takes effect.
 
-To learn how the linkora app and this sync-server make syncing seamless, check out [this write-up](https://sakethpathike.github.io/posts/synchronization-in-linkora/).
+To learn how the linkora app and this sync-server make syncing seamless, check out [this write-up](https://sakethpathike.github.io/blog/synchronization-in-linkora).
 
 ### Important Notes
 
@@ -197,6 +197,22 @@ systemctl daemon-reload
 systemctl start linkora.service
 systemctl enable linkora.service
 ```
+### Allow Port Through Firewall
+
+> Cannot reach the server from the Linkora app when the server is running on a local or remote machine.
+
+This is because the firewall blocks it. Make sure you have allowed the port on which the server is running by:
+```
+sudo firewall-cmd --add-port=PORT_NUMBER/tcp --permanent
+sudo firewall-cmd --reload
+```
+and check if the firewall now allows connecting to it by:
+```
+sudo firewall-cmd --list-ports
+```
+You should see a list of ports that the firewall allows for connections, including `PORT_NUMBER/tcp`. Here, `PORT_NUMBER` refers to the port number you've set via the server configuration (default is `45454`).
+
+----
 
 #### Workflow of Linkora, which should make it easier to understand how everything works:
 
