@@ -80,7 +80,7 @@ fun Route.authenticate(initOnSuccess: Route.() -> Unit) {
 
 /*
 
-i should have just used `authHeader` and it probably would've fixed the special characters in token = 401 issue
+i should have just used `authHeader` and it probably would've fixed the special characters in the token = 400 issue
 
 but this does pretty much the same thing, and I learnt a couple of new things, so hell yeahh
 
