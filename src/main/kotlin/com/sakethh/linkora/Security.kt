@@ -2,10 +2,32 @@ package com.sakethh.linkora
 
 import io.ktor.http.*
 import io.ktor.server.application.*
-import io.ktor.server.request.path
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
+
+/*
+in RoutingNode's `buildPipeline()`, the following is implemented:
+
+    for (index in 0..handlers.lastIndex) {
+        pipeline.intercept(Call) {
+            val call = call as RoutingPipelineCall
+            val routingCall = RoutingCall(call)
+            val routingContext = RoutingContext(routingCall)
+            if (call.isHandled) return@intercept
+            handlers[index].invoke(routingContext)
+        }
+    }
+
+so if a call is handled here in this `Security.kt` file,
+the handler of our routes (defined in routing files) is never reached;
+which is exactly what we want.
+
+I've gone through the Ktor auth library (just the surface), and it defines an extension function 
+`Route.authenticate` (same name) in `AuthenticationInterceptors.kt` that does almost the same thing. 
+It doesn't directly send a 403 like I'm doing here, but for our scenario, this is fine.
+*/
 val CustomBearerAuth = createRouteScopedPlugin(name = "CustomBearerAuth") {
     onCall { call ->
         val rawHeader = call.request.headers[HttpHeaders.Authorization]
@@ -57,6 +79,14 @@ fun Route.authenticate(initOnSuccess: Route.() -> Unit) {
 }
 
 /*
+
+i should have just used `authHeader` and it probably would've fixed the special characters in token = 401 issue
+
+but this does pretty much the same thing, and I learnt a couple of new things, so hell yeahh
+
+--------------------------------------------
+
+
 with the auth lib, something like this would have worked:
 
 install(Authentication) {

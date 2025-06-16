@@ -8,7 +8,7 @@ plugins {
 }
 
 group = "com.sakethh"
-version = "0.0.4"
+version = "0.0.5"
 
 application {
     mainClass.set("com.sakethh.linkora.ApplicationKt")
