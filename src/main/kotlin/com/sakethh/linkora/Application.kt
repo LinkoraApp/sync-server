@@ -9,6 +9,7 @@ import com.sakethh.linkora.presentation.routing.configureRouting
 import com.sakethh.linkora.presentation.routing.websocket.configureEventsWebSocket
 import com.sakethh.linkora.utils.SysEnvKey
 import com.sakethh.linkora.utils.useSysEnvValues
+import io.ktor.network.tls.certificates.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
@@ -25,10 +26,34 @@ import kotlin.time.Duration.Companion.seconds
 
 fun main() {
     val serverConfig = ServerConfiguration.readConfig()
+    val keyStoreAlias = "linkora-sync-server-cert"
+    val keyStorePassword = run {
+        val chars = (0..9) + ('a'..'z') + ('A'..'Z') + listOf('!','@','#','$','%','^','&','*')
+        buildString {
+            repeat(45) {
+                append(chars.random())
+            }
+        }
+    }
+    val keyStore = buildKeyStore {
+        this.certificate(
+            alias = keyStoreAlias, block = {
+                this.password = keyStorePassword
+                this.domains = listOf(serverConfig.hostAddress)
+            })
+    }
     embeddedServer(
-        Netty, port = serverConfig.serverPort, host = serverConfig.hostAddress,
-        module = Application::module
-    ).start(wait = true)
+        factory = Netty, configure = {
+        sslConnector(builder = {
+            this.port = serverConfig.serverPort
+            this.host = serverConfig.hostAddress
+            enabledProtocols = listOf("TLSv1.3", "TLSv1.2")
+        }, keyStore = keyStore, keyAlias = keyStoreAlias, keyStorePassword = {
+            keyStorePassword.toCharArray()
+        }, privateKeyPassword = {
+            keyStorePassword.toCharArray()
+        })
+    }, module = Application::module).start(wait = true)
 }
 
 object ServerConfiguration {
@@ -88,12 +113,14 @@ object ServerConfiguration {
             ServerConfig(
                 databaseUrl = "jdbc:" + System.getenv(SysEnvKey.LINKORA_DATABASE_URL.name),
                 databaseUser = System.getenv(SysEnvKey.LINKORA_DATABASE_USER.name),
-                databasePassword = System.getenv(SysEnvKey.LINKORA_DATABASE_PASSWORD.name), hostAddress = try {
+                databasePassword = System.getenv(SysEnvKey.LINKORA_DATABASE_PASSWORD.name),
+                hostAddress = try {
                     // manually throw the exception as `getenv` may return null, and no conversion is happening here to auto-throw
                     System.getenv(SysEnvKey.LINKORA_HOST_ADDRESS.name) ?: throw NullPointerException()
                 } catch (_: Exception) {
                     InetAddress.getLocalHost().hostAddress
-                }, serverPort = try {
+                },
+                serverPort = try {
                     System.getenv(SysEnvKey.LINKORA_SERVER_PORT.name).toInt()
                 } catch (_: Exception) {
                     45454
@@ -121,8 +148,8 @@ fun Application.module() {
     println("The server version is ${Constants.SERVER_VERSION}")
     configureDatabase()
     configureSerialization()
-    val mdManagerRepo : MarkdownManagerRepo = MarkdownManagerRepoImpl()
-    val serverConfig =ServerConfiguration.readConfig()
+    val mdManagerRepo: MarkdownManagerRepo = MarkdownManagerRepoImpl()
+    val serverConfig = ServerConfiguration.readConfig()
     configureRouting(serverConfig = serverConfig, markdownManagerRepo = mdManagerRepo)
     install(WebSockets) {
         pingPeriod = 15.seconds
@@ -131,7 +158,7 @@ fun Application.module() {
     }
     configureEventsWebSocket()
     val serverConfiguredPage =
-        "http://" + serverConfig.hostAddress + ":" + serverConfig.serverPort + "/" + Route.Sync.SERVER_IS_CONFIGURED.name
+        "https://" + serverConfig.hostAddress + ":" + serverConfig.serverPort + "/" + Route.Sync.SERVER_IS_CONFIGURED.name
     if (useSysEnvValues().not() && Desktop.isDesktopSupported() && Desktop.getDesktop()
             .isSupported(Desktop.Action.BROWSE)
     ) {
