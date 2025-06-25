@@ -40,7 +40,6 @@ Auto-generated on first run - the server will prompt you for configuration value
   "databaseUrl": "mysql://localhost:3306/linkora",
   "databaseUser": "your_username",
   "databasePassword": "your_password",
-  "hostAddress": "xxx.xxx.x.xxx",
   "serverPort": 45454,
   "serverAuthToken": "your_secure_token"
 }
@@ -120,7 +119,7 @@ Add the below to your file (change values as per your setup) and name the file a
 Description=linkora service
 After=network.target
 
-[Service]
+    [Service]
 SuccessExitStatus=143
 User=root
 Group=root
@@ -130,7 +129,7 @@ WorkingDirectory=PATH_TO_JAR_FILE
 ExecStart=/usr/bin/java -jar linkoraSyncServer.jar
 ExecStop=/bin/kill -15 $MAINPID
 
-[Install]
+    [Install]
 WantedBy=multi-user.target
 ```
 
@@ -159,9 +158,11 @@ sudo firewall-cmd --list-ports
 
 **HTTPS Only**: The server operates exclusively in HTTPS mode and will only respond to HTTPS connections. Always connect using `https://` URLs. HTTP requests will not receive any response as HTTP redirection is not implemented.
 
+**Automatic Network Binding**: The server automatically binds to IPv4 and generates SSL certificates with domain and IP address included. No manual host configuration needed.
+
 **Authentication Token**: Treat `serverAuthToken` as a password—never share it publicly.
 
-**Network Access**: Use the configured `hostAddress` instead of `localhost` when connecting from Linkora apps on other devices. The `hostAddress` should be the actual IPv4 address of the machine running the server.
+**Network Access**: Connect using the server machine's IPv4 address (not `localhost`) when accessing from other devices.
 
 **Client-Server Compatibility**: Always verify client-server version compatibility. Mismatched versions may cause sync failures.
 
@@ -172,7 +173,7 @@ sudo firewall-cmd --list-ports
 **Cannot connect to server from Linkora app**
 - Verify you're using `https://` in the connection URL
 - Check if the server port is allowed through your firewall
-- Ensure you're using the correct `hostAddress` (not `localhost`) when connecting from other devices
+- Ensure you're using the server machine's IPv4 address (not `localhost`) when connecting from other devices
 - Verify the `serverAuthToken` matches between server and client
 
 **Server fails to start**
@@ -196,6 +197,10 @@ sudo firewall-cmd --list-ports
 
 For detailed technical information about the synchronization mechanism, read the [technical blog post](https://sakethpathike.github.io/blog/synchronization-in-linkora).
 
+## Configuration Changes
+
+**Host Address Configuration Removed**: The config file no longer includes the `hostAddress` field and will ignore it even if present in existing configurations. The server now forces IPv4 binding and automatically handles SSL certificate generation with proper domain and IP address inclusion.
+
 ## Important Notes
 
 - **Single User Design**: Designed exclusively for individual use, not multi-user environments
@@ -205,7 +210,7 @@ For detailed technical information about the synchronization mechanism, read the
 
 ## Support
 
-**Star the repo** if you find Linkora useful  
+**Star the repo** if you find Linkora useful
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/sakethpathike)
 

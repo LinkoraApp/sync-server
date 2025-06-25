@@ -15,7 +15,7 @@ import io.ktor.server.websocket.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.awt.Desktop
-import java.net.InetAddress
+import java.net.Inet4Address
 import java.net.URI
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -26,7 +26,7 @@ fun main() {
     val serverConfig = ServerConfiguration.readConfig()
     val keyStoreAlias = "linkora-sync-server-cert"
     val keyStorePassword = run {
-        val chars = (0..9) + ('a'..'z') + ('A'..'Z') + listOf('!','@','#','$','%','^','&','*')
+        val chars = (0..9) + ('a'..'z') + ('A'..'Z') + listOf('!', '@', '#', '$', '%', '^', '&', '*')
         buildString {
             repeat(45) {
                 append(chars.random())
@@ -37,14 +37,15 @@ fun main() {
         this.certificate(
             alias = keyStoreAlias, block = {
                 this.password = keyStorePassword
-                this.domains = listOf(serverConfig.hostAddress)
+                this.domains = listOf(Inet4Address.getLocalHost().hostAddress)
+                this.ipAddresses = listOf(Inet4Address.getLocalHost())
             })
     }
     embeddedServer(
         factory = Netty, configure = {
         sslConnector(builder = {
             this.port = serverConfig.serverPort
-            this.host = serverConfig.hostAddress
+            this.host = Inet4Address.getLocalHost().hostAddress
             enabledProtocols = listOf("TLSv1.3", "TLSv1.2")
         }, keyStore = keyStore, keyAlias = keyStoreAlias, keyStorePassword = {
             keyStorePassword.toCharArray()
@@ -58,6 +59,7 @@ object ServerConfiguration {
     private val json = Json {
         prettyPrint = true
         encodeDefaults = true
+        ignoreUnknownKeys = true
     }
     private val jarDir = Paths.get(this::class.java.protectionDomain.codeSource.location.toURI()).parent
     private val configFilePath = jarDir.resolve("linkoraConfig.json")
@@ -112,12 +114,6 @@ object ServerConfiguration {
                 databaseUrl = "jdbc:" + System.getenv(SysEnvKey.LINKORA_DATABASE_URL.name),
                 databaseUser = System.getenv(SysEnvKey.LINKORA_DATABASE_USER.name),
                 databasePassword = System.getenv(SysEnvKey.LINKORA_DATABASE_PASSWORD.name),
-                hostAddress = try {
-                    // manually throw the exception as `getenv` may return null, and no conversion is happening here to auto-throw
-                    System.getenv(SysEnvKey.LINKORA_HOST_ADDRESS.name) ?: throw NullPointerException()
-                } catch (_: Exception) {
-                    InetAddress.getLocalHost().hostAddress
-                },
                 serverPort = try {
                     System.getenv(SysEnvKey.LINKORA_SERVER_PORT.name).toInt()
                 } catch (_: Exception) {
@@ -155,7 +151,7 @@ fun Application.module() {
     }
     configureEventsWebSocket()
     val serverConfiguredPage =
-        "https://" + serverConfig.hostAddress + ":" + serverConfig.serverPort + "/" + Route.Sync.SERVER_IS_CONFIGURED.name
+        "https://" + Inet4Address.getLocalHost().hostAddress + ":" + serverConfig.serverPort + "/" + Route.Sync.SERVER_IS_CONFIGURED.name
     if (useSysEnvValues().not() && Desktop.isDesktopSupported() && Desktop.getDesktop()
             .isSupported(Desktop.Action.BROWSE)
     ) {
