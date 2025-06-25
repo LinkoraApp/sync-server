@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Linkora Sync Server Info</title>
+  <style>
+    :root {
+      --bg: #131318;
+      --fg: #C5C4DD;
+      --title: #BFC2FF;
+      --link: #64B5F6;
+      --link-hover: #A8C8FF;
+      --btn-primary-bg: #64B5F6;
+      --btn-primary-hover: #A8C8FF;
+      --btn-secondary-bg: transparent;
+      --btn-secondary-border: #64B5F6;
+      --btn-secondary-hover-bg: #64B5F6;
+      --btn-secondary-hover-fg: #131318;
+    }
+
+    html { font-size: clamp(14px, 1.2vw, 18px); }
+    body {
+      margin: 0;
+      padding: 2rem;
+      background-color: var(--bg);
+      color: var(--fg);
+      font-family: "Segoe UI", "Roboto", "Helvetica Neue", sans-serif;
+      line-height: 1.6;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      background-color: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 0;
+      z-index: 1000;
+    }
+    header h1 {
+      color: var(--title);
+      margin: 0;
+      font-size: 1.5rem;
+    }
+    .header-links {
+      display: flex;
+      gap: 1rem;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.25rem;
+      font-weight: 600;
+      text-decoration: none;
+      border-radius: 999px;
+      transition: background-color 0.2s, transform 0.1s, box-shadow 0.2s;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    }
+
+    .btn.primary {
+      background-color: var(--btn-primary-bg);
+      color: #131318;
+    }
+    .btn.primary:hover {
+      background-color: var(--btn-primary-hover);
+    }
+
+    .btn.secondary {
+      background-color: var(--btn-secondary-bg);
+      color: var(--btn-primary-bg);
+      border: 2px solid var(--btn-secondary-border);
+    }
+    .btn.secondary:hover {
+      background-color: var(--btn-secondary-hover-bg);
+      color: var(--btn-secondary-hover-fg);
+    }
+
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Linkora Sync Server</h1>
+  <div class="header-links">
+    <a href="https://github.com/LinkoraApp/sync-server" class="btn secondary" target="_blank">View Sync-Server on GitHub</a>
+    <a href="https://ko-fi.com/sakethpathike" class="btn primary" target="_blank">Buy Me a Coffee</a>
+  </div>
+</header>
+
+<section class="note" aria-live="polite">
+  It seems you've configured the sync-server correctly.
+</section>
+
+<main>
+  <section>
+    <p>###SYNC_SERVER_INFO###</p>
+    <p>This server is meant to communicate only with the
+      <a href="https://github.com/LinkoraApp/Linkora" target="_blank">Linkora App</a>
+      (Android & Desktop).There's no web frontend yet, so you can’t control anything via browser UI.
+    </p>
+    <p>If you're technical and want to build a custom solution that connects to this server, that’s totally possible.
+      Consider mailing <a href="mailto:linkoraapp@protonmail.com">linkoraapp@protonmail.com</a> so I can link your frontend or anything useful into the ecosystem via the README.
+    </p>
+  </section>
+
+  <section>
+    <h2>Database & Data Syncing</h2>
+    <ul>
+      <li>Apps have their own local databases.</li>
+      <li>This server helps store the data and provides syncing capabilities.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h3>Deletion Behavior</h3>
+    <ul>
+      <li>If something is deleted on the app, and the server is added to the app, it will be deleted on sync — even if the server was offline when the delete happened.</li>
+      <li><strong>It cannot be undone.</strong></li>
+      <li><em>(A trash system might come later, but for now, deletion is permanent.)</em></li>
+    </ul>
+  </section>
+
+  <section>
+    <h3>LWW (Last-Write-Wins) Implementation</h3>
+    <ul>
+      <li>Server uses LWW logic.</li>
+      <li>Clients keep their own updates while the server is offline.</li>
+      <li>Once reconnected, the latest write wins and syncs to server DB.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h3>Blank Pages on Other Routes</h3>
+    <ul>
+      <li>Blank pages are expected on all routes except this one.</li>
+      <li>All other routes require a valid auth token.</li>
+      <li>Without it, no access is granted.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Troubleshooting & Help</h2>
+    <ul>
+      <li>Check the <a href="https://github.com/LinkoraApp/sync-server/blob/master/README.md" target="_blank">README</a>.</li>
+      <li>Search in <a href="https://github.com/LinkoraApp/sync-server/issues" target="_blank">GitHub Issues</a>.</li>
+      <li>If stuck, <a href="https://github.com/LinkoraApp/sync-server/issues/new" target="_blank">create a new issue</a>.</li>
+      <li>Join the <a href="https://discord.gg/ZDBXNtv8MD" target="_blank">Discord</a> for support or updates.</li>
+    </ul>
+  </section>
+</main>
+
+<footer>
+  <div class="highlight">
+    <p><strong>Want to support development? Buy me a coffee on Ko-fi</strong></p>
+    <a href="https://ko-fi.com/sakethpathike" class="footer-btn" target="_blank">☕ Buy me a coffee</a>
+  </div>
+</footer>
+
+</body>
+</html>

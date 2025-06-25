@@ -1,10 +1,8 @@
 package com.sakethh.linkora
 
 import com.sakethh.linkora.data.configureDatabase
-import com.sakethh.linkora.data.repository.MarkdownManagerRepoImpl
 import com.sakethh.linkora.domain.Route
 import com.sakethh.linkora.domain.model.ServerConfig
-import com.sakethh.linkora.domain.repository.MarkdownManagerRepo
 import com.sakethh.linkora.presentation.routing.configureRouting
 import com.sakethh.linkora.presentation.routing.websocket.configureEventsWebSocket
 import com.sakethh.linkora.utils.SysEnvKey
@@ -148,9 +146,8 @@ fun Application.module() {
     println("The server version is ${Constants.SERVER_VERSION}")
     configureDatabase()
     configureSerialization()
-    val mdManagerRepo: MarkdownManagerRepo = MarkdownManagerRepoImpl()
     val serverConfig = ServerConfiguration.readConfig()
-    configureRouting(serverConfig = serverConfig, markdownManagerRepo = mdManagerRepo)
+    configureRouting(serverConfig = serverConfig)
     install(WebSockets) {
         pingPeriod = 15.seconds
         timeout = 15.seconds
