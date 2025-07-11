@@ -36,6 +36,7 @@ dependencies {
     implementation("io.ktor:ktor-network")
     implementation("ch.qos.logback:logback-classic:$logback_version")
     implementation("io.ktor:ktor-server-websockets-jvm:3.0.1")
+    implementation("io.ktor:ktor-server-cors")
     testImplementation("io.ktor:ktor-server-test-host-jvm")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
     implementation("org.jetbrains.exposed:exposed-core:0.56.0")
@@ -48,7 +49,7 @@ dependencies {
     implementation("com.oracle.database.jdbc:ojdbc8:12.2.0.1")
     implementation("org.postgresql:postgresql:42.7.5")
     implementation("com.microsoft.sqlserver:mssql-jdbc:9.4.1.jre8")
-
+    implementation("io.github.sakethpathike:kapsule:0.1.2")
     implementation("org.jetbrains:markdown:0.7.3")
 }
 

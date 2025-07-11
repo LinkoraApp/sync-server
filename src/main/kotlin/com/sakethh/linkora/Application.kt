@@ -12,6 +12,7 @@ import com.sakethh.linkora.utils.useSysEnvValues
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.websocket.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -26,8 +27,7 @@ import kotlin.time.Duration.Companion.seconds
 fun main() {
     val serverConfig = ServerConfiguration.readConfig()
     embeddedServer(
-        Netty, port = serverConfig.serverPort, host = serverConfig.hostAddress,
-        module = Application::module
+        Netty, port = serverConfig.serverPort, host = serverConfig.hostAddress, module = Application::module
     ).start(wait = true)
 }
 
@@ -88,12 +88,14 @@ object ServerConfiguration {
             ServerConfig(
                 databaseUrl = "jdbc:" + System.getenv(SysEnvKey.LINKORA_DATABASE_URL.name),
                 databaseUser = System.getenv(SysEnvKey.LINKORA_DATABASE_USER.name),
-                databasePassword = System.getenv(SysEnvKey.LINKORA_DATABASE_PASSWORD.name), hostAddress = try {
+                databasePassword = System.getenv(SysEnvKey.LINKORA_DATABASE_PASSWORD.name),
+                hostAddress = try {
                     // manually throw the exception as `getenv` may return null, and no conversion is happening here to auto-throw
                     System.getenv(SysEnvKey.LINKORA_HOST_ADDRESS.name) ?: throw NullPointerException()
                 } catch (_: Exception) {
                     InetAddress.getLocalHost().hostAddress
-                }, serverPort = try {
+                },
+                serverPort = try {
                     System.getenv(SysEnvKey.LINKORA_SERVER_PORT.name).toInt()
                 } catch (_: Exception) {
                     45454
@@ -121,8 +123,12 @@ fun Application.module() {
     println("The server version is ${Constants.SERVER_VERSION}")
     configureDatabase()
     configureSerialization()
-    val mdManagerRepo : MarkdownManagerRepo = MarkdownManagerRepoImpl()
-    val serverConfig =ServerConfiguration.readConfig()
+    install(CORS) {
+        allowCredentials = true
+        anyHost()
+    }
+    val mdManagerRepo: MarkdownManagerRepo = MarkdownManagerRepoImpl()
+    val serverConfig = ServerConfiguration.readConfig()
     configureRouting(serverConfig = serverConfig, markdownManagerRepo = mdManagerRepo)
     install(WebSockets) {
         pingPeriod = 15.seconds
