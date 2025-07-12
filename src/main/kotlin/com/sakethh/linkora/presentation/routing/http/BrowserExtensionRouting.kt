@@ -105,7 +105,18 @@ private suspend fun BODY.BrowserExtensionUI(foldersRepo: FoldersRepo) {
             color = Colors.onSurfaceDark,
         )
         Spacer(modifier = Modifier.height(8.5.px))
-
+        Button(
+            modifier = Modifier.cursor(Cursor.Pointer).height(25.px).margin(bottom = 10.px)
+                .backgroundColor(Colors.codeblockBG).color(Colors.onPrimaryContainerDark),
+            id = "add-new-root-folder",
+            onClick = { "" }) {
+            Text(
+                text = "Create a new root folder",
+                fontWeight = FontWeight.Predefined.Medium,
+                fontSize = 12.px,
+                fontFamily = "Inter",
+            )
+        }
         Text(
             text = "Save to folder:",
             fontFamily = "Inter",
@@ -198,29 +209,34 @@ private suspend fun DIV.ChildFoldersComponent(
 }
 
 private fun DIV.FolderComponent(
-    folder: Folder, showDivider: Boolean = true, icon: String = "folder", bottomSpacing: Int = 12
+    folder: Folder, showDivider: Boolean = true, icon: String = "create_new_folder", bottomSpacing: Int = 12
 ) {
-    Row(
+    Row (
         className = "folder-component",
-        id = folder.id.toString(),
-        horizontalAlignment = HorizontalAlignment.Center,
-        modifier = Modifier.cursor(Cursor.Pointer)
-    ) {
+        horizontalAlignment = HorizontalAlignment.Center
+    ){
         span(classes = "material-icons-outlined") {
+            id = "${folder.name}-${folder.id}"
             style = Modifier.color(
                 Colors.primaryDark
-            ).blockSelection().size(24.px).toString()
+            ).cursor(Cursor.Pointer).blockSelection().size(24.px).toString()
             +icon
         }
-        Spacer(modifier = Modifier.width(8.5.px))
-        Text(
-            text = folder.name,
-            fontFamily = "Inter",
-            fontWeight = FontWeight.Predefined.Normal,
-            fontSize = 16.px,
-            color = Colors.primaryDark,
-            modifier = Modifier.blockSelection()
-        )
+        Row(
+            id = folder.id.toString(),
+            horizontalAlignment = HorizontalAlignment.Center,
+            modifier = Modifier.cursor(Cursor.Pointer)
+        ) {
+            Spacer(modifier = Modifier.width(8.5.px))
+            Text(
+                text = folder.name,
+                fontFamily = "Inter",
+                fontWeight = FontWeight.Predefined.Normal,
+                fontSize = 16.px,
+                color = Colors.primaryDark,
+                modifier = Modifier.blockSelection()
+            )
+        }
     }
     if (showDivider) {
         Spacer(
