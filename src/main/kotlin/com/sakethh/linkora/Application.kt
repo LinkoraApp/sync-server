@@ -9,6 +9,8 @@ import com.sakethh.linkora.presentation.routing.configureRouting
 import com.sakethh.linkora.presentation.routing.websocket.configureEventsWebSocket
 import com.sakethh.linkora.utils.SysEnvKey
 import com.sakethh.linkora.utils.useSysEnvValues
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
@@ -125,6 +127,10 @@ fun Application.module() {
     configureSerialization()
     install(CORS) {
         allowCredentials = true
+        allowMethod(HttpMethod.Options)
+        allowMethod(HttpMethod.Post)
+        allowHeader(HttpHeaders.ContentType)
+        allowHeader(HttpHeaders.Authorization)
         anyHost()
     }
     val mdManagerRepo: MarkdownManagerRepo = MarkdownManagerRepoImpl()
@@ -141,6 +147,6 @@ fun Application.module() {
     if (useSysEnvValues().not() && Desktop.isDesktopSupported() && Desktop.getDesktop()
             .isSupported(Desktop.Action.BROWSE)
     ) {
-        Desktop.getDesktop().browse(URI(serverConfiguredPage))
+        // Desktop.getDesktop().browse(URI(serverConfiguredPage))
     }
 }

@@ -23,12 +23,6 @@ fun Application.browserExtensionRouting(foldersRepo: FoldersRepo) {
             get("/browser-extension") {
                 call.respondText(text = createHTML().html {
                     Surface(
-                        onTheHeadElement = {
-                            unsafe {
-                                +"""
-                           <script src="actual.js" type="module"></script>""".trimIndent()
-                            }
-                        },
                         fonts = listOf(
                             "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
                             "https://fonts.googleapis.com/icon?family=Material+Icons+Outlined"
@@ -49,6 +43,18 @@ fun Application.browserExtensionRouting(foldersRepo: FoldersRepo) {
 private suspend fun BODY.BrowserExtensionUI(foldersRepo: FoldersRepo) {
     val folders = (foldersRepo.getRootFolders() as Result.Success).response
     Column(modifier = Modifier.margin(15.px)) {
+        Button(
+            modifier = Modifier.cursor(Cursor.Pointer).height(25.px).margin(bottom = 10.px)
+                .backgroundColor(Colors.codeblockBG).color(Colors.onPrimaryContainerDark),
+            id = "change-extension-config",
+            onClick = { "" }) {
+            Text(
+                text = "Change Extension Config",
+                fontWeight = FontWeight.Predefined.Normal,
+                fontSize = 12.px,
+                fontFamily = "Inter",
+            )
+        }
         Text(
             text = "Link address",
             fontFamily = "Inter",
@@ -108,47 +114,55 @@ private suspend fun BODY.BrowserExtensionUI(foldersRepo: FoldersRepo) {
             color = Colors.primaryDark,
         )
         Spacer(modifier = Modifier.height(10.px))
-
-        FolderComponent(
-            icon = "link", folder = Folder(
-                id = -1, name = "Saved Links", note = "", parentFolderId = 0, isArchived = false, eventTimestamp = 0
-            )
-        )
-
-        FolderComponent(
-            icon = "star_outline", folder = Folder(
-                id = -2, name = "Important Links", note = "", parentFolderId = 0, isArchived = false, eventTimestamp = 0
-            )
-        )
-        runBlocking {
-            folders.forEach { folder ->
-
-                val childFolders = (foldersRepo.getChildFolders(
-                    idBasedDTO = IDBasedDTO(
-                        id = folder.id,
-                        correlation = Correlation(id = "", clientName = ""),
-                        eventTimestamp = 1527,
-                    )
-                ) as Result.Success).response
-
-                FolderComponent(
-                    showDivider = childFolders.isEmpty(),
-                    folder = folder,
-                    bottomSpacing = if (childFolders.isEmpty()) 12 else 8
+        Div(id = "folders-list") {
+            FolderComponent(
+                icon = "link", folder = Folder(
+                    id = -1, name = "Saved Links", note = "", parentFolderId = 0, isArchived = false, eventTimestamp = 0
                 )
-                if (childFolders.isNotEmpty()) {
-                    ChildFoldersComponent(foldersRepo = foldersRepo, folders = childFolders)
-                    Spacer(
-                        modifier = Modifier.height(8.px)
+            )
+
+            FolderComponent(
+                icon = "star_outline", folder = Folder(
+                    id = -2,
+                    name = "Important Links",
+                    note = "",
+                    parentFolderId = 0,
+                    isArchived = false,
+                    eventTimestamp = 0
+                )
+            )
+
+            runBlocking {
+                folders.forEach { folder ->
+
+                    val childFolders = (foldersRepo.getChildFolders(
+                        idBasedDTO = IDBasedDTO(
+                            id = folder.id,
+                            correlation = Correlation(id = "", clientName = ""),
+                            eventTimestamp = 1527,
+                        )
+                    ) as Result.Success).response
+
+                    FolderComponent(
+                        showDivider = childFolders.isEmpty(),
+                        folder = folder,
+                        bottomSpacing = if (childFolders.isEmpty()) 12 else 8
                     )
-                    Spacer(
-                        modifier = Modifier.fillMaxWidth(0.95).margin(start = 10.px, end = 15.px, bottom = 12.px)
-                            .padding(end = 15.px).height(0.75.px).opacity(0.15).backgroundColor(Colors.outlineDark)
-                            .borderRadius(5.px)
-                    )
+                    if (childFolders.isNotEmpty()) {
+                        ChildFoldersComponent(foldersRepo = foldersRepo, folders = childFolders)
+                        Spacer(
+                            modifier = Modifier.height(8.px)
+                        )
+                        Spacer(
+                            modifier = Modifier.fillMaxWidth(0.95).margin(start = 10.px, end = 15.px, bottom = 12.px)
+                                .padding(end = 15.px).height(0.75.px).opacity(0.15).backgroundColor(Colors.outlineDark)
+                                .borderRadius(5.px)
+                        )
+                    }
                 }
             }
         }
+
     }
 }
 
@@ -186,7 +200,12 @@ private suspend fun DIV.ChildFoldersComponent(
 private fun DIV.FolderComponent(
     folder: Folder, showDivider: Boolean = true, icon: String = "folder", bottomSpacing: Int = 12
 ) {
-    Row(horizontalAlignment = HorizontalAlignment.Center, modifier = Modifier.cursor(Cursor.Pointer)) {
+    Row(
+        className = "folder-component",
+        id = folder.id.toString(),
+        horizontalAlignment = HorizontalAlignment.Center,
+        modifier = Modifier.cursor(Cursor.Pointer)
+    ) {
         span(classes = "material-icons-outlined") {
             style = Modifier.color(
                 Colors.primaryDark
