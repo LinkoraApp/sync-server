@@ -1,5 +1,6 @@
 package com.sakethh.linkora.domain.model
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import java.net.InetAddress
 
@@ -9,6 +10,21 @@ data class ServerConfig(
     val databaseUser: String = "database_user",
     val databasePassword: String = "database_password",
     val hostAddress: String = InetAddress.getLocalHost().hostAddress,
-    val serverPort: Int = 45454,
+    @SerialName("serverPort") val httpPort: Int = 45454,
+    val httpsPort: Int = 54545,
     val serverAuthToken: String = "TOKEN",
-)
+    val keyStorePassword: String? = null
+) {
+    companion object {
+        fun generateAToken(): String {
+            return run {
+                val chars = (0..9) + ('a'..'z') + ('A'..'Z') + listOf('!', '@', '#', '$', '%', '^', '&', '*')
+                buildString {
+                    repeat(45) {
+                        append(chars.random())
+                    }
+                }
+            }
+        }
+    }
+}

@@ -51,6 +51,8 @@ dependencies {
     implementation("com.microsoft.sqlserver:mssql-jdbc:9.4.1.jre8")
     implementation("io.github.sakethpathike:kapsule:0.1.2")
     implementation("org.jetbrains:markdown:0.7.3")
+
+    implementation("io.ktor:ktor-network-tls-certificates-jvm")
 }
 
 tasks.named<JavaExec>("run") {

@@ -9,8 +9,8 @@ import com.sakethh.linkora.presentation.routing.configureRouting
 import com.sakethh.linkora.presentation.routing.websocket.configureEventsWebSocket
 import com.sakethh.linkora.utils.SysEnvKey
 import com.sakethh.linkora.utils.useSysEnvValues
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpMethod
+import io.ktor.http.*
+import io.ktor.network.tls.certificates.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
@@ -19,18 +19,42 @@ import io.ktor.server.websocket.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.awt.Desktop
+import java.io.FileInputStream
+import java.net.Inet4Address
 import java.net.InetAddress
-import java.net.URI
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
+import java.security.KeyStore
+import kotlin.io.path.exists
 import kotlin.time.Duration.Companion.seconds
 
 fun main() {
     val serverConfig = ServerConfiguration.readConfig()
+    val serverKeyStore = ServerConfiguration.createOrLoadServerKeystore(
+        serverConfig
+    )
+    require(serverConfig.keyStorePassword != null && serverConfig.keyStorePassword.isNotBlank()) {
+        "keyStorePassword value must be set in ServerConfig."
+    }
     embeddedServer(
-        Netty, port = serverConfig.serverPort, host = serverConfig.hostAddress, module = Application::module
-    ).start(wait = true)
+        factory = Netty, configure = {
+        sslConnector(builder = {
+            this.port = serverConfig.httpsPort
+            this.host = Inet4Address.getLocalHost().hostAddress
+            enabledProtocols = listOf("TLSv1.3", "TLSv1.2")
+        }, keyStore = serverKeyStore, keyAlias = Constants.KEY_STORE_ALIAS, keyStorePassword = {
+            serverConfig.keyStorePassword.toCharArray()
+        }, privateKeyPassword = {
+            serverConfig.keyStorePassword.toCharArray()
+        })
+
+        // for http connections
+        connector {
+            this.port = serverConfig.httpPort
+            this.host = serverConfig.hostAddress
+        }
+    }, module = Application::module).start(wait = true)
 }
 
 object ServerConfiguration {
@@ -73,7 +97,8 @@ object ServerConfiguration {
                     databaseUrl = if (dataBaseUrl.endsWith("/linkora").not()) "$dataBaseUrl/linkora" else dataBaseUrl,
                     databaseUser = dataBaseUserName,
                     databasePassword = dataBasePassword,
-                    serverAuthToken = serverAuthToken
+                    serverAuthToken = serverAuthToken,
+                    keyStorePassword = ServerConfig.generateAToken()
                 )
                 val jsonConfigString = json.encodeToString(serverConfig)
                 println(jsonConfigString)
@@ -83,6 +108,14 @@ object ServerConfiguration {
                 throw IllegalArgumentException()
             }
         }
+    }
+
+    fun createConfig(serverConfig: ServerConfig) {
+        require(serverConfig.keyStorePassword != null && serverConfig.keyStorePassword.isNotBlank()) {
+            "keyStorePassword value must be set in ServerConfig."
+        }
+        val jsonConfigString = json.encodeToString(serverConfig)
+        Files.writeString(configFilePath, jsonConfigString, StandardOpenOption.TRUNCATE_EXISTING)
     }
 
     fun readConfig(): ServerConfig {
@@ -97,24 +130,70 @@ object ServerConfiguration {
                 } catch (_: Exception) {
                     InetAddress.getLocalHost().hostAddress
                 },
-                serverPort = try {
+                httpPort = try {
                     System.getenv(SysEnvKey.LINKORA_SERVER_PORT.name).toInt()
                 } catch (_: Exception) {
                     45454
                 },
-                serverAuthToken = System.getenv(SysEnvKey.LINKORA_SERVER_AUTH_TOKEN.name)
+                httpsPort = try {
+                    System.getenv(SysEnvKey.LINKORA_HTTPS_PORT.name).toInt()
+                } catch (_: Exception) {
+                    54545
+                },
+                serverAuthToken = System.getenv(SysEnvKey.LINKORA_SERVER_AUTH_TOKEN.name),
+                keyStorePassword = System.getenv(SysEnvKey.LINKORA_KEY_STORE_PASSWORD.name)
             )
         } else {
             createConfig(forceWrite = false)
             Files.readString(configFilePath).let {
                 try {
                     json.decodeFromString<ServerConfig>(it).let {
-                        it.copy(databaseUrl = "jdbc:" + it.databaseUrl)
+                        val newKeyPassword = ServerConfig.generateAToken()
+                        it.run {
+                            if (keyStorePassword == null) {
+                                createConfig(serverConfig = it.copy(keyStorePassword = newKeyPassword))
+                            }
+                            copy(
+                                databaseUrl = "jdbc:" + it.databaseUrl,
+                                keyStorePassword = keyStorePassword ?: newKeyPassword
+                            )
+                        }
                     }
                 } catch (_: Exception) {
                     println("It seems you’ve manipulated `linkoraConfig.json` and messed things up a bit. No problemo, we’ll restart the configuration process to make sure things go smoothly.")
                     createConfig(forceWrite = true)
                     readConfig()
+                }
+            }
+        }
+    }
+
+    fun createOrLoadServerKeystore(serverConfig: ServerConfig, forceCreate: Boolean = false): KeyStore {
+        require(serverConfig.keyStorePassword != null && serverConfig.keyStorePassword.isNotBlank()) {
+            "keyStorePassword value must be set in ServerConfig."
+        }
+        val keyStore = buildKeyStore {
+            this.certificate(
+                alias = Constants.KEY_STORE_ALIAS, block = {
+                    this.password = serverConfig.keyStorePassword
+                    this.domains = listOf(Inet4Address.getLocalHost().hostAddress)
+                    this.ipAddresses = listOf(Inet4Address.getLocalHost())
+                })
+        }
+        return jarDir.resolve("linkoraServerCert.jks").run {
+            if (forceCreate.not() && exists()) {
+                FileInputStream(toFile()).use { keyStoreFile ->
+                    KeyStore.getInstance(KeyStore.getDefaultType()).also {
+                        println("Loading existing keystore...")
+                        it.load(keyStoreFile, serverConfig.keyStorePassword.toCharArray())
+                    }
+                }
+            } else {
+                keyStore.also {
+                    println("Creating new keystore...")
+                    it.saveToFile(
+                        output = toFile(), password = serverConfig.keyStorePassword
+                    )
                 }
             }
         }
@@ -142,8 +221,7 @@ fun Application.module() {
         maxFrameSize = Long.MAX_VALUE
     }
     configureEventsWebSocket()
-    val serverConfiguredPage =
-        "http://" + serverConfig.hostAddress + ":" + serverConfig.serverPort + "/" + Route.Sync.SERVER_IS_CONFIGURED.name
+    "http://" + serverConfig.hostAddress + ":" + serverConfig.httpPort + "/" + Route.Sync.SERVER_IS_CONFIGURED.name
     if (useSysEnvValues().not() && Desktop.isDesktopSupported() && Desktop.getDesktop()
             .isSupported(Desktop.Action.BROWSE)
     ) {
