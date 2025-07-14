@@ -28,7 +28,8 @@ fun Application.browserExtensionRouting(foldersRepo: FoldersRepo) {
                             "https://fonts.googleapis.com/icon?family=Material+Icons+Outlined"
                         ),
                         modifier = Modifier.width(400.px).height(250.px).backgroundColor(color = Colors.surfaceDark)
-                            .boxSizing(BoxSizing.BorderBox).margin(0.px).padding(0.px).custom("overflow: hidden;")
+                            .boxSizing(BoxSizing.BorderBox).margin(0.px).padding(0.px)
+                            .custom("overflow: auto !important")
                     ) {
                         runBlocking {
                             BrowserExtensionUI(foldersRepo)
@@ -42,7 +43,15 @@ fun Application.browserExtensionRouting(foldersRepo: FoldersRepo) {
 
 private suspend fun BODY.BrowserExtensionUI(foldersRepo: FoldersRepo) {
     val folders = (foldersRepo.getRootFolders() as Result.Success).response
-    Column(modifier = Modifier.margin(15.px)) {
+    Column(
+        modifier = Modifier.margin(15.px).custom(
+            """
+          overflow: auto !important;
+          overflow-x: auto !important;
+          overflow-y: auto !important;
+    """.trimIndent()
+        )
+    ) {
         Button(
             modifier = Modifier.cursor(Cursor.Pointer).height(25.px).margin(bottom = 10.px)
                 .backgroundColor(Colors.codeblockBG).color(Colors.onPrimaryContainerDark),
@@ -211,10 +220,9 @@ private suspend fun DIV.ChildFoldersComponent(
 private fun DIV.FolderComponent(
     folder: Folder, showDivider: Boolean = true, icon: String = "create_new_folder", bottomSpacing: Int = 12
 ) {
-    Row (
-        className = "folder-component",
-        horizontalAlignment = HorizontalAlignment.Center
-    ){
+    Row(
+        className = "folder-component", horizontalAlignment = HorizontalAlignment.Center
+    ) {
         span(classes = "material-icons-outlined") {
             id = "${folder.name}-${folder.id}"
             style = Modifier.color(
