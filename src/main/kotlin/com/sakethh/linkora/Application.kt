@@ -68,7 +68,7 @@ object ServerConfiguration {
         prettyPrint = true
         encodeDefaults = true
     }
-    private val jarDir = Paths.get(this::class.java.protectionDomain.codeSource.location.toURI()).parent
+    val jarDir = Paths.get(this::class.java.protectionDomain.codeSource.location.toURI()).parent
     private val configFilePath = jarDir.resolve("linkoraConfig.json")
 
     private fun doesConfigFileExists(): Boolean {
