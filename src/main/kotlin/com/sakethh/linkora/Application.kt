@@ -20,12 +20,17 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.awt.Desktop
 import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.io.FileWriter
 import java.net.Inet4Address
 import java.net.InetAddress
+import java.net.URI
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.nio.file.StandardOpenOption
 import java.security.KeyStore
+import java.util.*
+import javax.security.auth.x500.X500Principal
 import kotlin.io.path.exists
 import kotlin.time.Duration.Companion.seconds
 
@@ -37,6 +42,7 @@ fun main() {
     require(serverConfig.keyStorePassword != null && serverConfig.keyStorePassword.isNotBlank()) {
         "keyStorePassword value must be set in ServerConfig."
     }
+    ServerConfiguration.exportSignedCertificates(serverKeyStore)
     embeddedServer(
         factory = Netty, configure = {
         sslConnector(builder = {
@@ -168,6 +174,26 @@ object ServerConfiguration {
         }
     }
 
+    fun exportSignedCertificates(keyStore: KeyStore) {
+        val destinationPathForCer = jarDir.resolve("linkoraServerCert.cer")
+        val destinationPathForPem = jarDir.resolve("linkoraServerCert.pem")
+        val signedCertificate = keyStore.getCertificate(Constants.KEY_STORE_ALIAS)
+
+        if (!destinationPathForCer.exists()) {
+            FileOutputStream(destinationPathForCer.toFile()).use {
+                it.write(signedCertificate.encoded)
+            }
+        }
+
+        if (!destinationPathForPem.exists()) {
+            FileWriter(destinationPathForPem.toFile()).use {
+                it.write("-----BEGIN CERTIFICATE-----\n")
+                it.write(Base64.getMimeEncoder().encodeToString(signedCertificate.encoded))
+                it.write("\n-----END CERTIFICATE-----\n")
+            }
+        }
+    }
+
     fun createOrLoadServerKeystore(serverConfig: ServerConfig, forceCreate: Boolean = false): KeyStore {
         require(serverConfig.keyStorePassword != null && serverConfig.keyStorePassword.isNotBlank()) {
             "keyStorePassword value must be set in ServerConfig."
@@ -178,6 +204,8 @@ object ServerConfiguration {
                     this.password = serverConfig.keyStorePassword
                     this.domains = listOf(Inet4Address.getLocalHost().hostAddress)
                     this.ipAddresses = listOf(Inet4Address.getLocalHost())
+                    this.daysValid = 365
+                    this.subject = X500Principal("CN=linkora-sync, OU=Linkora, O=Linkora, C=West Elizabeth")
                 })
         }
         return jarDir.resolve("linkoraServerCert.jks").run {
@@ -221,10 +249,11 @@ fun Application.module() {
         maxFrameSize = Long.MAX_VALUE
     }
     configureEventsWebSocket()
-    "http://" + serverConfig.hostAddress + ":" + serverConfig.httpPort + "/" + Route.Sync.SERVER_IS_CONFIGURED.name
+    val serverConfiguredPage =
+        "https://" + Inet4Address.getLocalHost().hostAddress + ":" + serverConfig.httpsPort + "/" + Route.Sync.SERVER_IS_CONFIGURED.name
     if (useSysEnvValues().not() && Desktop.isDesktopSupported() && Desktop.getDesktop()
             .isSupported(Desktop.Action.BROWSE)
     ) {
-        // Desktop.getDesktop().browse(URI(serverConfiguredPage))
+        Desktop.getDesktop().browse(URI(serverConfiguredPage))
     }
 }
