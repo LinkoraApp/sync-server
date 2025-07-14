@@ -6,12 +6,6 @@ This server is meant to communicate only with the **[Linkora](https://github.com
 
 #{PLACEHOLDER_1}
 
-### **HTTPS Support**
-- If you're **hosting locally**, you **can't connect** via **HTTPS** right now.
-- HTTPS requires a **trusted certificate** from a recognized Certificate Authority (CA), which isn’t typically applicable for local setups.
-- The other way is to manually generate a self-signed certificate and configure it, which may be added in future versions.
-- If you're **hosting on a cloud service**, you can use HTTPS by setting up an SSL certificate through your provider.
-
 ### **Database & Data Syncing**
 - Apps have their **own databases**.
 - This server is **only meant to store your data** in the local system that you're currently running on.
