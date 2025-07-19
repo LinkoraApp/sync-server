@@ -20,12 +20,13 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.inList
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.update
+import org.jetbrains.exposed.v1.core.SqlExpressionBuilder.inList
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.jdbc.deleteWhere
+import org.jetbrains.exposed.v1.jdbc.select
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.update
 import java.time.Instant
 
 class MultiActionRepoImpl(
@@ -73,8 +74,7 @@ class MultiActionRepoImpl(
             Result.Success(
                 response = TimeStampBasedResponse(
                     eventTimestamp = eventTimestamp, message = "Archived $updatedRowsCount items."
-                ),
-                webSocketEvent = WebSocketEvent(
+                ), webSocketEvent = WebSocketEvent(
                     operation = Route.MultiAction.ARCHIVE_MULTIPLE_ITEMS.name,
                     payload = Json.encodeToJsonElement(archiveMultipleItemsDTO.copy(eventTimestamp = eventTimestamp))
                 )
@@ -192,7 +192,6 @@ class MultiActionRepoImpl(
                 }.toList()
 
 
-
                 // initially, we'll insert the root folders
                 lateinit var copiedRootFolderIds: List<Long>
                 val sourceRootFolders = FoldersTable.selectAll().where {
@@ -299,8 +298,7 @@ class MultiActionRepoImpl(
                     ), webSocketEvent = WebSocketEvent(
                         operation = Route.MultiAction.COPY_EXISTING_ITEMS.name, payload = Json.encodeToJsonElement(
                             CopyItemsSocketResponseDTO(
-                                eventTimestamp = eventTimestamp,
-                                correlation = copyItemsDTO.correlation
+                                eventTimestamp = eventTimestamp, correlation = copyItemsDTO.correlation
                             )
                         )
                     )

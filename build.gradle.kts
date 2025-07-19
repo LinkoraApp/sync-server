@@ -39,8 +39,8 @@ dependencies {
     implementation("io.ktor:ktor-server-cors")
     testImplementation("io.ktor:ktor-server-test-host-jvm")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
-    implementation("org.jetbrains.exposed:exposed-core:0.56.0")
-    implementation("org.jetbrains.exposed:exposed-jdbc:0.56.0")
+    implementation("org.jetbrains.exposed:exposed-core:1.0.0-beta-4")
+    implementation("org.jetbrains.exposed:exposed-jdbc:1.0.0-beta-4")
 
     implementation("org.xerial:sqlite-jdbc:3.44.1.0")
     implementation("com.h2database:h2:2.2.224")

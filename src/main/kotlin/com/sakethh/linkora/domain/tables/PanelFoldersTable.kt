@@ -1,6 +1,6 @@
 package com.sakethh.linkora.domain.tables
 
-import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 
 object PanelFoldersTable : LongIdTable(name = "panel_folders") {
     val folderId = long(name = "folder_id")

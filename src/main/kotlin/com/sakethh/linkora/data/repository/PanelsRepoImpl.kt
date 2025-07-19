@@ -15,12 +15,12 @@ import com.sakethh.linkora.utils.checkForLWWConflictAndThrow
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.insertAndGetId
-import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.update
+import org.jetbrains.exposed.v1.core.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.jdbc.deleteWhere
+import org.jetbrains.exposed.v1.jdbc.insertAndGetId
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.update
 import java.time.Instant
 
 class PanelsRepoImpl : PanelsRepo {
@@ -37,8 +37,7 @@ class PanelsRepoImpl : PanelsRepo {
                 Result.Success(
                     response = NewItemResponseDTO(
                         timeStampBasedResponse = TimeStampBasedResponse(
-                            message = "New panel added with id : $it",
-                            eventTimestamp = eventTimestamp
+                            message = "New panel added with id : $it", eventTimestamp = eventTimestamp
                         ),
                         id = it,
                         correlation = addANewPanelDTO.correlation,
@@ -119,8 +118,7 @@ class PanelsRepoImpl : PanelsRepo {
                 response = TimeStampBasedResponse(
                     message = "Deleted the panel and respective connected panel folders (id : ${idBasedDTO.id}) successfully.",
                     eventTimestamp = eventTimestamp
-                ),
-                webSocketEvent = WebSocketEvent(
+                ), webSocketEvent = WebSocketEvent(
                     operation = Route.Panel.DELETE_A_PANEL.name,
                     payload = Json.encodeToJsonElement(idBasedDTO.copy(eventTimestamp = eventTimestamp))
                 )
@@ -150,8 +148,7 @@ class PanelsRepoImpl : PanelsRepo {
                 response = TimeStampBasedResponse(
                     eventTimestamp = eventTimestamp,
                     message = "Updated panel name to ${updatePanelNameDTO.newName} (id : ${updatePanelNameDTO.panelId})."
-                ),
-                webSocketEvent = WebSocketEvent(
+                ), webSocketEvent = WebSocketEvent(
                     operation = Route.Panel.UPDATE_A_PANEL_NAME.name,
                     payload = Json.encodeToJsonElement(updatePanelNameDTO.copy(eventTimestamp = eventTimestamp))
                 )
@@ -178,10 +175,8 @@ class PanelsRepoImpl : PanelsRepo {
                 response = TimeStampBasedResponse(
                     eventTimestamp = eventTimestamp,
                     message = "Deleted folder from all panel folders where id = ${idBasedDTO.id}."
-                ),
-                webSocketEvent = WebSocketEvent(
-                    operation = Route.Panel.DELETE_A_FOLDER_FROM_ALL_PANELS.name,
-                    payload = Json.encodeToJsonElement(
+                ), webSocketEvent = WebSocketEvent(
+                    operation = Route.Panel.DELETE_A_FOLDER_FROM_ALL_PANELS.name, payload = Json.encodeToJsonElement(
                         idBasedDTO.copy(
                             eventTimestamp = eventTimestamp
                         )
@@ -210,8 +205,7 @@ class PanelsRepoImpl : PanelsRepo {
                 response = TimeStampBasedResponse(
                     eventTimestamp = eventTimestamp,
                     message = "Deleted the folder with id ${deleteAPanelFromAFolderDTO.folderID} from a panel with id ${deleteAPanelFromAFolderDTO.panelId}."
-                ),
-                webSocketEvent = WebSocketEvent(
+                ), webSocketEvent = WebSocketEvent(
                     operation = Route.Panel.DELETE_A_FOLDER_FROM_A_PANEL.name,
                     payload = Json.encodeToJsonElement(deleteAPanelFromAFolderDTO.copy(eventTimestamp = eventTimestamp))
                 )
@@ -238,8 +232,7 @@ class PanelsRepoImpl : PanelsRepo {
                 response = TimeStampBasedResponse(
                     message = "Deleted all folders from the panel with id : ${idBasedDTO.id}.",
                     eventTimestamp = eventTimestamp
-                ),
-                webSocketEvent = WebSocketEvent(
+                ), webSocketEvent = WebSocketEvent(
                     operation = Route.Panel.DELETE_ALL_FOLDERS_FROM_A_PANEL.name,
                     payload = Json.encodeToJsonElement(idBasedDTO.copy(eventTimestamp = eventTimestamp))
                 )

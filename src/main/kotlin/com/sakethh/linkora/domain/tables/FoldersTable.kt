@@ -1,6 +1,6 @@
 package com.sakethh.linkora.domain.tables
 
-import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 
 object FoldersTable : LongIdTable(name = "folders_table") {
     val lastModified = long("last_modified")

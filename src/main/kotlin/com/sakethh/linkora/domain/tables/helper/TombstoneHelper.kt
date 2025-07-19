@@ -1,7 +1,7 @@
 package com.sakethh.linkora.domain.tables.helper
 
 import com.sakethh.linkora.domain.tables.TombstoneTable
-import org.jetbrains.exposed.sql.insert
+import org.jetbrains.exposed.v1.jdbc.insert
 
 object TombStoneHelper {
     fun insert(payload: String, operation: String, deletedAt: Long) {

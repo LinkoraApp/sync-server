@@ -1,6 +1,6 @@
 package com.sakethh.linkora.domain.tables
 
-import org.jetbrains.exposed.dao.id.LongIdTable
+import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 
 object LinksTable : LongIdTable(name = "links_table") {
     val lastModified = long("last_modified")
