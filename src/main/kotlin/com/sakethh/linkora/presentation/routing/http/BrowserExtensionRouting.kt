@@ -17,26 +17,24 @@ import kotlinx.html.stream.createHTML
 import sakethh.kapsule.*
 import sakethh.kapsule.utils.*
 
-fun Application.browserExtensionRouting(foldersRepo: FoldersRepo) {
-    routing {
-        authenticate {
-            get("/browser-extension") {
-                call.respondText(text = createHTML().html {
-                    Surface(
-                        fonts = listOf(
-                            "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
-                            "https://fonts.googleapis.com/icon?family=Material+Icons+Outlined"
-                        ),
-                        modifier = Modifier.width(400.px).height(250.px).backgroundColor(color = Colors.surfaceDark)
-                            .boxSizing(BoxSizing.BorderBox).margin(0.px).padding(0.px)
-                            .custom("overflow: auto !important")
-                    ) {
-                        runBlocking {
-                            BrowserExtensionUI(foldersRepo)
-                        }
+fun Routing.browserExtensionRouting(foldersRepo: FoldersRepo) {
+    authenticate {
+        get("/browser-extension") {
+            call.respondText(text = createHTML().html {
+                Surface(
+                    fonts = listOf(
+                        "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
+                        "https://fonts.googleapis.com/icon?family=Material+Icons+Outlined"
+                    ),
+                    modifier = Modifier.width(400.px).height(250.px).backgroundColor(color = Colors.surfaceDark)
+                        .boxSizing(BoxSizing.BorderBox).margin(0.px).padding(0.px)
+                        .custom("overflow: auto !important")
+                ) {
+                    runBlocking {
+                        BrowserExtensionUI(foldersRepo)
                     }
-                }, contentType = ContentType.Text.Html)
-            }
+                }
+            }, contentType = ContentType.Text.Html)
         }
     }
 }

@@ -10,32 +10,30 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 
-fun Application.syncRouting(syncRepo: SyncRepo) {
-    routing {
-        authenticate {
-            get(Route.Sync.GET_TOMBSTONES.name) {
-                val eventTimestamp = getTimeStampFromParam() ?: return@get
-                try {
-                    call.respond(syncRepo.getTombstonesAfter(eventTimestamp))
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    call.respond(e.message.toString())
-                }
+fun Routing.syncRouting(syncRepo: SyncRepo) {
+    authenticate {
+        get(Route.Sync.GET_TOMBSTONES.name) {
+            val eventTimestamp = getTimeStampFromParam() ?: return@get
+            try {
+                call.respond(syncRepo.getTombstonesAfter(eventTimestamp))
+            } catch (e: Exception) {
+                e.printStackTrace()
+                call.respond(e.message.toString())
             }
+        }
 
-            get(Route.Sync.GET_UPDATES.name) {
-                val eventTimestamp = getTimeStampFromParam() ?: return@get
-                try {
-                    call.respond(syncRepo.getUpdatesAfter(eventTimestamp))
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    call.respond(e.message.toString())
-                }
+        get(Route.Sync.GET_UPDATES.name) {
+            val eventTimestamp = getTimeStampFromParam() ?: return@get
+            try {
+                call.respond(syncRepo.getUpdatesAfter(eventTimestamp))
+            } catch (e: Exception) {
+                e.printStackTrace()
+                call.respond(e.message.toString())
             }
+        }
 
-            post<DeleteEverythingDTO>(Route.Sync.DELETE_EVERYTHING.name) {
-                respondWithResult(syncRepo.deleteEverything(it))
-            }
+        post<DeleteEverythingDTO>(Route.Sync.DELETE_EVERYTHING.name) {
+            respondWithResult(syncRepo.deleteEverything(it))
         }
     }
 }

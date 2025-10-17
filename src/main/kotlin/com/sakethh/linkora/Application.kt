@@ -11,6 +11,7 @@ import com.sakethh.linkora.utils.SysEnvKey
 import com.sakethh.linkora.utils.useSysEnvValues
 import io.ktor.http.*
 import io.ktor.network.tls.certificates.*
+import io.ktor.network.tls.extensions.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
@@ -24,6 +25,7 @@ import java.io.FileOutputStream
 import java.io.FileWriter
 import java.net.Inet4Address
 import java.net.InetAddress
+import java.net.NetworkInterface
 import java.net.URI
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -47,7 +49,7 @@ fun main() {
         factory = Netty, configure = {
         sslConnector(builder = {
             this.port = serverConfig.httpsPort
-            this.host = Inet4Address.getLocalHost().hostAddress
+            this.host = hostIp?.hostAddress ?: localhost.hostAddress
             enabledProtocols = listOf("TLSv1.3", "TLSv1.2")
         }, keyStore = serverKeyStore, keyAlias = Constants.KEY_STORE_ALIAS, keyStorePassword = {
             serverConfig.keyStorePassword.toCharArray()
@@ -62,6 +64,17 @@ fun main() {
         }
     }, module = Application::module).start(wait = true)
 }
+
+private val hostIp = try {
+    NetworkInterface.getNetworkInterfaces().asSequence().flatMap { it.inetAddresses.asSequence() }.firstOrNull {
+        !it.isLoopbackAddress && it is Inet4Address && it.isSiteLocalAddress
+    }
+} catch (e: Exception) {
+    e.printStackTrace()
+    null
+}
+
+private val localhost = Inet4Address.getLocalHost()
 
 object ServerConfiguration {
     private val json = Json {
@@ -202,10 +215,13 @@ object ServerConfiguration {
             this.certificate(
                 alias = Constants.KEY_STORE_ALIAS, block = {
                     this.password = serverConfig.keyStorePassword
-                    this.domains = listOf(Inet4Address.getLocalHost().hostAddress)
-                    this.ipAddresses = listOf(Inet4Address.getLocalHost())
+                    this.domains = listOf(hostIp?.hostAddress ?: localhost.hostAddress)
+                    this.ipAddresses = listOf(hostIp ?: localhost)
                     this.daysValid = 365
                     this.subject = X500Principal("CN=linkora-sync, OU=Linkora, O=Linkora, C=West Elizabeth")
+                    this.keySizeInBits = 2048
+                    this.hash = HashAlgorithm.SHA256
+                    this.sign = SignatureAlgorithm.RSA
                 })
         }
         return jarDir.resolve("linkoraServerCert.jks").run {
@@ -249,8 +265,8 @@ fun Application.module() {
         maxFrameSize = Long.MAX_VALUE
     }
     configureEventsWebSocket()
-    val serverConfiguredPage =
-        "https://" + Inet4Address.getLocalHost().hostAddress + ":" + serverConfig.httpsPort + "/" + Route.Sync.SERVER_IS_CONFIGURED.name
+    val serverConfiguredPage = "https://" + (hostIp?.hostAddress
+        ?: localhost?.hostAddress) + ":" + serverConfig.httpsPort + "/" + Route.Sync.SERVER_IS_CONFIGURED.name
     if (useSysEnvValues().not() && Desktop.isDesktopSupported() && Desktop.getDesktop()
             .isSupported(Desktop.Action.BROWSE)
     ) {

@@ -70,6 +70,39 @@ class FoldersRepoImpl(private val panelsRepo: PanelsRepo) : FoldersRepo {
         }
     }
 
+    override suspend fun updateFolder(folderDTO: FolderDTO): Result<TimeStampBasedResponse> {
+        return try {
+            FoldersTable.checkForLWWConflictAndThrow(
+                id = folderDTO.id,
+                timeStamp = folderDTO.eventTimestamp,
+                lastModifiedColumn = FoldersTable.lastModified
+            )
+            val eventTimestamp = Instant.now().epochSecond
+            transaction {
+                FoldersTable.update(where = {
+                    FoldersTable.id eq folderDTO.id
+                }) { folder ->
+                    folder[lastModified] = eventTimestamp
+                    folder[folderName] = folderDTO.name
+                    folder[note] = folderDTO.note
+                    folder[parentFolderID] = folderDTO.parentFolderId
+                    folder[isFolderArchived] = folderDTO.isArchived
+                }
+            }.let {
+                Result.Success(
+                    response = TimeStampBasedResponse(
+                        message = "Folder updated successfully.",
+                        eventTimestamp = eventTimestamp
+                    ),
+                    webSocketEvent = WebSocketEvent(
+                        operation = Route.Folder.CREATE_FOLDER.name, payload = Json.encodeToJsonElement(folderDTO),
+                    )
+                )
+            }
+        } catch (e: Exception) {
+            Result.Failure(e)
+        }
+    }
     override suspend fun deleteFolder(idBasedDTO: IDBasedDTO): Result<TimeStampBasedResponse> {
         return try {
             val eventTimestamp = Instant.now().epochSecond

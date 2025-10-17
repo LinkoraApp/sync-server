@@ -1,6 +1,7 @@
 package com.sakethh.linkora.utils
 
 import com.sakethh.linkora.domain.LWWConflictException
+import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.tables.FoldersTable
 import com.sakethh.linkora.domain.tables.LinksTable
 import org.jetbrains.exposed.v1.core.Column
@@ -61,5 +62,13 @@ fun LinksTable.copy(source: List<ResultRow>, eventTimestamp: Long, parentFolderI
         set(userAgent, it[userAgent])
         set(mediaType, it[mediaType])
         set(markedAsImportant, it[markedAsImportant])
+    }
+}
+
+inline fun <T> tryAndCatchResult(init: () -> Result<T>): Result<T> {
+    return try {
+        init()
+    } catch (e: Exception) {
+        Result.Failure(e)
     }
 }

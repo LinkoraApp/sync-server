@@ -1,5 +1,6 @@
 package com.sakethh.linkora.data.repository
 
+import com.sakethh.linkora.domain.LWWConflictException
 import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.Route
@@ -7,8 +8,10 @@ import com.sakethh.linkora.domain.dto.IDBasedDTO
 import com.sakethh.linkora.domain.dto.NewItemResponseDTO
 import com.sakethh.linkora.domain.dto.TimeStampBasedResponse
 import com.sakethh.linkora.domain.dto.link.*
+import com.sakethh.linkora.domain.dto.tag.LinkTagDTO
 import com.sakethh.linkora.domain.model.WebSocketEvent
 import com.sakethh.linkora.domain.repository.LinksRepo
+import com.sakethh.linkora.domain.tables.LinkTagTable
 import com.sakethh.linkora.domain.tables.LinksTable
 import com.sakethh.linkora.domain.tables.LinksTable.lastModified
 import com.sakethh.linkora.domain.tables.TombstoneTable
@@ -20,12 +23,8 @@ import kotlinx.serialization.json.encodeToJsonElement
 import org.jetbrains.exposed.v1.core.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.v1.core.SqlExpressionBuilder.inList
 import org.jetbrains.exposed.v1.core.and
-import org.jetbrains.exposed.v1.jdbc.batchInsert
-import org.jetbrains.exposed.v1.jdbc.deleteWhere
-import org.jetbrains.exposed.v1.jdbc.insertAndGetId
-import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.*
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
-import org.jetbrains.exposed.v1.jdbc.update
 import java.time.Instant
 
 class LinksRepoImpl : LinksRepo {
@@ -54,7 +53,7 @@ class LinksRepoImpl : LinksRepo {
                             LinksTable.deleteWhere {
                                 condition
                             }
-                    }
+                        }
                 }
                 LinksTable.insertAndGetId { link ->
                     link[lastModified] = eventTimestamp
@@ -68,6 +67,12 @@ class LinksRepoImpl : LinksRepo {
                     link[userAgent] = addLinkDTO.userAgent
                     link[mediaType] = addLinkDTO.mediaType.name
                     link[markedAsImportant] = addLinkDTO.markedAsImportant
+                }.also { newLinkEntityID ->
+                    LinkTagTable.batchInsert(addLinkDTO.tags) { tagId ->
+                        this[LinkTagTable.lastModified] = eventTimestamp
+                        this[LinkTagTable.linkId] = newLinkEntityID.value
+                        this[LinkTagTable.tagId] = tagId
+                    }
                 }
             }.value.let { idOfNewlyAddedLink ->
                 Result.Success(
@@ -75,9 +80,7 @@ class LinksRepoImpl : LinksRepo {
                         timeStampBasedResponse = TimeStampBasedResponse(
                             message = "Link created successfully for ${addLinkDTO.linkType.name} with id = ${idOfNewlyAddedLink}.",
                             eventTimestamp = eventTimestamp
-                        ),
-                        id = idOfNewlyAddedLink,
-                        correlation = addLinkDTO.correlation
+                        ), id = idOfNewlyAddedLink, correlation = addLinkDTO.correlation
                     ), webSocketEvent = WebSocketEvent(
                         operation = Route.Link.CREATE_A_NEW_LINK.name, payload = Json.encodeToJsonElement(
                             LinkDTO(
@@ -93,8 +96,12 @@ class LinksRepoImpl : LinksRepo {
                                 markedAsImportant = addLinkDTO.markedAsImportant,
                                 mediaType = addLinkDTO.mediaType,
                                 correlation = addLinkDTO.correlation,
-                                eventTimestamp
-                            )
+                                eventTimestamp = eventTimestamp,
+                                linkTags = addLinkDTO.tags.map {
+                                    LinkTagDTO(
+                                        linkId = idOfNewlyAddedLink, tagId = it
+                                    )
+                                })
                         )
                     )
                 )
@@ -120,8 +127,7 @@ class LinksRepoImpl : LinksRepo {
             }
             Result.Success(
                 response = TimeStampBasedResponse(
-                    eventTimestamp = eventTimestamp,
-                    message = "Link deleted successfully."
+                    eventTimestamp = eventTimestamp, message = "Link deleted successfully."
                 ), webSocketEvent = WebSocketEvent(
                     operation = Route.Link.DELETE_A_LINK.name,
                     payload = Json.encodeToJsonElement(idBasedDTO.copy(eventTimestamp = eventTimestamp)),
@@ -152,8 +158,7 @@ class LinksRepoImpl : LinksRepo {
             }
             Result.Success(
                 response = TimeStampBasedResponse(
-                    eventTimestamp = eventTimestamp,
-                    message = "idOfLinkedFolder Updated Successfully."
+                    eventTimestamp = eventTimestamp, message = "idOfLinkedFolder Updated Successfully."
                 ), webSocketEvent = WebSocketEvent(
                     operation = Route.Link.UPDATE_LINKED_FOLDER_ID.name,
                     payload = Json.encodeToJsonElement(updateLinkedFolderIDDto.copy(eventTimestamp = eventTimestamp)),
@@ -183,8 +188,7 @@ class LinksRepoImpl : LinksRepo {
             }
             Result.Success(
                 response = TimeStampBasedResponse(
-                    message = "Title was updated successfully.",
-                    eventTimestamp = eventTimestamp
+                    message = "Title was updated successfully.", eventTimestamp = eventTimestamp
                 ), webSocketEvent = WebSocketEvent(
                     operation = Route.Link.UPDATE_LINK_TITLE.name,
                     payload = Json.encodeToJsonElement(updateTitleOfTheLinkDTO.copy(eventTimestamp = eventTimestamp)),
@@ -213,8 +217,7 @@ class LinksRepoImpl : LinksRepo {
             }
             Result.Success(
                 response = TimeStampBasedResponse(
-                    message = "Note was updated successfully.",
-                    eventTimestamp = eventTimestamp
+                    message = "Note was updated successfully.", eventTimestamp = eventTimestamp
                 ), webSocketEvent = WebSocketEvent(
                     operation = Route.Link.UPDATE_LINK_NOTE.name,
                     payload = Json.encodeToJsonElement(updateNoteOfALinkDTO.copy(eventTimestamp = eventTimestamp)),
@@ -240,8 +243,7 @@ class LinksRepoImpl : LinksRepo {
             }
             Result.Success(
                 response = TimeStampBasedResponse(
-                    message = "User agent was updated successfully.",
-                    eventTimestamp = eventTimestamp
+                    message = "User agent was updated successfully.", eventTimestamp = eventTimestamp
                 ), webSocketEvent = WebSocketEvent(
                     operation = Route.Link.UPDATE_USER_AGENT.name,
                     payload = Json.encodeToJsonElement(updateLinkUserAgentDTO.copy(eventTimestamp = eventTimestamp)),
@@ -255,9 +257,7 @@ class LinksRepoImpl : LinksRepo {
     override suspend fun archiveALink(idBasedDTO: IDBasedDTO): Result<TimeStampBasedResponse> {
         return try {
             LinksTable.checkForLWWConflictAndThrow(
-                id = idBasedDTO.id,
-                timeStamp = idBasedDTO.eventTimestamp,
-                lastModifiedColumn = lastModified
+                id = idBasedDTO.id, timeStamp = idBasedDTO.eventTimestamp, lastModifiedColumn = lastModified
             )
             val eventTimestamp = Instant.now().epochSecond
             transaction {
@@ -270,8 +270,7 @@ class LinksRepoImpl : LinksRepo {
             }
             Result.Success(
                 response = TimeStampBasedResponse(
-                    message = "Archived link with id : ${idBasedDTO.id} successfully",
-                    eventTimestamp = eventTimestamp
+                    message = "Archived link with id : ${idBasedDTO.id} successfully", eventTimestamp = eventTimestamp
                 ), webSocketEvent = WebSocketEvent(
                     operation = Route.Link.ARCHIVE_LINK.name,
                     payload = Json.encodeToJsonElement(idBasedDTO.copy(eventTimestamp = eventTimestamp))
@@ -285,9 +284,7 @@ class LinksRepoImpl : LinksRepo {
     override suspend fun unArchiveALink(idBasedDTO: IDBasedDTO): Result<TimeStampBasedResponse> {
         return try {
             LinksTable.checkForLWWConflictAndThrow(
-                id = idBasedDTO.id,
-                timeStamp = idBasedDTO.eventTimestamp,
-                lastModifiedColumn = lastModified
+                id = idBasedDTO.id, timeStamp = idBasedDTO.eventTimestamp, lastModifiedColumn = lastModified
             )
             val eventTimestamp = Instant.now().epochSecond
             transaction {
@@ -302,8 +299,7 @@ class LinksRepoImpl : LinksRepo {
                 response = TimeStampBasedResponse(
                     eventTimestamp = eventTimestamp,
                     message = "Unarchived link with id : ${idBasedDTO.id} successfully as ${LinkType.SAVED_LINK.name}"
-                ),
-                webSocketEvent = WebSocketEvent(
+                ), webSocketEvent = WebSocketEvent(
                     operation = Route.Link.UNARCHIVE_LINK.name,
                     payload = Json.encodeToJsonElement(idBasedDTO.copy(eventTimestamp = eventTimestamp))
                 )
@@ -316,9 +312,7 @@ class LinksRepoImpl : LinksRepo {
     override suspend fun markALinkAsImp(idBasedDTO: IDBasedDTO): Result<TimeStampBasedResponse> {
         return try {
             LinksTable.checkForLWWConflictAndThrow(
-                id = idBasedDTO.id,
-                timeStamp = idBasedDTO.eventTimestamp,
-                lastModifiedColumn = lastModified
+                id = idBasedDTO.id, timeStamp = idBasedDTO.eventTimestamp, lastModifiedColumn = lastModified
             )
             val eventTimestamp = Instant.now().epochSecond
             transaction {
@@ -331,8 +325,7 @@ class LinksRepoImpl : LinksRepo {
             }
             Result.Success(
                 response = TimeStampBasedResponse(
-                    message = "Marked link with id : ${idBasedDTO.id} as Important.",
-                    eventTimestamp = eventTimestamp
+                    message = "Marked link with id : ${idBasedDTO.id} as Important.", eventTimestamp = eventTimestamp
                 ), webSocketEvent = WebSocketEvent(
                     operation = Route.Link.MARK_AS_IMP.name,
                     payload = Json.encodeToJsonElement(idBasedDTO.copy(eventTimestamp = eventTimestamp))
@@ -346,9 +339,7 @@ class LinksRepoImpl : LinksRepo {
     override suspend fun markALinkAsNonImp(idBasedDTO: IDBasedDTO): Result<TimeStampBasedResponse> {
         return try {
             LinksTable.checkForLWWConflictAndThrow(
-                id = idBasedDTO.id,
-                timeStamp = idBasedDTO.eventTimestamp,
-                lastModifiedColumn = lastModified
+                id = idBasedDTO.id, timeStamp = idBasedDTO.eventTimestamp, lastModifiedColumn = lastModified
             )
             val eventTimestamp = Instant.now().epochSecond
             transaction {
@@ -376,9 +367,7 @@ class LinksRepoImpl : LinksRepo {
     override suspend fun updateLink(linkDTO: LinkDTO): Result<TimeStampBasedResponse> {
         return try {
             LinksTable.checkForLWWConflictAndThrow(
-                id = linkDTO.id,
-                timeStamp = linkDTO.eventTimestamp,
-                lastModifiedColumn = lastModified
+                id = linkDTO.id, timeStamp = linkDTO.eventTimestamp, lastModifiedColumn = lastModified
             )
             val eventTimestamp = Instant.now().epochSecond
             transaction {
@@ -397,13 +386,34 @@ class LinksRepoImpl : LinksRepo {
                     it[mediaType] = linkDTO.mediaType.name
                     it[markedAsImportant] = linkDTO.markedAsImportant
                 }
+
+                val existingSelectedTags =
+                    LinkTagTable.selectAll().where { LinkTagTable.linkId eq linkDTO.id }.toList().map {
+                        LinkTagDTO(linkId = it[LinkTagTable.linkId], tagId = it[LinkTagTable.tagId])
+                    }
+
+                val newlySelectedTags = linkDTO.linkTags.filter {
+                    it !in existingSelectedTags
+                }
+
+                val unselectedTags = existingSelectedTags.filter {
+                    it !in linkDTO.linkTags
+                }
+
+                LinkTagTable.deleteWhere {
+                    (LinkTagTable.linkId.eq(linkDTO.id)) and (LinkTagTable.tagId inList unselectedTags.map { it.tagId })
+                }
+
+                LinkTagTable.batchInsert(newlySelectedTags) {
+                    this[LinkTagTable.tagId] = it.tagId
+                    this[LinkTagTable.linkId] = it.linkId
+                    this[LinkTagTable.lastModified] = eventTimestamp
+                }
             }
             Result.Success(
                 response = TimeStampBasedResponse(
-                    eventTimestamp = eventTimestamp,
-                    message = "Updated the link (id : ${linkDTO.id}) successfully."
-                ),
-                webSocketEvent = WebSocketEvent(
+                    eventTimestamp = eventTimestamp, message = "Updated the link (id : ${linkDTO.id}) successfully."
+                ), webSocketEvent = WebSocketEvent(
                     operation = Route.Link.UPDATE_LINK.name,
                     payload = Json.encodeToJsonElement(linkDTO.copy(eventTimestamp = eventTimestamp))
                 )

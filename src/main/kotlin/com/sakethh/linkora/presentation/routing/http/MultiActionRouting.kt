@@ -12,24 +12,22 @@ import com.sakethh.linkora.utils.respondWithResult
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
 
-fun Application.multiActionRouting(multiActionRepo: MultiActionRepo) {
-    routing {
-        authenticate {
-            post<ArchiveMultipleItemsDTO>(Route.MultiAction.ARCHIVE_MULTIPLE_ITEMS.name) {
-                respondWithResult(multiActionRepo.archiveMultipleItems(it))
-            }
-            post<DeleteMultipleItemsDTO>(Route.MultiAction.DELETE_MULTIPLE_ITEMS.name) {
-                respondWithResult(multiActionRepo.deleteMultipleItems(it))
-            }
-            post<MoveItemsDTO>(Route.MultiAction.MOVE_EXISTING_ITEMS.name) {
-                respondWithResult(multiActionRepo.moveMultipleItems(it))
-            }
-            post<CopyItemsDTO>(Route.MultiAction.COPY_EXISTING_ITEMS.name) {
-                respondWithResult(multiActionRepo.copyMultipleItems(it))
-            }
-            post<MarkItemsRegularDTO>(Route.MultiAction.UNARCHIVE_MULTIPLE_ITEMS.name) {
-                respondWithResult(multiActionRepo.markItemsAsRegular(it))
-            }
+fun Routing.multiActionRouting(multiActionRepo: MultiActionRepo) {
+    authenticate {
+        post<ArchiveMultipleItemsDTO>(Route.MultiAction.ARCHIVE_MULTIPLE_ITEMS.name) {
+            respondWithResult(multiActionRepo.archiveMultipleItems(it))
+        }
+        post<DeleteMultipleItemsDTO>(Route.MultiAction.DELETE_MULTIPLE_ITEMS.name) {
+            respondWithResult(multiActionRepo.deleteMultipleItems(it))
+        }
+        post<MoveItemsDTO>(Route.MultiAction.MOVE_EXISTING_ITEMS.name) {
+            respondWithResult(multiActionRepo.moveMultipleItems(it))
+        }
+        post<CopyItemsDTO>(Route.MultiAction.COPY_EXISTING_ITEMS.name) {
+            respondWithResult(multiActionRepo.copyMultipleItems(it))
+        }
+        post<MarkItemsRegularDTO>(Route.MultiAction.UNARCHIVE_MULTIPLE_ITEMS.name) {
+            respondWithResult(multiActionRepo.markItemsAsRegular(it))
         }
     }
 }

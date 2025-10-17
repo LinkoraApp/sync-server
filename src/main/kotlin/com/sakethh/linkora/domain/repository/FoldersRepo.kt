@@ -10,6 +10,7 @@ import com.sakethh.linkora.domain.dto.MoveItemsDTO
 
 interface FoldersRepo {
     suspend fun createFolder(addFolderDTO: AddFolderDTO): Result<NewItemResponseDTO>
+    suspend fun updateFolder(folderDTO: FolderDTO): Result<TimeStampBasedResponse>
     suspend fun deleteFolder(idBasedDTO: IDBasedDTO): Result<TimeStampBasedResponse>
     suspend fun getChildFolders(idBasedDTO: IDBasedDTO): Result<List<Folder>>
     suspend fun getRootFolders(): Result<List<Folder>>

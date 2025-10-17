@@ -12,36 +12,34 @@ import com.sakethh.linkora.utils.respondWithResult
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
 
-fun Application.panelsRouting(panelsRepo: PanelsRepo) {
-    routing {
-        authenticate {
-            post<AddANewPanelDTO>(Route.Panel.ADD_A_NEW_PANEL.name) {
-                respondWithResult(panelsRepo.addANewPanel(it))
-            }
+fun Routing.panelsRouting(panelsRepo: PanelsRepo) {
+    authenticate {
+        post<AddANewPanelDTO>(Route.Panel.ADD_A_NEW_PANEL.name) {
+            respondWithResult(panelsRepo.addANewPanel(it))
+        }
 
-            post<AddANewPanelFolderDTO>(Route.Panel.ADD_A_NEW_FOLDER_IN_A_PANEL.name) {
-                respondWithResult(panelsRepo.addANewFolderInAPanel(it))
-            }
+        post<AddANewPanelFolderDTO>(Route.Panel.ADD_A_NEW_FOLDER_IN_A_PANEL.name) {
+            respondWithResult(panelsRepo.addANewFolderInAPanel(it))
+        }
 
-            post<IDBasedDTO>(Route.Panel.DELETE_A_PANEL.name) {
-                respondWithResult(panelsRepo.deleteAPanel(it))
-            }
+        post<IDBasedDTO>(Route.Panel.DELETE_A_PANEL.name) {
+            respondWithResult(panelsRepo.deleteAPanel(it))
+        }
 
-            post<UpdatePanelNameDTO>(Route.Panel.UPDATE_A_PANEL_NAME.name) {
-                respondWithResult(panelsRepo.updateAPanelName(it))
-            }
+        post<UpdatePanelNameDTO>(Route.Panel.UPDATE_A_PANEL_NAME.name) {
+            respondWithResult(panelsRepo.updateAPanelName(it))
+        }
 
-            post<IDBasedDTO>(Route.Panel.DELETE_A_FOLDER_FROM_ALL_PANELS.name) {
-                respondWithResult(panelsRepo.deleteAFolderFromAllPanels(it))
-            }
+        post<IDBasedDTO>(Route.Panel.DELETE_A_FOLDER_FROM_ALL_PANELS.name) {
+            respondWithResult(panelsRepo.deleteAFolderFromAllPanels(it))
+        }
 
-            post<DeleteAFolderFromAPanelDTO>(Route.Panel.DELETE_A_FOLDER_FROM_A_PANEL.name) {
-                respondWithResult(panelsRepo.deleteAFolderFromAPanel(it))
-            }
+        post<DeleteAFolderFromAPanelDTO>(Route.Panel.DELETE_A_FOLDER_FROM_A_PANEL.name) {
+            respondWithResult(panelsRepo.deleteAFolderFromAPanel(it))
+        }
 
-            post<IDBasedDTO>(Route.Panel.DELETE_ALL_FOLDERS_FROM_A_PANEL.name) {
-                respondWithResult(panelsRepo.deleteAllFoldersFromAPanel(it))
-            }
+        post<IDBasedDTO>(Route.Panel.DELETE_ALL_FOLDERS_FROM_A_PANEL.name) {
+            respondWithResult(panelsRepo.deleteAllFoldersFromAPanel(it))
         }
     }
 }

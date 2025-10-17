@@ -81,4 +81,6 @@ private fun createRequiredTables() {
     SchemaUtils.create(*linkoraTables())
 }
 
-fun linkoraTables() = arrayOf(FoldersTable, LinksTable, TombstoneTable, PanelsTable, PanelFoldersTable)
+fun linkoraTables() = arrayOf(
+    FoldersTable, LinksTable, TombstoneTable, PanelsTable, PanelFoldersTable, TagsTable, LinkTagTable
+)

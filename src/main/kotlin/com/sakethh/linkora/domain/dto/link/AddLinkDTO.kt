@@ -18,5 +18,6 @@ data class AddLinkDTO(
     val markedAsImportant: Boolean,
     val mediaType: MediaType,
     val correlation: Correlation,
-    val eventTimestamp: Long
+    val eventTimestamp: Long,
+    val tags: List<Long>
 )
