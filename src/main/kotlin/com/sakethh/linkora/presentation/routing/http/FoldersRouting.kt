@@ -53,5 +53,9 @@ fun Routing.foldersRouting(foldersRepo: FoldersRepo) {
         post<MarkSelectedFoldersAsRootDTO>(Route.Folder.MARK_FOLDERS_AS_ROOT.name) {
             respondWithResult(foldersRepo.markSelectedFoldersAsRoot(it))
         }
+
+        post<FolderDTO>(Route.Folder.UPDATE_FOLDER.name){
+            respondWithResult(foldersRepo.updateFolder(folderDTO = it))
+        }
     }
 }
