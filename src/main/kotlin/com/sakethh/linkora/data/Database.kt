@@ -10,7 +10,11 @@ import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 private fun connectToADatabase(serverConfig: ServerConfig): Database {
     return Database.connect(
-        url = serverConfig.databaseUrl, user = serverConfig.databaseUser, password = serverConfig.databasePassword
+        url = if (serverConfig.databaseUrl.startsWith("jdbc:sqlite:", ignoreCase = true)) {
+            "${serverConfig.databaseUrl}?foreign_keys=on"
+        } else {
+            serverConfig.databaseUrl
+        }, user = serverConfig.databaseUser, password = serverConfig.databasePassword
     )
 }
 
