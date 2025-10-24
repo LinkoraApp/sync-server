@@ -1,6 +1,7 @@
 package com.sakethh.linkora.utils
 
 import com.sakethh.linkora.domain.LWWConflictException
+import com.sakethh.linkora.domain.LinkType
 import com.sakethh.linkora.domain.Result
 import com.sakethh.linkora.domain.tables.FoldersTable
 import com.sakethh.linkora.domain.tables.LinksTable
@@ -54,10 +55,10 @@ fun FoldersTable.copy(source: List<ResultRow>, eventTimestamp: Long, parentFolde
     }.toList()
 }
 
-fun LinksTable.copy(source: List<ResultRow>, eventTimestamp: Long, parentFolderId: Long?): List<ResultRow> {
+fun LinksTable.copy(source: List<ResultRow>, eventTimestamp: Long, parentFolderId: Long?, newLinkType: LinkType? = null): List<ResultRow> {
     return batchInsert(source) {
         set(lastModified, eventTimestamp)
-        set(linkType, it[linkType])
+        set(linkType, newLinkType?.name ?: it[linkType])
         set(linkTitle, it[linkTitle])
         set(url, it[url])
         set(baseURL, it[baseURL])
