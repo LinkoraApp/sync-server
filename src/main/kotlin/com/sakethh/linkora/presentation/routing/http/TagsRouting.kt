@@ -20,5 +20,8 @@ fun Routing.tagsRouting(tagsRepo: TagsRepo) {
         post<IDBasedDTO>(path = Route.Tag.DELETE_TAG.name) {
             respondWithResult(tagsRepo.deleteATag(it))
         }
+        get(path = Route.Tag.GET_TAGS.name) {
+            respondWithResult(tagsRepo.getTags())
+        }
     }
 }

@@ -8,11 +8,13 @@ import com.sakethh.linkora.domain.dto.TimeStampBasedResponse
 import com.sakethh.linkora.domain.dto.tag.CreateTagDTO
 import com.sakethh.linkora.domain.dto.tag.RenameTagDTO
 import com.sakethh.linkora.domain.dto.tag.TagDTO
+import com.sakethh.linkora.domain.model.Tag
 import com.sakethh.linkora.domain.model.WebSocketEvent
 import com.sakethh.linkora.domain.repository.TagsRepo
 import com.sakethh.linkora.domain.tables.TagsTable
 import com.sakethh.linkora.domain.tables.helper.TombStoneHelper
 import com.sakethh.linkora.utils.checkForLWWConflictAndThrow
+import com.sakethh.linkora.utils.getSystemEpochSeconds
 import com.sakethh.linkora.utils.tryAndCatchResult
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -20,6 +22,7 @@ import kotlinx.serialization.json.encodeToJsonElement
 import org.jetbrains.exposed.v1.core.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
+import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.update
 import java.time.Instant
@@ -27,7 +30,7 @@ import java.time.Instant
 class TagsRepoImpl : TagsRepo {
     override suspend fun createATag(createTagDTO: CreateTagDTO): Result<NewItemResponseDTO> {
         return tryAndCatchResult {
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             transaction {
                 TagsTable.insertAndGetId {
                     it[TagsTable.name] = createTagDTO.name
@@ -36,14 +39,11 @@ class TagsRepoImpl : TagsRepo {
             }.value.let { newTagId ->
                 Result.Success(
                     response = NewItemResponseDTO(
-                        id = newTagId,
-                        timeStampBasedResponse = TimeStampBasedResponse(
+                        id = newTagId, timeStampBasedResponse = TimeStampBasedResponse(
                             eventTimestamp = eventTimestamp,
                             message = "Tag created successfully with the id = $newTagId",
-                        ),
-                        correlation = createTagDTO.correlation
-                    ),
-                    webSocketEvent = WebSocketEvent(
+                        ), correlation = createTagDTO.correlation
+                    ), webSocketEvent = WebSocketEvent(
                         operation = Route.Tag.CREATE_TAG.name, payload = Json.encodeToJsonElement(
                             TagDTO(
                                 id = newTagId,
@@ -65,7 +65,7 @@ class TagsRepoImpl : TagsRepo {
                 timeStamp = renameTagDTO.eventTimestamp,
                 lastModifiedColumn = TagsTable.lastModified
             )
-            val evenTimeStamp = Instant.now().epochSecond
+            val evenTimeStamp = getSystemEpochSeconds()
             transaction {
                 TagsTable.update(where = { TagsTable.id eq renameTagDTO.id }) {
                     it[TagsTable.name] = renameTagDTO.newName
@@ -74,8 +74,7 @@ class TagsRepoImpl : TagsRepo {
             }
             Result.Success(
                 response = TimeStampBasedResponse(
-                    eventTimestamp = evenTimeStamp,
-                    message = "Tag renamed to ${renameTagDTO.newName}"
+                    eventTimestamp = evenTimeStamp, message = "Tag renamed to ${renameTagDTO.newName}"
                 ), webSocketEvent = WebSocketEvent(
                     operation = Route.Tag.RENAME_TAG.name,
                     payload = Json.encodeToJsonElement(renameTagDTO.copy(eventTimestamp = evenTimeStamp))
@@ -86,7 +85,7 @@ class TagsRepoImpl : TagsRepo {
 
     override suspend fun deleteATag(idBasedDTO: IDBasedDTO): Result<TimeStampBasedResponse> {
         return tryAndCatchResult {
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             transaction {
                 TombStoneHelper.insert(
                     payload = Json.encodeToString(idBasedDTO.copy(eventTimestamp = eventTimestamp)),
@@ -99,14 +98,29 @@ class TagsRepoImpl : TagsRepo {
             }
             Result.Success(
                 response = TimeStampBasedResponse(
-                    eventTimestamp = eventTimestamp,
-                    message = "Tag has been deleted."
-                ),
-                webSocketEvent = WebSocketEvent(
+                    eventTimestamp = eventTimestamp, message = "Tag has been deleted."
+                ), webSocketEvent = WebSocketEvent(
                     operation = Route.Tag.DELETE_TAG.name,
                     payload = Json.encodeToJsonElement(idBasedDTO.copy(eventTimestamp = eventTimestamp))
                 )
             )
+        }
+    }
+
+    override suspend fun getTags(): Result<List<Tag>> {
+        return transaction {
+            try {
+                val allTags = TagsTable.selectAll().map {
+                    Tag(
+                        id = it[TagsTable.id].value,
+                        name = it[TagsTable.name],
+                        eventTimestamp = it[TagsTable.lastModified]
+                    )
+                }
+                Result.Success(response = allTags, webSocketEvent = null)
+            } catch (e: Exception) {
+                Result.Failure(e)
+            }
         }
     }
 }
