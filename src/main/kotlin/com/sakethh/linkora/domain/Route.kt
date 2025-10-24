@@ -22,6 +22,6 @@ sealed interface Route {
     }
 
     enum class Tag : Route {
-        CREATE_TAG, DELETE_TAG, RENAME_TAG
+        CREATE_TAG, DELETE_TAG, RENAME_TAG, GET_TAGS
     }
 }

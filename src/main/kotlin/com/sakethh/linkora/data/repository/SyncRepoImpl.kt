@@ -12,6 +12,7 @@ import com.sakethh.linkora.domain.dto.tag.LinkTagDTO
 import com.sakethh.linkora.domain.model.*
 import com.sakethh.linkora.domain.repository.SyncRepo
 import com.sakethh.linkora.domain.tables.*
+import com.sakethh.linkora.utils.getSystemEpochSeconds
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -169,7 +170,7 @@ class SyncRepoImpl : SyncRepo {
 
     override suspend fun deleteEverything(deleteEverythingDTO: DeleteEverythingDTO): Result<Unit> {
         return try {
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             transaction {
                 linkoraTables().forEach {
                     it.deleteAll()

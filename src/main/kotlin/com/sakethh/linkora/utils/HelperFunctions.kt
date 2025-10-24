@@ -10,14 +10,19 @@ import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.jdbc.batchInsert
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import kotlin.time.Clock
+import kotlin.time.ExperimentalTime
 
 fun useSysEnvValues(): Boolean {
     return try {
         System.getenv(SysEnvKey.LINKORA_SERVER_USE_ENV_VAL.name).toBooleanStrict()
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         false
     }
 }
+
+@OptIn(ExperimentalTime::class)
+fun getSystemEpochSeconds() = Clock.System.now().epochSeconds
 
 fun LongIdTable.checkForLWWConflictAndThrow(id: Long, timeStamp: Long, lastModifiedColumn: Column<Long>) {
     transaction {

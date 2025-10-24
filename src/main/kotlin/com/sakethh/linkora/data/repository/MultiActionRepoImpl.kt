@@ -14,6 +14,7 @@ import com.sakethh.linkora.domain.tables.LinksTable
 import com.sakethh.linkora.domain.tables.helper.TombStoneHelper
 import com.sakethh.linkora.utils.checkForLWWConflictAndThrow
 import com.sakethh.linkora.utils.copy
+import com.sakethh.linkora.utils.getSystemEpochSeconds
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -48,7 +49,7 @@ class MultiActionRepoImpl(
                     lastModifiedColumn = FoldersTable.lastModified
                 )
             }
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             var updatedRowsCount = 0
             coroutineScope {
                 awaitAll(async {
@@ -85,7 +86,7 @@ class MultiActionRepoImpl(
     }
 
     override suspend fun deleteMultipleItems(deleteMultipleItemsDTO: DeleteMultipleItemsDTO): Result<TimeStampBasedResponse> {
-        val eventTimestamp = Instant.now().epochSecond
+        val eventTimestamp = getSystemEpochSeconds()
         return try {
             deleteMultipleItemsDTO.folderIds.forEach {
                 foldersRepo.deleteFolder(
@@ -136,7 +137,7 @@ class MultiActionRepoImpl(
                     lastModifiedColumn = LinksTable.lastModified
                 )
             }
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             var rowsUpdated = 0
             transaction {
                 rowsUpdated += LinksTable.update(where = {
@@ -170,7 +171,7 @@ class MultiActionRepoImpl(
 
     override suspend fun copyMultipleItems(copyItemsDTO: CopyItemsDTO): Result<CopyItemsHTTPResponseDTO> {
         return try {
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             lateinit var linkIds: List<Long>
             println("Remote Links : ${copyItemsDTO.linkIds.values}")
             // copy the links based on `copyItemsDTO.linkIds`
@@ -197,7 +198,7 @@ class MultiActionRepoImpl(
                 val sourceRootFolders = FoldersTable.selectAll().where {
                     FoldersTable.id.inList(copyItemsDTO.folders.map { it.currentFolder.remoteId })
                 }.toList()
-                val eventTimestamp = Instant.now().epochSecond
+                val eventTimestamp = getSystemEpochSeconds()
 
                 copiedRootFolderIds = FoldersTable.copy(
                     source = sourceRootFolders,
@@ -221,7 +222,7 @@ class MultiActionRepoImpl(
                     val sourceLinksOfRootFolder = LinksTable.selectAll().where {
                         LinksTable.idOfLinkedFolder.eq(folderId)
                     }.toList()
-                    val eventTimestamp = Instant.now().epochSecond
+                    val eventTimestamp = getSystemEpochSeconds()
                     LinksTable.copy(
                         source = sourceLinksOfRootFolder,
                         eventTimestamp = eventTimestamp,
@@ -245,7 +246,7 @@ class MultiActionRepoImpl(
                     val sourceFolders = FoldersTable.selectAll().where {
                         FoldersTable.id.inList(childFolders.map { it.currentFolder.remoteId })
                     }.toList()
-                    val eventTimestamp = Instant.now().epochSecond
+                    val eventTimestamp = getSystemEpochSeconds()
                     FoldersTable.copy(source = sourceFolders, eventTimestamp, parentFolderId)
                         .forEachIndexed { insertedFolderRowIndex, insertedFolderRow ->
                             val newParentFolderId = insertedFolderRow[FoldersTable.id].value
@@ -311,7 +312,7 @@ class MultiActionRepoImpl(
 
     override suspend fun markItemsAsRegular(markItemsRegularDTO: MarkItemsRegularDTO): Result<TimeStampBasedResponse> {
         return try {
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             if (markItemsRegularDTO.foldersIds.isNotEmpty()) {
                 FoldersTable.checkForLWWConflictAndThrow(
                     id = markItemsRegularDTO.foldersIds.random(),

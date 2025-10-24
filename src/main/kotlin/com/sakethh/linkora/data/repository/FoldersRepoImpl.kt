@@ -15,6 +15,7 @@ import com.sakethh.linkora.domain.tables.LinksTable
 import com.sakethh.linkora.domain.tables.PanelFoldersTable
 import com.sakethh.linkora.domain.tables.helper.TombStoneHelper
 import com.sakethh.linkora.utils.checkForLWWConflictAndThrow
+import com.sakethh.linkora.utils.getSystemEpochSeconds
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
@@ -31,7 +32,7 @@ class FoldersRepoImpl(private val panelsRepo: PanelsRepo) : FoldersRepo {
 
     override suspend fun createFolder(addFolderDTO: AddFolderDTO): Result<NewItemResponseDTO> {
         return try {
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             transaction {
                 FoldersTable.insertAndGetId { folder ->
                     folder[lastModified] = eventTimestamp
@@ -72,7 +73,7 @@ class FoldersRepoImpl(private val panelsRepo: PanelsRepo) : FoldersRepo {
             FoldersTable.checkForLWWConflictAndThrow(
                 id = folderDTO.id, timeStamp = folderDTO.eventTimestamp, lastModifiedColumn = FoldersTable.lastModified
             )
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             transaction {
                 FoldersTable.update(where = {
                     FoldersTable.id eq folderDTO.id
@@ -100,7 +101,7 @@ class FoldersRepoImpl(private val panelsRepo: PanelsRepo) : FoldersRepo {
 
     override suspend fun deleteFolder(idBasedDTO: IDBasedDTO): Result<TimeStampBasedResponse> {
         return try {
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             when (val childFolders = getChildFolders(idBasedDTO)) {
                 is Result.Failure -> {
                     throw childFolders.exception
@@ -207,7 +208,7 @@ class FoldersRepoImpl(private val panelsRepo: PanelsRepo) : FoldersRepo {
                 timeStamp = idBasedDTO.eventTimestamp,
                 lastModifiedColumn = FoldersTable.lastModified
             )
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             transaction {
                 FoldersTable.update(where = { FoldersTable.id.eq(folderId) }) {
                     it[lastModified] = eventTimestamp
@@ -236,7 +237,7 @@ class FoldersRepoImpl(private val panelsRepo: PanelsRepo) : FoldersRepo {
                 timeStamp = idBasedDTO.eventTimestamp,
                 lastModifiedColumn = FoldersTable.lastModified
             )
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             transaction {
                 FoldersTable.update(where = { FoldersTable.id.eq(folderId) }) {
                     it[lastModified] = eventTimestamp
@@ -266,7 +267,7 @@ class FoldersRepoImpl(private val panelsRepo: PanelsRepo) : FoldersRepo {
                 timeStamp = updateFolderNameDTO.eventTimestamp,
                 lastModifiedColumn = FoldersTable.lastModified
             )
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             transaction {
                 FoldersTable.update(where = { FoldersTable.id.eq(folderId) }) {
                     it[lastModified] = eventTimestamp
@@ -302,7 +303,7 @@ class FoldersRepoImpl(private val panelsRepo: PanelsRepo) : FoldersRepo {
                 timeStamp = updateFolderNoteDTO.eventTimestamp,
                 lastModifiedColumn = FoldersTable.lastModified
             )
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             transaction {
                 FoldersTable.update(where = { FoldersTable.id.eq(folderId) }) {
                     it[lastModified] = eventTimestamp
@@ -325,7 +326,7 @@ class FoldersRepoImpl(private val panelsRepo: PanelsRepo) : FoldersRepo {
 
     override suspend fun deleteFolderNote(idBasedDTO: IDBasedDTO): Result<TimeStampBasedResponse> {
         return try {
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             transaction {
                 FoldersTable.update(where = { FoldersTable.id.eq(idBasedDTO.id) }) {
                     it[note] = ""
@@ -353,7 +354,7 @@ class FoldersRepoImpl(private val panelsRepo: PanelsRepo) : FoldersRepo {
                 timeStamp = markSelectedFoldersAsRootDTO.eventTimestamp,
                 lastModifiedColumn = FoldersTable.lastModified
             )
-            val eventTimeStamp = Instant.now().epochSecond
+            val eventTimeStamp = getSystemEpochSeconds()
             transaction {
                 FoldersTable.update(where = {
                     FoldersTable.id.inList(markSelectedFoldersAsRootDTO.folderIds)

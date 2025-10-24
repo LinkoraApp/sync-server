@@ -17,6 +17,7 @@ import com.sakethh.linkora.domain.tables.LinksTable.lastModified
 import com.sakethh.linkora.domain.tables.TombstoneTable
 import com.sakethh.linkora.domain.tables.helper.TombStoneHelper
 import com.sakethh.linkora.utils.checkForLWWConflictAndThrow
+import com.sakethh.linkora.utils.getSystemEpochSeconds
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
@@ -30,7 +31,7 @@ import java.time.Instant
 class LinksRepoImpl : LinksRepo {
     override suspend fun createANewLink(addLinkDTO: AddLinkDTO): Result<NewItemResponseDTO> {
         return try {
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             transaction {
                 if (addLinkDTO.linkType == LinkType.HISTORY_LINK) {
                     LinksTable.url.eq(addLinkDTO.url).and(LinksTable.linkType.eq(LinkType.HISTORY_LINK.name))
@@ -114,7 +115,7 @@ class LinksRepoImpl : LinksRepo {
 
     override suspend fun deleteALink(idBasedDTO: IDBasedDTO): Result<TimeStampBasedResponse> {
         return try {
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             transaction {
                 TombStoneHelper.insert(
                     payload = Json.encodeToString(idBasedDTO.copy(eventTimestamp = eventTimestamp)),
@@ -145,7 +146,7 @@ class LinksRepoImpl : LinksRepo {
                 timeStamp = updateLinkedFolderIDDto.eventTimestamp,
                 lastModifiedColumn = lastModified
             )
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             transaction {
                 LinksTable.update(where = {
                     LinksTable.id.eq(updateLinkedFolderIDDto.linkId) and LinksTable.linkType.eq(
@@ -176,7 +177,7 @@ class LinksRepoImpl : LinksRepo {
                 timeStamp = updateTitleOfTheLinkDTO.eventTimestamp,
                 lastModifiedColumn = lastModified
             )
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             transaction {
                 LinksTable.update(where = {
                     LinksTable.id.eq(updateTitleOfTheLinkDTO.linkId)
@@ -206,7 +207,7 @@ class LinksRepoImpl : LinksRepo {
                 timeStamp = updateNoteOfALinkDTO.eventTimestamp,
                 lastModifiedColumn = lastModified
             )
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             transaction {
                 LinksTable.update(where = {
                     LinksTable.id.eq(updateNoteOfALinkDTO.linkId)
@@ -230,7 +231,7 @@ class LinksRepoImpl : LinksRepo {
 
     override suspend fun updateUserAgent(updateLinkUserAgentDTO: UpdateLinkUserAgentDTO): Result<TimeStampBasedResponse> {
         return try {
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             transaction {
                 LinksTable.update(where = {
                     LinksTable.id.eq(updateLinkUserAgentDTO.linkId) and LinksTable.linkType.eq(
@@ -259,7 +260,7 @@ class LinksRepoImpl : LinksRepo {
             LinksTable.checkForLWWConflictAndThrow(
                 id = idBasedDTO.id, timeStamp = idBasedDTO.eventTimestamp, lastModifiedColumn = lastModified
             )
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             transaction {
                 LinksTable.update(where = {
                     LinksTable.id.eq(idBasedDTO.id)
@@ -286,7 +287,7 @@ class LinksRepoImpl : LinksRepo {
             LinksTable.checkForLWWConflictAndThrow(
                 id = idBasedDTO.id, timeStamp = idBasedDTO.eventTimestamp, lastModifiedColumn = lastModified
             )
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             transaction {
                 LinksTable.update(where = {
                     LinksTable.id.eq(idBasedDTO.id)
@@ -314,7 +315,7 @@ class LinksRepoImpl : LinksRepo {
             LinksTable.checkForLWWConflictAndThrow(
                 id = idBasedDTO.id, timeStamp = idBasedDTO.eventTimestamp, lastModifiedColumn = lastModified
             )
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             transaction {
                 LinksTable.update(where = {
                     LinksTable.id.eq(idBasedDTO.id)
@@ -341,7 +342,7 @@ class LinksRepoImpl : LinksRepo {
             LinksTable.checkForLWWConflictAndThrow(
                 id = idBasedDTO.id, timeStamp = idBasedDTO.eventTimestamp, lastModifiedColumn = lastModified
             )
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             transaction {
                 LinksTable.update(where = {
                     LinksTable.id.eq(idBasedDTO.id)
@@ -369,7 +370,7 @@ class LinksRepoImpl : LinksRepo {
             LinksTable.checkForLWWConflictAndThrow(
                 id = linkDTO.id, timeStamp = linkDTO.eventTimestamp, lastModifiedColumn = lastModified
             )
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             transaction {
                 LinksTable.update(where = {
                     LinksTable.id.eq(linkDTO.id)
@@ -425,7 +426,7 @@ class LinksRepoImpl : LinksRepo {
 
     override suspend fun deleteDuplicateLinks(deleteDuplicateLinksDTO: DeleteDuplicateLinksDTO): Result<TimeStampBasedResponse> {
         return try {
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             transaction {
                 LinksTable.deleteWhere {
                     LinksTable.id.inList(deleteDuplicateLinksDTO.linkIds)
