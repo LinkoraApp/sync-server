@@ -8,7 +8,7 @@ import com.sakethh.linkora.domain.tables.LinksTable
 import org.jetbrains.exposed.v1.core.Column
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
-import org.jetbrains.exposed.v1.jdbc.batchInsert
+import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import kotlin.time.Clock
@@ -45,30 +45,44 @@ fun LongIdTable.checkForLWWConflictAndThrow(id: Long, timeStamp: Long, lastModif
     }
 }
 
-fun FoldersTable.copy(source: List<ResultRow>, eventTimestamp: Long, parentFolderId: Long?): List<ResultRow> {
-    return batchInsert(source) {
-        this[folderName] = it[folderName]
-        this[lastModified] = eventTimestamp
-        this[note] = it[note]
-        this[parentFolderID] = parentFolderId
-        this[isFolderArchived] = it[isFolderArchived]
-    }.toList()
+fun FoldersTable.copy(source: List<ResultRow>, eventTimestamp: Long, parentFolderId: Long?): Map<Long, Long> {
+    val oldToNewIdMap = mutableMapOf<Long, Long>()
+    source.forEach { sourceRow ->
+        val oldId = sourceRow[FoldersTable.id].value
+        val newId = insertAndGetId {
+            it[folderName] = sourceRow[folderName]
+            it[lastModified] = eventTimestamp
+            it[note] = sourceRow[note]
+            it[parentFolderID] = parentFolderId
+            it[isFolderArchived] = sourceRow[isFolderArchived]
+        }
+        oldToNewIdMap[oldId] = newId.value
+    }
+    return oldToNewIdMap
 }
 
-fun LinksTable.copy(source: List<ResultRow>, eventTimestamp: Long, parentFolderId: Long?, newLinkType: LinkType? = null): List<ResultRow> {
-    return batchInsert(source) {
-        set(lastModified, eventTimestamp)
-        set(linkType, newLinkType?.name ?: it[linkType])
-        set(linkTitle, it[linkTitle])
-        set(url, it[url])
-        set(baseURL, it[baseURL])
-        set(imgURL, it[imgURL])
-        set(note, it[note])
-        set(idOfLinkedFolder, parentFolderId)
-        set(userAgent, it[userAgent])
-        set(mediaType, it[mediaType])
-        set(markedAsImportant, it[markedAsImportant])
+fun LinksTable.copy(
+    source: List<ResultRow>, eventTimestamp: Long, parentFolderId: Long?, newLinkType: LinkType? = null
+): Map<Long, Long> {
+    val oldToNewIdMap = mutableMapOf<Long, Long>()
+    source.forEach { sourceRow ->
+        val oldId = sourceRow[LinksTable.id].value
+        val newId = insertAndGetId {
+            it[lastModified] = eventTimestamp
+            it[linkType] = newLinkType?.name ?: sourceRow[LinksTable.linkType]
+            it[linkTitle] = sourceRow[LinksTable.linkTitle]
+            it[url] = sourceRow[LinksTable.url]
+            it[baseURL] = sourceRow[LinksTable.baseURL]
+            it[imgURL] = sourceRow[LinksTable.imgURL]
+            it[note] = sourceRow[LinksTable.note]
+            it[idOfLinkedFolder] = parentFolderId
+            it[userAgent] = sourceRow[LinksTable.userAgent]
+            it[mediaType] = sourceRow[LinksTable.mediaType]
+            it[markedAsImportant] = sourceRow[LinksTable.markedAsImportant]
+        }
+        oldToNewIdMap[oldId] = newId.value
     }
+    return oldToNewIdMap
 }
 
 inline fun <T> tryAndCatchResult(init: () -> Result<T>): Result<T> {

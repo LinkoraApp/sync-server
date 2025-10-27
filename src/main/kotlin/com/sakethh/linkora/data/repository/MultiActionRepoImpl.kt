@@ -171,89 +171,70 @@ class MultiActionRepoImpl(
     override suspend fun copyMultipleItems(copyItemsDTO: CopyItemsDTO): Result<CopyItemsHTTPResponseDTO> {
         return try {
             val eventTimestamp = getSystemEpochSeconds()
-            lateinit var newGlobalSelectedLinkIds: List<Long>
-            println("Remote Links : ${copyItemsDTO.linkIds.values}")
-            // copy the links based on `copyItemsDTO.linkIds`
+            lateinit var globalLinksOldToNewIdsMap: Map<Long, Long>
             val copiedFolderResponse = mutableListOf<CopiedFolderResponse>()
             transaction {
                 val sourceGlobalSelectedLinks = LinksTable.selectAll().where {
                     LinksTable.id inList copyItemsDTO.linkIds.values
                 }.toList()
 
-                newGlobalSelectedLinkIds = LinksTable.copy(
+                globalLinksOldToNewIdsMap = LinksTable.copy(
                     source = sourceGlobalSelectedLinks,
                     eventTimestamp = eventTimestamp,
                     parentFolderId = copyItemsDTO.newParentFolderId,
                     newLinkType = copyItemsDTO.linkType
-                ).map {
-                    it[LinksTable.id].value
-                }
-
-                val sourceGlobalSelectedLinksIds = sourceGlobalSelectedLinks.map {
-                    it[LinksTable.id].value
-                }
-
-                val globalOldToNewLinkIdsMap = sourceGlobalSelectedLinksIds.zip(newGlobalSelectedLinkIds).toMap()
-
-                insertNewLinkTags(
-                    oldToNewLinkIdsMap = globalOldToNewLinkIdsMap
                 )
 
+                insertNewLinkTags(oldToNewLinkIdsMap = globalLinksOldToNewIdsMap)
+
                 // initially, we'll insert the root folders
-                lateinit var copiedRootFolderIds: List<Long>
                 val sourceRootFolders = FoldersTable.selectAll().where {
                     FoldersTable.id.inList(copyItemsDTO.folders.map { it.currentFolder.remoteId })
                 }.toList()
-                val eventTimestamp = getSystemEpochSeconds()
 
-                copiedRootFolderIds = FoldersTable.copy(
+                val copiedRootFolderOldToNewIdsMap = FoldersTable.copy(
                     source = sourceRootFolders,
                     eventTimestamp = eventTimestamp,
                     parentFolderId = copyItemsDTO.newParentFolderId
-                ).mapIndexed { index, resultRow ->
-                    resultRow[FoldersTable.id].value.run {
-                        copiedFolderResponse.add(
-                            CopiedFolderResponse(
-                                currentFolder = CurrentFolder(
-                                    localId = copyItemsDTO.folders[index].currentFolder.localId, remoteId = this
-                                ), links = emptyList()
-                            )
+                )
+
+                copyItemsDTO.folders.forEach { (currentFolder, _, _) ->
+                    copiedFolderResponse.add(
+                        CopiedFolderResponse(
+                            currentFolder = CurrentFolder(
+                                localId = currentFolder.localId,
+                                remoteId = copiedRootFolderOldToNewIdsMap.getValue(currentFolder.remoteId)
+                            ), links = emptyList()
                         )
-                        this
-                    }
+                    )
                 }
 
                 // insert links of root folders
-                copyItemsDTO.folders.map { it.currentFolder.remoteId }.forEachIndexed { folderIndex, folderId ->
+                copyItemsDTO.folders.forEachIndexed { folderIndex, folder ->
                     val sourceLinksOfRootFolder = LinksTable.selectAll().where {
-                        LinksTable.idOfLinkedFolder.eq(folderId)
+                        LinksTable.id.inList(folder.links.map { it.remoteId })
                     }.toList()
-                    val sourceLinksIdsOfRootFolder = sourceLinksOfRootFolder.map {
-                        it[LinksTable.id].value
-                    }
-                    val eventTimestamp = getSystemEpochSeconds()
+
                     val newRootFolderLinkIds = LinksTable.copy(
                         source = sourceLinksOfRootFolder,
                         eventTimestamp = eventTimestamp,
-                        parentFolderId = copiedRootFolderIds[folderIndex]
+                        parentFolderId = copiedRootFolderOldToNewIdsMap[folder.currentFolder.remoteId]
                     )
 
-                    insertNewLinkTags(
-                        oldToNewLinkIdsMap = sourceLinksIdsOfRootFolder.zip(newRootFolderLinkIds.map {
-                            it[LinksTable.id].value
-                        }).toMap()
-                    )
+                    insertNewLinkTags(oldToNewLinkIdsMap = newRootFolderLinkIds)
 
-                    newRootFolderLinkIds.mapIndexed { linkResultRowIndex, resultRow ->
-                        FolderLink(
-                            localId = copyItemsDTO.folders[folderIndex].links[linkResultRowIndex].localId,
-                            remoteId = resultRow[LinksTable.id].value
-                        )
-                    }.let {
-                        copiedFolderResponse[folderIndex] = copiedFolderResponse[folderIndex].copy(
-                            links = it
-                        )
+                    val folderLinks = folder.links.mapNotNull {
+                        val newRemoteId = newRootFolderLinkIds[it.remoteId]
+                        if (newRemoteId != null) {
+                            FolderLink(localId = it.localId, remoteId = newRemoteId)
+                        } else {
+                            println("folder.links.mapNotNull hit null")
+                            null
+                        }
                     }
+                    copiedFolderResponse[folderIndex] = copiedFolderResponse[folderIndex].copy(
+                        links = folderLinks
+                    )
                 }
 
                 fun insertChildFolders(
@@ -263,74 +244,70 @@ class MultiActionRepoImpl(
                     val sourceFolders = FoldersTable.selectAll().where {
                         FoldersTable.id.inList(childFolders.map { it.currentFolder.remoteId })
                     }.toList()
-                    val eventTimestamp = getSystemEpochSeconds()
-                    FoldersTable.copy(source = sourceFolders, eventTimestamp, parentFolderId)
-                        .forEachIndexed { insertedFolderRowIndex, insertedFolderRow ->
-                            val newParentFolderId = insertedFolderRow[FoldersTable.id].value
-                            val sourceParentFolderId = sourceFolders[insertedFolderRowIndex][FoldersTable.id].value
-                            val sourceCurrentFolderLinks = LinksTable.selectAll().where {
-                                LinksTable.idOfLinkedFolder.eq(sourceParentFolderId)
-                            }
-                            val sourceCurrentFolderLinkIds = sourceCurrentFolderLinks.map {
-                                it[LinksTable.id].value
-                            }
-                            val newChildFolderLinks = LinksTable.copy(
-                                source = sourceCurrentFolderLinks.toList(),
-                                eventTimestamp = eventTimestamp,
-                                parentFolderId = newParentFolderId
-                            )
 
-                            insertNewLinkTags(
-                                oldToNewLinkIdsMap = sourceCurrentFolderLinkIds.zip(newChildFolderLinks.map {
-                                    it[LinksTable.id].value
-                                }).toMap()
-                            )
+                    val oldToNewChildFolderMap =
+                        FoldersTable.copy(source = sourceFolders, eventTimestamp, parentFolderId)
 
-                            newChildFolderLinks.mapIndexed { insertedLinkRowIndex, insertedLinkRow ->
-                                FolderLink(
-                                    localId = childFolders[insertedFolderRowIndex].links[insertedLinkRowIndex].localId,
-                                    remoteId = insertedLinkRow[LinksTable.id].value
-                                )
-                            }.let {
-                                copiedFolderResponse.add(
-                                    CopiedFolderResponse(
-                                        currentFolder = CurrentFolder(
-                                            localId = childFolders[insertedFolderRowIndex].currentFolder.localId,
-                                            remoteId = newParentFolderId
-                                        ), links = it
-                                    )
-                                )
-                            }
-                            insertChildFolders(
-                                newParentFolderId, childFolders[insertedFolderRowIndex].childFolders
-                            )
+                    childFolders.forEach { childFolder ->
+                        val oldFolderId = childFolder.currentFolder.remoteId
+                        val newFolderId = oldToNewChildFolderMap.getValue(oldFolderId)
+
+                        val sourceCurrentFolderLinks = LinksTable.selectAll().where {
+                            LinksTable.id.inList(childFolder.links.map { it.remoteId })
                         }
+                        val newChildFolderLinksMap = LinksTable.copy(
+                            source = sourceCurrentFolderLinks.toList(),
+                            eventTimestamp = eventTimestamp,
+                            parentFolderId = newFolderId
+                        )
+
+                        insertNewLinkTags(oldToNewLinkIdsMap = newChildFolderLinksMap)
+
+                        val folderLinks = childFolder.links.mapNotNull { link ->
+                            val newRemoteId = newChildFolderLinksMap[link.remoteId]
+                            if (newRemoteId != null) {
+                                FolderLink(localId = link.localId, remoteId = newRemoteId)
+                            } else {
+                                println("childFolder.links.mapNotNull hit null")
+                                null
+                            }
+                        }
+
+                        copiedFolderResponse.add(
+                            CopiedFolderResponse(
+                                currentFolder = CurrentFolder(
+                                    localId = childFolder.currentFolder.localId, remoteId = newFolderId
+                                ), links = folderLinks
+                            )
+                        )
+                        insertChildFolders(
+                            parentFolderId = newFolderId, childFolder.childFolders
+                        )
+                    }
                 }
 
                 // insert child folders
-                copyItemsDTO.folders.forEachIndexed { index, parentFolder ->
+                copyItemsDTO.folders.forEach { parentFolder ->
                     insertChildFolders(
-                        parentFolderId = copiedRootFolderIds[index], childFolders =  parentFolder.childFolders
+                        parentFolderId = copiedRootFolderOldToNewIdsMap.getValue(parentFolder.currentFolder.remoteId),
+                        childFolders = parentFolder.childFolders
                     )
                 }
-
-            }.let {
-                Result.Success(
-                    response = CopyItemsHTTPResponseDTO(
-                        folders = copiedFolderResponse.toList(), linkIds = copyItemsDTO.linkIds.run {
-                            this.toList().mapIndexed { index, pair ->
-                                pair.first to newGlobalSelectedLinkIds[index]
-                            }.toMap()
-                        }, correlation = copyItemsDTO.correlation, eventTimestamp = eventTimestamp
-                    ), webSocketEvent = WebSocketEvent(
-                        operation = Route.MultiAction.COPY_EXISTING_ITEMS.name, payload = Json.encodeToJsonElement(
-                            CopyItemsSocketResponseDTO(
-                                eventTimestamp = eventTimestamp, correlation = copyItemsDTO.correlation
-                            )
+            }
+            Result.Success(
+                response = CopyItemsHTTPResponseDTO(
+                    folders = copiedFolderResponse.toList(),
+                    linkIds = globalLinksOldToNewIdsMap,
+                    correlation = copyItemsDTO.correlation,
+                    eventTimestamp = eventTimestamp
+                ), webSocketEvent = WebSocketEvent(
+                    operation = Route.MultiAction.COPY_EXISTING_ITEMS.name, payload = Json.encodeToJsonElement(
+                        CopyItemsSocketResponseDTO(
+                            eventTimestamp = eventTimestamp, correlation = copyItemsDTO.correlation
                         )
                     )
                 )
-            }
+            )
         } catch (e: Exception) {
             Result.Failure(e)
         }
