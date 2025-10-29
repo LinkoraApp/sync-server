@@ -8,9 +8,11 @@ import com.sakethh.linkora.domain.Route
 import com.sakethh.linkora.domain.dto.AllTablesDTO
 import com.sakethh.linkora.domain.dto.DeleteEverythingDTO
 import com.sakethh.linkora.domain.dto.Tombstone
+import com.sakethh.linkora.domain.dto.tag.LinkTagDTO
 import com.sakethh.linkora.domain.model.*
 import com.sakethh.linkora.domain.repository.SyncRepo
 import com.sakethh.linkora.domain.tables.*
+import com.sakethh.linkora.utils.getSystemEpochSeconds
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -41,15 +43,27 @@ class SyncRepoImpl : SyncRepo {
         val updatedFolders = mutableListOf<Folder>()
         val updatedPanels = mutableListOf<Panel>()
         val updatedPanelFolders = mutableListOf<PanelFolder>()
+        val updatedTags = mutableListOf<Tag>()
+        val updatedLinkTags = mutableListOf<LinkTag>()
 
         awaitAll(async {
             transaction {
                 LinksTable.selectAll().where {
                     LinksTable.lastModified.greater(eventTimestamp)
                 }.toList().forEach {
+                    val currentLinkId = it[LinksTable.id].value
+
+                    val linkTags = LinkTagTable.selectAll().where {
+                        LinkTagTable.linkId.eq(currentLinkId)
+                    }.map {
+                        LinkTagDTO(
+                            linkId = currentLinkId, tagId = it[LinkTagTable.tagId]
+                        )
+                    }
+
                     updatedLinks.add(
                         Link(
-                            id = it[LinksTable.id].value,
+                            id = currentLinkId,
                             linkType = LinkType.valueOf(it[LinksTable.linkType]),
                             title = it[LinksTable.linkTitle],
                             url = it[LinksTable.url],
@@ -60,7 +74,8 @@ class SyncRepoImpl : SyncRepo {
                             userAgent = it[LinksTable.userAgent],
                             markedAsImportant = it[LinksTable.markedAsImportant],
                             mediaType = MediaType.valueOf(it[LinksTable.mediaType]),
-                            eventTimestamp = it[LinksTable.lastModified]
+                            eventTimestamp = it[LinksTable.lastModified],
+                            linkTags = linkTags
                         )
                     )
                 }
@@ -113,19 +128,49 @@ class SyncRepoImpl : SyncRepo {
                     )
                 }
             }
+        }, async {
+            transaction {
+                TagsTable.selectAll().where {
+                    TagsTable.lastModified.greater(eventTimestamp)
+                }.toList().forEach {
+                    updatedTags.add(
+                        Tag(
+                            id = it[TagsTable.id].value,
+                            name = it[TagsTable.name],
+                            eventTimestamp = it[TagsTable.lastModified]
+                        )
+                    )
+                }
+            }
+        }, async {
+            transaction {
+                LinkTagTable.selectAll().where {
+                    LinkTagTable.lastModified.greater(eventTimestamp)
+                }.toList().forEach {
+                    updatedLinkTags.add(
+                        LinkTag(
+                            linkId = it[LinkTagTable.linkId],
+                            tagId = it[LinkTagTable.tagId],
+                            eventTimestamp = it[LinkTagTable.lastModified]
+                        )
+                    )
+                }
+            }
         })
 
         return@coroutineScope AllTablesDTO(
             links = updatedLinks.toList(),
             folders = updatedFolders.toList(),
             panels = updatedPanels.toList(),
-            panelFolders = updatedPanelFolders.toList()
+            panelFolders = updatedPanelFolders.toList(),
+            tags = updatedTags.toList(),
+            linkTags = updatedLinkTags.toList()
         )
     }
 
     override suspend fun deleteEverything(deleteEverythingDTO: DeleteEverythingDTO): Result<Unit> {
         return try {
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             transaction {
                 linkoraTables().forEach {
                     it.deleteAll()

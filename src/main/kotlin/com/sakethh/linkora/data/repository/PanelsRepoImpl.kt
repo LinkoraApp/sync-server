@@ -12,6 +12,7 @@ import com.sakethh.linkora.domain.tables.PanelFoldersTable
 import com.sakethh.linkora.domain.tables.PanelsTable
 import com.sakethh.linkora.domain.tables.helper.TombStoneHelper
 import com.sakethh.linkora.utils.checkForLWWConflictAndThrow
+import com.sakethh.linkora.utils.getSystemEpochSeconds
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
@@ -27,7 +28,7 @@ class PanelsRepoImpl : PanelsRepo {
 
     override suspend fun addANewPanel(addANewPanelDTO: AddANewPanelDTO): Result<NewItemResponseDTO> {
         return try {
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             transaction {
                 PanelsTable.insertAndGetId {
                     it[panelName] = addANewPanelDTO.panelName
@@ -60,7 +61,7 @@ class PanelsRepoImpl : PanelsRepo {
 
     override suspend fun addANewFolderInAPanel(addANewPanelFolderDTO: AddANewPanelFolderDTO): Result<NewItemResponseDTO> {
         return try {
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             transaction {
                 PanelFoldersTable.insertAndGetId {
                     it[folderId] = addANewPanelFolderDTO.folderId
@@ -100,7 +101,7 @@ class PanelsRepoImpl : PanelsRepo {
 
     override suspend fun deleteAPanel(idBasedDTO: IDBasedDTO): Result<TimeStampBasedResponse> {
         return try {
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             transaction {
                 PanelsTable.deleteWhere {
                     PanelsTable.id.eq(idBasedDTO.id)
@@ -135,7 +136,7 @@ class PanelsRepoImpl : PanelsRepo {
                 updatePanelNameDTO.eventTimestamp,
                 lastModifiedColumn = PanelsTable.lastModified
             )
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             transaction {
                 PanelsTable.update(where = {
                     PanelsTable.id.eq(updatePanelNameDTO.panelId)
@@ -160,7 +161,7 @@ class PanelsRepoImpl : PanelsRepo {
 
     override suspend fun deleteAFolderFromAllPanels(idBasedDTO: IDBasedDTO): Result<TimeStampBasedResponse> {
         return try {
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             transaction {
                 PanelFoldersTable.deleteWhere {
                     folderId.eq(idBasedDTO.id)
@@ -190,7 +191,7 @@ class PanelsRepoImpl : PanelsRepo {
 
     override suspend fun deleteAFolderFromAPanel(deleteAPanelFromAFolderDTO: DeleteAFolderFromAPanelDTO): Result<TimeStampBasedResponse> {
         return try {
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             transaction {
                 PanelFoldersTable.deleteWhere {
                     folderId.eq(deleteAPanelFromAFolderDTO.folderID) and connectedPanelId.eq(deleteAPanelFromAFolderDTO.panelId)
@@ -217,7 +218,7 @@ class PanelsRepoImpl : PanelsRepo {
 
     override suspend fun deleteAllFoldersFromAPanel(idBasedDTO: IDBasedDTO): Result<TimeStampBasedResponse> {
         return try {
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             transaction {
                 PanelFoldersTable.deleteWhere {
                     connectedPanelId.eq(idBasedDTO.id)

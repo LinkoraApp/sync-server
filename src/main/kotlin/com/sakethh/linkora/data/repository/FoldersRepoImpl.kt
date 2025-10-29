@@ -15,6 +15,7 @@ import com.sakethh.linkora.domain.tables.LinksTable
 import com.sakethh.linkora.domain.tables.PanelFoldersTable
 import com.sakethh.linkora.domain.tables.helper.TombStoneHelper
 import com.sakethh.linkora.utils.checkForLWWConflictAndThrow
+import com.sakethh.linkora.utils.getSystemEpochSeconds
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
@@ -31,7 +32,7 @@ class FoldersRepoImpl(private val panelsRepo: PanelsRepo) : FoldersRepo {
 
     override suspend fun createFolder(addFolderDTO: AddFolderDTO): Result<NewItemResponseDTO> {
         return try {
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             transaction {
                 FoldersTable.insertAndGetId { folder ->
                     folder[lastModified] = eventTimestamp
@@ -44,14 +45,11 @@ class FoldersRepoImpl(private val panelsRepo: PanelsRepo) : FoldersRepo {
                 Result.Success(
                     response = NewItemResponseDTO(
                         timeStampBasedResponse = TimeStampBasedResponse(
-                            message = "Folder created successfully with id = $it",
-                            eventTimestamp = eventTimestamp
-                        ),
-                        id = it,
-                        correlation = addFolderDTO.correlation
-                    ),
-                    webSocketEvent = WebSocketEvent(
-                        operation = Route.Folder.CREATE_FOLDER.name, payload = Json.encodeToJsonElement(
+                            message = "Folder created successfully with id = $it", eventTimestamp = eventTimestamp
+                        ), id = it, correlation = addFolderDTO.correlation
+                    ), webSocketEvent = WebSocketEvent(
+                        operation = Route.Folder.CREATE_FOLDER.name,
+                        payload = Json.encodeToJsonElement(
                             FolderDTO(
                                 id = it,
                                 name = addFolderDTO.name,
@@ -70,9 +68,40 @@ class FoldersRepoImpl(private val panelsRepo: PanelsRepo) : FoldersRepo {
         }
     }
 
+    override suspend fun updateFolder(folderDTO: FolderDTO): Result<TimeStampBasedResponse> {
+        return try {
+            FoldersTable.checkForLWWConflictAndThrow(
+                id = folderDTO.id, timeStamp = folderDTO.eventTimestamp, lastModifiedColumn = FoldersTable.lastModified
+            )
+            val eventTimestamp = getSystemEpochSeconds()
+            transaction {
+                FoldersTable.update(where = {
+                    FoldersTable.id eq folderDTO.id
+                }) { folder ->
+                    folder[lastModified] = eventTimestamp
+                    folder[folderName] = folderDTO.name
+                    folder[note] = folderDTO.note
+                    folder[parentFolderID] = folderDTO.parentFolderId
+                    folder[isFolderArchived] = folderDTO.isArchived
+                }
+            }.let {
+                Result.Success(
+                    response = TimeStampBasedResponse(
+                        message = "Folder updated successfully.", eventTimestamp = eventTimestamp
+                    ), webSocketEvent = WebSocketEvent(
+                        operation = Route.Folder.UPDATE_FOLDER.name,
+                        payload = Json.encodeToJsonElement(folderDTO.copy(eventTimestamp = eventTimestamp)),
+                    )
+                )
+            }
+        } catch (e: Exception) {
+            Result.Failure(e)
+        }
+    }
+
     override suspend fun deleteFolder(idBasedDTO: IDBasedDTO): Result<TimeStampBasedResponse> {
         return try {
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             when (val childFolders = getChildFolders(idBasedDTO)) {
                 is Result.Failure -> {
                     throw childFolders.exception
@@ -114,8 +143,7 @@ class FoldersRepoImpl(private val panelsRepo: PanelsRepo) : FoldersRepo {
             }
             Result.Success(
                 response = TimeStampBasedResponse(
-                    message = "Folder and its contents have been successfully deleted.",
-                    eventTimestamp = eventTimestamp
+                    message = "Folder and its contents have been successfully deleted.", eventTimestamp = eventTimestamp
                 ), webSocketEvent = WebSocketEvent(
                     operation = Route.Folder.DELETE_FOLDER.name,
                     payload = Json.encodeToJsonElement(idBasedDTO.copy(eventTimestamp = eventTimestamp)),
@@ -180,7 +208,7 @@ class FoldersRepoImpl(private val panelsRepo: PanelsRepo) : FoldersRepo {
                 timeStamp = idBasedDTO.eventTimestamp,
                 lastModifiedColumn = FoldersTable.lastModified
             )
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             transaction {
                 FoldersTable.update(where = { FoldersTable.id.eq(folderId) }) {
                     it[lastModified] = eventTimestamp
@@ -189,8 +217,7 @@ class FoldersRepoImpl(private val panelsRepo: PanelsRepo) : FoldersRepo {
             }.let {
                 Result.Success(
                     response = TimeStampBasedResponse(
-                        eventTimestamp = eventTimestamp,
-                        message = "Number of rows affected by the update = $it"
+                        eventTimestamp = eventTimestamp, message = "Number of rows affected by the update = $it"
                     ), webSocketEvent = WebSocketEvent(
                         operation = Route.Folder.MARK_FOLDER_AS_ARCHIVE.name,
                         payload = Json.encodeToJsonElement(idBasedDTO.copy(eventTimestamp = eventTimestamp)),
@@ -210,7 +237,7 @@ class FoldersRepoImpl(private val panelsRepo: PanelsRepo) : FoldersRepo {
                 timeStamp = idBasedDTO.eventTimestamp,
                 lastModifiedColumn = FoldersTable.lastModified
             )
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             transaction {
                 FoldersTable.update(where = { FoldersTable.id.eq(folderId) }) {
                     it[lastModified] = eventTimestamp
@@ -219,8 +246,7 @@ class FoldersRepoImpl(private val panelsRepo: PanelsRepo) : FoldersRepo {
             }.let {
                 Result.Success(
                     response = TimeStampBasedResponse(
-                        eventTimestamp = eventTimestamp,
-                        message = "Number of rows affected by the update = $it"
+                        eventTimestamp = eventTimestamp, message = "Number of rows affected by the update = $it"
                     ), webSocketEvent = WebSocketEvent(
                         operation = Route.Folder.MARK_AS_REGULAR_FOLDER.name,
                         payload = Json.encodeToJsonElement(idBasedDTO.copy(eventTimestamp = eventTimestamp)),
@@ -241,7 +267,7 @@ class FoldersRepoImpl(private val panelsRepo: PanelsRepo) : FoldersRepo {
                 timeStamp = updateFolderNameDTO.eventTimestamp,
                 lastModifiedColumn = FoldersTable.lastModified
             )
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             transaction {
                 FoldersTable.update(where = { FoldersTable.id.eq(folderId) }) {
                     it[lastModified] = eventTimestamp
@@ -256,8 +282,7 @@ class FoldersRepoImpl(private val panelsRepo: PanelsRepo) : FoldersRepo {
             }.let {
                 Result.Success(
                     response = TimeStampBasedResponse(
-                        eventTimestamp = eventTimestamp,
-                        message = "Number of rows affected by the update = $it"
+                        eventTimestamp = eventTimestamp, message = "Number of rows affected by the update = $it"
                     ), webSocketEvent = WebSocketEvent(
                         operation = Route.Folder.UPDATE_FOLDER_NAME.name,
                         payload = Json.encodeToJsonElement(updateFolderNameDTO.copy(eventTimestamp = eventTimestamp)),
@@ -278,7 +303,7 @@ class FoldersRepoImpl(private val panelsRepo: PanelsRepo) : FoldersRepo {
                 timeStamp = updateFolderNoteDTO.eventTimestamp,
                 lastModifiedColumn = FoldersTable.lastModified
             )
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             transaction {
                 FoldersTable.update(where = { FoldersTable.id.eq(folderId) }) {
                     it[lastModified] = eventTimestamp
@@ -287,8 +312,7 @@ class FoldersRepoImpl(private val panelsRepo: PanelsRepo) : FoldersRepo {
             }.let {
                 Result.Success(
                     response = TimeStampBasedResponse(
-                        message = "Number of rows affected by the update = $it",
-                        eventTimestamp = eventTimestamp
+                        message = "Number of rows affected by the update = $it", eventTimestamp = eventTimestamp
                     ), webSocketEvent = WebSocketEvent(
                         operation = Route.Folder.UPDATE_FOLDER_NOTE.name,
                         payload = Json.encodeToJsonElement(updateFolderNoteDTO.copy(eventTimestamp = eventTimestamp)),
@@ -302,7 +326,7 @@ class FoldersRepoImpl(private val panelsRepo: PanelsRepo) : FoldersRepo {
 
     override suspend fun deleteFolderNote(idBasedDTO: IDBasedDTO): Result<TimeStampBasedResponse> {
         return try {
-            val eventTimestamp = Instant.now().epochSecond
+            val eventTimestamp = getSystemEpochSeconds()
             transaction {
                 FoldersTable.update(where = { FoldersTable.id.eq(idBasedDTO.id) }) {
                     it[note] = ""
@@ -311,8 +335,7 @@ class FoldersRepoImpl(private val panelsRepo: PanelsRepo) : FoldersRepo {
             }.let {
                 Result.Success(
                     response = TimeStampBasedResponse(
-                        eventTimestamp = eventTimestamp,
-                        message = "Number of rows affected by the update = $it"
+                        eventTimestamp = eventTimestamp, message = "Number of rows affected by the update = $it"
                     ), webSocketEvent = WebSocketEvent(
                         operation = Route.Folder.DELETE_FOLDER_NOTE.name,
                         payload = Json.encodeToJsonElement(idBasedDTO.copy(eventTimestamp = eventTimestamp)),
@@ -331,7 +354,7 @@ class FoldersRepoImpl(private val panelsRepo: PanelsRepo) : FoldersRepo {
                 timeStamp = markSelectedFoldersAsRootDTO.eventTimestamp,
                 lastModifiedColumn = FoldersTable.lastModified
             )
-            val eventTimeStamp = Instant.now().epochSecond
+            val eventTimeStamp = getSystemEpochSeconds()
             transaction {
                 FoldersTable.update(where = {
                     FoldersTable.id.inList(markSelectedFoldersAsRootDTO.folderIds)
@@ -342,8 +365,7 @@ class FoldersRepoImpl(private val panelsRepo: PanelsRepo) : FoldersRepo {
             }.let {
                 Result.Success(
                     response = TimeStampBasedResponse(
-                        eventTimestamp = eventTimeStamp,
-                        message = "Marked $it folders as root."
+                        eventTimestamp = eventTimeStamp, message = "Marked $it folders as root."
                     ), webSocketEvent = WebSocketEvent(
                         operation = Route.Folder.MARK_FOLDERS_AS_ROOT.name,
                         payload = Json.encodeToJsonElement(markSelectedFoldersAsRootDTO.copy(eventTimestamp = eventTimeStamp))
