@@ -13,6 +13,7 @@ interface FoldersRepo {
     suspend fun updateFolder(folderDTO: FolderDTO): Result<TimeStampBasedResponse>
     suspend fun deleteFolder(idBasedDTO: IDBasedDTO): Result<TimeStampBasedResponse>
     suspend fun getChildFolders(idBasedDTO: IDBasedDTO): Result<List<Folder>>
+    suspend fun search(folderName: String): Result<List<Folder>>
     suspend fun getRootFolders(): Result<List<Folder>>
     suspend fun markAsArchive(idBasedDTO: IDBasedDTO): Result<TimeStampBasedResponse>
     suspend fun markAsRegularFolder(idBasedDTO: IDBasedDTO): Result<TimeStampBasedResponse>

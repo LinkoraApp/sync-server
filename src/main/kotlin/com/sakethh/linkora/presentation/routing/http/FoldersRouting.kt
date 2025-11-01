@@ -3,11 +3,9 @@ package com.sakethh.linkora.presentation.routing.http
 import com.sakethh.linkora.authenticate
 import com.sakethh.linkora.domain.Route
 import com.sakethh.linkora.domain.dto.IDBasedDTO
-import com.sakethh.linkora.domain.dto.MoveItemsDTO
 import com.sakethh.linkora.domain.dto.folder.*
 import com.sakethh.linkora.domain.repository.FoldersRepo
 import com.sakethh.linkora.utils.respondWithResult
-import io.ktor.server.application.*
 import io.ktor.server.routing.*
 
 fun Routing.foldersRouting(foldersRepo: FoldersRepo) {
@@ -22,6 +20,10 @@ fun Routing.foldersRouting(foldersRepo: FoldersRepo) {
 
         post<IDBasedDTO>(Route.Folder.GET_CHILD_FOLDERS.name) {
             respondWithResult(foldersRepo.getChildFolders(it))
+        }
+
+        post<String>(Route.Folder.SEARCH_FOR_FOLDERS.name) {
+            respondWithResult(foldersRepo.search(it))
         }
 
         get(Route.Folder.GET_ROOT_FOLDERS.name) {
@@ -54,7 +56,7 @@ fun Routing.foldersRouting(foldersRepo: FoldersRepo) {
             respondWithResult(foldersRepo.markSelectedFoldersAsRoot(it))
         }
 
-        post<FolderDTO>(Route.Folder.UPDATE_FOLDER.name){
+        post<FolderDTO>(Route.Folder.UPDATE_FOLDER.name) {
             respondWithResult(foldersRepo.updateFolder(folderDTO = it))
         }
     }

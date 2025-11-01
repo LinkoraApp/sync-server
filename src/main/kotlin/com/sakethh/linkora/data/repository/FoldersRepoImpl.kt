@@ -21,12 +21,12 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
 import org.jetbrains.exposed.v1.core.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.lowerCase
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insertAndGetId
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.jetbrains.exposed.v1.jdbc.update
-import java.time.Instant
 
 class FoldersRepoImpl(private val panelsRepo: PanelsRepo) : FoldersRepo {
 
@@ -149,6 +149,31 @@ class FoldersRepoImpl(private val panelsRepo: PanelsRepo) : FoldersRepo {
                     payload = Json.encodeToJsonElement(idBasedDTO.copy(eventTimestamp = eventTimestamp)),
                 )
             )
+        } catch (e: Exception) {
+            Result.Failure(e)
+        }
+    }
+
+    override suspend fun search(folderName: String): Result<List<Folder>> {
+        return try {
+            if (folderName.isBlank()) return Result.Success(response = emptyList(), webSocketEvent = null)
+
+            transaction {
+                FoldersTable.selectAll().where {
+                    FoldersTable.folderName.lowerCase() like "%${folderName.lowercase()}%"
+                }.toList().map {
+                    Folder(
+                        id = it[FoldersTable.id].value,
+                        name = it[FoldersTable.folderName],
+                        note = it[FoldersTable.note],
+                        parentFolderId = it[FoldersTable.parentFolderID],
+                        isArchived = it[FoldersTable.isFolderArchived],
+                        eventTimestamp = it[FoldersTable.lastModified]
+                    )
+                }
+            }.let {
+                Result.Success(response = it, webSocketEvent = null)
+            }
         } catch (e: Exception) {
             Result.Failure(e)
         }
