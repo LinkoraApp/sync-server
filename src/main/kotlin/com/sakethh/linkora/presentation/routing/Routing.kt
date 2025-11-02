@@ -281,5 +281,6 @@ fun Application.configureRouting(serverConfig: ServerConfig, markdownManagerRepo
         syncRouting(syncRepo)
         multiActionRouting(multiActionRepo)
         tagsRouting(tagsRepo)
+        browserExtensionRouting(foldersRepo)
     }
 }
