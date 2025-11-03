@@ -49,7 +49,7 @@ fun main() {
         factory = Netty, configure = {
         sslConnector(builder = {
             this.port = serverConfig.httpsPort
-            this.host = hostIp?.hostAddress ?: localhost.hostAddress
+            this.host = serverConfig.serverHost
             enabledProtocols = listOf("TLSv1.3", "TLSv1.2")
         }, keyStore = serverKeyStore, keyAlias = Constants.KEY_STORE_ALIAS, keyStorePassword = {
             serverConfig.keyStorePassword.toCharArray()
@@ -60,12 +60,12 @@ fun main() {
         // for http connections
         connector {
             this.port = serverConfig.httpPort
-            this.host = serverConfig.hostAddress
+            this.host = serverConfig.serverHost
         }
     }, module = Application::module).start(wait = true)
 }
 
-private val hostIp = try {
+val hostIp = try {
     NetworkInterface.getNetworkInterfaces().asSequence().flatMap { it.inetAddresses.asSequence() }.firstOrNull {
         !it.isLoopbackAddress && it is Inet4Address && it.isSiteLocalAddress
     }
@@ -74,15 +74,15 @@ private val hostIp = try {
     null
 }
 
-private val localhost = Inet4Address.getLocalHost()
+val localhost: InetAddress = Inet4Address.getLocalHost()
 
 object ServerConfiguration {
     private val json = Json {
         prettyPrint = true
         encodeDefaults = true
     }
-    val jarDir = Paths.get(this::class.java.protectionDomain.codeSource.location.toURI()).parent
-    private val configFilePath = jarDir.resolve("linkoraConfig.json")
+    val serverJarDir = Paths.get(this::class.java.protectionDomain.codeSource.location.toURI()).parent
+    private val configFilePath = serverJarDir.resolve("linkoraConfig.json")
 
     private fun doesConfigFileExists(): Boolean {
         return Files.exists(configFilePath)
@@ -143,7 +143,7 @@ object ServerConfiguration {
                 databaseUrl = "jdbc:" + System.getenv(SysEnvKey.LINKORA_DATABASE_URL.name),
                 databaseUser = System.getenv(SysEnvKey.LINKORA_DATABASE_USER.name),
                 databasePassword = System.getenv(SysEnvKey.LINKORA_DATABASE_PASSWORD.name),
-                hostAddress = try {
+                serverHost = try {
                     // manually throw the exception as `getenv` may return null, and no conversion is happening here to auto-throw
                     System.getenv(SysEnvKey.LINKORA_HOST_ADDRESS.name) ?: throw NullPointerException()
                 } catch (_: Exception) {
@@ -188,8 +188,8 @@ object ServerConfiguration {
     }
 
     fun exportSignedCertificates(keyStore: KeyStore) {
-        val destinationPathForCer = jarDir.resolve("linkoraServerCert.cer")
-        val destinationPathForPem = jarDir.resolve("linkoraServerCert.pem")
+        val destinationPathForCer = serverJarDir.resolve("linkoraServerCert.cer")
+        val destinationPathForPem = serverJarDir.resolve("linkoraServerCert.pem")
         val signedCertificate = keyStore.getCertificate(Constants.KEY_STORE_ALIAS)
 
         if (!destinationPathForCer.exists()) {
@@ -215,7 +215,7 @@ object ServerConfiguration {
             this.certificate(
                 alias = Constants.KEY_STORE_ALIAS, block = {
                     this.password = serverConfig.keyStorePassword
-                    this.domains = listOf(hostIp?.hostAddress ?: localhost.hostAddress)
+                    this.domains = listOf(serverConfig.serverHost)
                     this.ipAddresses = listOf(hostIp ?: localhost)
                     this.daysValid = 365
                     this.subject = X500Principal("CN=linkora-sync, OU=Linkora, O=Linkora, C=West Elizabeth")
@@ -224,7 +224,7 @@ object ServerConfiguration {
                     this.sign = SignatureAlgorithm.RSA
                 })
         }
-        return jarDir.resolve("linkoraServerCert.jks").run {
+        return serverJarDir.resolve("linkoraServerCert.jks").run {
             if (forceCreate.not() && exists()) {
                 FileInputStream(toFile()).use { keyStoreFile ->
                     KeyStore.getInstance(KeyStore.getDefaultType()).also {

@@ -45,7 +45,7 @@ fun Application.configureRouting(serverConfig: ServerConfig, markdownManagerRepo
                 call.respond(message = HttpStatusCode.OK, status = HttpStatusCode.OK)
             }
             post(path = "/generate/certs-and-keystore") {
-                val zipFile = ServerConfiguration.jarDir.resolve("linkora-certs-and-keystore.zip").run {
+                val zipFile = ServerConfiguration.serverJarDir.resolve("linkora-certs-and-keystore.zip").run {
                     if (exists()) {
                         this.toFile()
                     } else {
@@ -55,9 +55,9 @@ fun Application.configureRouting(serverConfig: ServerConfig, markdownManagerRepo
 
                 ZipOutputStream(zipFile.outputStream()).use { zipOutputStream ->
                     val files = listOf<File>(
-                        ServerConfiguration.jarDir.resolve("linkoraServerCert.cer").toFile(),
-                        ServerConfiguration.jarDir.resolve("linkoraServerCert.pem").toFile(),
-                        ServerConfiguration.jarDir.resolve("linkoraServerCert.jks").toFile(),
+                        ServerConfiguration.serverJarDir.resolve("linkoraServerCert.cer").toFile(),
+                        ServerConfiguration.serverJarDir.resolve("linkoraServerCert.pem").toFile(),
+                        ServerConfiguration.serverJarDir.resolve("linkoraServerCert.jks").toFile(),
                     )
 
                     files.forEach {
@@ -90,7 +90,7 @@ fun Application.configureRouting(serverConfig: ServerConfig, markdownManagerRepo
                 if (call.queryParameters["download"] == "true") {
                     call.respondFile(file = zipFile)
                 } else {
-                    call.respond("Certificates and keystore have been successfully generated at ${ServerConfiguration.jarDir.pathString}. A ZIP file containing all these files is also saved in the same directory.")
+                    call.respond("Certificates and keystore have been successfully generated at ${ServerConfiguration.serverJarDir.pathString}. A ZIP file containing all these files is also saved in the same directory.")
                 }
             }
         }
@@ -247,7 +247,7 @@ fun Application.configureRouting(serverConfig: ServerConfig, markdownManagerRepo
 
         get(Route.Sync.SERVER_IS_CONFIGURED.name) {
             val placeHolderValue =
-                if ((useSysEnvValues().not() && serverConfig.hostAddress != InetAddress.getLocalHost().hostAddress) || (useSysEnvValues() && System.getenv(
+                if ((useSysEnvValues().not() && serverConfig.serverHost != InetAddress.getLocalHost().hostAddress) || (useSysEnvValues() && System.getenv(
                         SysEnvKey.LINKORA_HOST_ADDRESS.name
                     ) != InetAddress.getLocalHost().hostAddress)
                 ) {
